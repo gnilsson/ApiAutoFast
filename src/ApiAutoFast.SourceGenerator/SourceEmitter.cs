@@ -72,7 +72,7 @@ internal class AutoFastContextAttribute : System.Attribute
         EndpointTargetType.Update => static (sb, endpointConfig) =>
         {
             sb.Append(@"
-        var result = await _dbContext.").Append(endpointConfig.EntityName).Append(@"s.FindAsync(new [] { req.Id }, ct);
+        var result = await _dbContext.").Append(endpointConfig.EntityName).Append(@"s.FindAsync((Identifier)req.Id, ct);
 
         if (result is null)
         {
@@ -90,7 +90,7 @@ internal class AutoFastContextAttribute : System.Attribute
         EndpointTargetType.Delete => static (sb, endpointConfig) =>
         {
             sb.Append(@"
-        var result = await _dbContext.").Append(endpointConfig.EntityName).Append(@"s.FindAsync(new [] { req.Id }, ct);
+        var result = await _dbContext.").Append(endpointConfig.EntityName).Append(@"s.FindAsync((Identifier)req.Id, ct);
 
         if (result is null)
         {
@@ -108,7 +108,7 @@ internal class AutoFastContextAttribute : System.Attribute
         EndpointTargetType.GetById => static (sb, endpointConfig) =>
         {
             sb.Append(@"
-        var result = await _dbContext.").Append(endpointConfig.EntityName).Append(@"s.FindAsync(new [] { req.Id }, ct);
+        var result = await _dbContext.").Append(endpointConfig.EntityName).Append(@"s.FindAsync((Identifier)req.Id, ct);
 
         if (result is null)
         {
@@ -268,7 +268,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
-namespace ").Append(@namespace).Append(@";");
+namespace ").Append(@namespace).Append(@";
+");
         sb.Append(@"
 public partial class ")
             .Append(endpointConfig.Name)
@@ -280,8 +281,8 @@ public partial class ")
             .Append(endpointConfig.MappingProfile)
             .Append(@">
 {
-    partial void ExtendConfigure();
-    private bool _overrideConfigure = false;
+    partial void OnExtendConfigure();
+    private bool _extendConfigure = false;
     private readonly ").Append(contextName).Append(@" _dbContext;
 
     public ").Append(endpointConfig.Name).Append(@"(").Append(contextName).Append(@" dbContext)
@@ -291,15 +292,14 @@ public partial class ")
 
     public override void Configure()
     {
-        if (_overrideConfigure is false)
+        if (_extendConfigure is false)
         {
             Verbs(").Append(endpointConfig.RequestEndpointPair.HttpVerb).Append(@");
             Routes(""").Append(endpointConfig.Route).Append(@""");
-
             AllowAnonymous();
         }
 
-        ExtendConfigure();
+        OnExtendConfigure();
     }
 ");
         sb.Append(@"
