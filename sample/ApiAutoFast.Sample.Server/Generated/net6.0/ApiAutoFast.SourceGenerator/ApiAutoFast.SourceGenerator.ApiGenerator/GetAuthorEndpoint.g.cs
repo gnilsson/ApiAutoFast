@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
 namespace ApiAutoFast.Sample.Server.Database;
-
 public partial class GetAuthorEndpoint : Endpoint<AuthorQueryRequest, PaginatedResponse<AuthorResponse>, AuthorMappingProfile>
 {
     partial void ExtendConfigure();

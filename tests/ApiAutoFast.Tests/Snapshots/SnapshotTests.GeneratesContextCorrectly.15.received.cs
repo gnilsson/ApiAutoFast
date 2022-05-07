@@ -8,14 +8,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ApiAutoFast.Sample.Server.Database;
 
-
-public partial class UpdateAuthorEndpoint : Endpoint<AuthorModifyCommandAuthorResponseAuthorMappingProfile>
+public partial class UpdateAuthorEndpoint : Endpoint<AuthorModifyCommand, AuthorResponse, AuthorMappingProfile>
 {
     partial void ExtendConfigure();
     private bool _overrideConfigure = false;
     private readonly AutoFastSampleDbContext _dbContext;
 
-    public UpdateAuthorEndpointEndpoint(AutoFastSampleDbContext dbContext)
+    public UpdateAuthorEndpoint(AutoFastSampleDbContext dbContext)
     {
         _dbContext = dbContext;
     }
@@ -25,7 +24,7 @@ public partial class UpdateAuthorEndpoint : Endpoint<AuthorModifyCommandAuthorRe
         if (_overrideConfigure is false)
         {
             Verbs(Http.PUT);
-            Routes("/authors");
+            Routes("/authors/{id}");
 
             AllowAnonymous();
         }
@@ -35,6 +34,17 @@ public partial class UpdateAuthorEndpoint : Endpoint<AuthorModifyCommandAuthorRe
 
     public override async Task HandleAsync(AuthorModifyCommand req, CancellationToken ct)
     {
-        return base.HandleAsync(req, ct);
+        var result = await _dbContext.Authors.FindAsync(new [] { req.Id }, ct);
+
+        if (result is null)
+        {
+            await SendNotFoundAsync(ct);
+        }
+
+        var entity = Map.UpdateEntity(result, req);
+
+        var response = Map.FromEntity(entity);
+
+        await SendOkAsync(response, ct);
     }
 }

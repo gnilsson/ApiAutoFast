@@ -8,14 +8,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ApiAutoFast.Sample.Server.Database;
 
-
-public partial class DeleteAuthorEndpoint : Endpoint<AuthorDeleteRequestAuthorResponseAuthorMappingProfile>
+public partial class DeleteAuthorEndpoint : Endpoint<AuthorDeleteRequest, AuthorResponse, AuthorMappingProfile>
 {
     partial void ExtendConfigure();
     private bool _overrideConfigure = false;
     private readonly AutoFastSampleDbContext _dbContext;
 
-    public DeleteAuthorEndpointEndpoint(AutoFastSampleDbContext dbContext)
+    public DeleteAuthorEndpoint(AutoFastSampleDbContext dbContext)
     {
         _dbContext = dbContext;
     }
@@ -25,7 +24,7 @@ public partial class DeleteAuthorEndpoint : Endpoint<AuthorDeleteRequestAuthorRe
         if (_overrideConfigure is false)
         {
             Verbs(Http.DELETE);
-            Routes("/authors");
+            Routes("/authors/{id}");
 
             AllowAnonymous();
         }
@@ -35,6 +34,17 @@ public partial class DeleteAuthorEndpoint : Endpoint<AuthorDeleteRequestAuthorRe
 
     public override async Task HandleAsync(AuthorDeleteRequest req, CancellationToken ct)
     {
-        return base.HandleAsync(req, ct);
+        var result = await _dbContext.Authors.FindAsync(new [] { req.Id }, ct);
+
+        if (result is null)
+        {
+            await SendNotFoundAsync(ct);
+        }
+
+        _dbContext.Authors.Remove(result);
+
+        await _dbContext.SaveChangesAsync(ct);
+
+        await SendOkAsync(ct);
     }
 }

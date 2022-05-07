@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
 namespace ApiAutoFast.Sample.Server.Database;
-
 public partial class CreateAuthorEndpoint : Endpoint<AuthorCreateCommand, AuthorResponse, AuthorMappingProfile>
 {
     partial void ExtendConfigure();
@@ -41,6 +40,6 @@ public partial class CreateAuthorEndpoint : Endpoint<AuthorCreateCommand, Author
 
         var response = Map.FromEntity(entity);
 
-        await SendOkAsync(response, ct);
+        await SendCreatedAtAsync<GetByIdAuthorEndpoint>(response.Id, response, Http.GET, cancellation: ct);
     }
 }

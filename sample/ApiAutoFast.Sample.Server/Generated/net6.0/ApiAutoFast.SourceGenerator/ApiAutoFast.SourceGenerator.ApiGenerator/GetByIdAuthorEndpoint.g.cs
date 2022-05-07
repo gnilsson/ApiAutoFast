@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
 namespace ApiAutoFast.Sample.Server.Database;
-
 public partial class GetByIdAuthorEndpoint : Endpoint<AuthorGetByIdRequest, AuthorResponse, AuthorMappingProfile>
 {
     partial void ExtendConfigure();
@@ -33,6 +32,15 @@ public partial class GetByIdAuthorEndpoint : Endpoint<AuthorGetByIdRequest, Auth
 
     public override async Task HandleAsync(AuthorGetByIdRequest req, CancellationToken ct)
     {
-        await base.HandleAsync(req, ct);
+        var result = await _dbContext.Authors.FindAsync(new [] { req.Id }, ct);
+
+        if (result is null)
+        {
+            await SendNotFoundAsync(ct);
+        }
+
+        var response = Map.FromEntity(result);
+
+        await SendOkAsync(response, ct);
     }
 }

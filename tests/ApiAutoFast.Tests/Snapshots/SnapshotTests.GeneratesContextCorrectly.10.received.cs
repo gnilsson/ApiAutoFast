@@ -8,14 +8,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ApiAutoFast.Sample.Server.Database;
 
-
-public partial class CreateAuthorEndpoint : Endpoint<AuthorCreateCommandAuthorResponseAuthorMappingProfile>
+public partial class CreateAuthorEndpoint : Endpoint<AuthorCreateCommand, AuthorResponse, AuthorMappingProfile>
 {
     partial void ExtendConfigure();
     private bool _overrideConfigure = false;
     private readonly AutoFastSampleDbContext _dbContext;
 
-    public CreateAuthorEndpointEndpoint(AutoFastSampleDbContext dbContext)
+    public CreateAuthorEndpoint(AutoFastSampleDbContext dbContext)
     {
         _dbContext = dbContext;
     }
@@ -43,6 +42,6 @@ public partial class CreateAuthorEndpoint : Endpoint<AuthorCreateCommandAuthorRe
 
         var response = Map.FromEntity(entity);
 
-        await SendOkAsync(response, ct);
+        await SendCreatedAtAsync<GetByIdAuthorEndpoint>(response.Id, response, Http.GET, false, ct);
     }
 }

@@ -6,5 +6,5 @@ namespace ApiAutoFast.Sample.Server.Database;
 
 public class AuthorDeleteRequest
 {
-    public string? Id { get; set; }
+    public string Id { get; set; }
 }

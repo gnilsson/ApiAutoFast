@@ -8,14 +8,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ApiAutoFast.Sample.Server.Database;
 
-
-public partial class GetAuthorEndpoint : Endpoint<AuthorQueryRequestPaginatedResponse<AuthorResponse>AuthorMappingProfile>
+public partial class GetAuthorEndpoint : Endpoint<AuthorQueryRequest, PaginatedResponse<AuthorResponse>, AuthorMappingProfile>
 {
     partial void ExtendConfigure();
     private bool _overrideConfigure = false;
     private readonly AutoFastSampleDbContext _dbContext;
 
-    public GetAuthorEndpointEndpoint(AutoFastSampleDbContext dbContext)
+    public GetAuthorEndpoint(AutoFastSampleDbContext dbContext)
     {
         _dbContext = dbContext;
     }

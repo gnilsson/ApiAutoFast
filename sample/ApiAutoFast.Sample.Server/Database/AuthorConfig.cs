@@ -45,18 +45,15 @@ public partial class MappingRegister
     }
 }
 
-public partial class AuthorMappingProfile
-{
-    public partial Author OnOverrideUpdateEntity(Author originalEntity, AuthorModifyCommand e);
-}
+
 public partial class AuthorMappingProfile //: Mapper<AuthorCreateCommand, AuthorEntityResponse, AuthorEntity>
 {
-    private readonly bool _onOverrideUpdateEntity = false;
+    //private readonly bool _onOverrideUpdateEntity = false;
 
-    public partial Author OnOverrideUpdateEntity(Author originalEntity, AuthorModifyCommand e)
-    {
-        return null;
-    }
+    //public partial Author OnOverrideUpdateEntity(Author originalEntity, AuthorModifyCommand e)
+    //{
+    //    return null;
+    //}
 
     // default impl for toentity?
     public override Author ToEntity(AuthorCreateCommand e)
@@ -70,7 +67,6 @@ public partial class AuthorMappingProfile //: Mapper<AuthorCreateCommand, Author
     }
 }
 
-
 public partial class GetByIdAuthorEndpoint
 {
     public override Task OnBeforeHandleAsync(AuthorGetByIdRequest req)
@@ -78,10 +74,6 @@ public partial class GetByIdAuthorEndpoint
         return base.OnBeforeHandleAsync(req);
     }
 
-    public override Task<AuthorResponse> ExecuteAsync(AuthorGetByIdRequest req, CancellationToken ct)
-    {
-        return base.ExecuteAsync(req, ct);
-    }
 
     //public override async Task<AuthorResponse> ExecuteAsync(AuthorGetByIdRequest req, CancellationToken ct)
     //{
@@ -101,6 +93,11 @@ public partial class GetByIdAuthorEndpoint
 
 //[JsonSerializable(typeof(AuthorResponse))]
 //public partial class AuthorSerializerContext : JsonSerializerContext { }
+
+public class Ah : IEntityMapper
+{
+
+}
 
 public partial class CreateAuthorEndpoint
 {
@@ -124,9 +121,11 @@ public partial class CreateAuthorEndpoint
 
         //var add = await _dbContext.Authors.AddAsync(null);
 
+     //   Map
+
         Console.WriteLine($"Hej! {count}st.");
 
-        //SendCreatedAtAsync<GetByIdAuthorEndpoint>(result.Id, response, Http.GET, false, ct);
+      //  SendCreatedAtAsync<GetByIdAuthorEndpoint>("", default, Http.GET, cancellation: CancellationToken.None);
 
         await base.OnBeforeHandleAsync(req);
     }

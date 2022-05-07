@@ -8,14 +8,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ApiAutoFast.Sample.Server.Database;
 
-
-public partial class GetByIdAuthorEndpoint : Endpoint<AuthorGetByIdRequestAuthorResponseAuthorMappingProfile>
+public partial class GetByIdAuthorEndpoint : Endpoint<AuthorGetByIdRequest, AuthorResponse, AuthorMappingProfile>
 {
     partial void ExtendConfigure();
     private bool _overrideConfigure = false;
     private readonly AutoFastSampleDbContext _dbContext;
 
-    public GetByIdAuthorEndpointEndpoint(AutoFastSampleDbContext dbContext)
+    public GetByIdAuthorEndpoint(AutoFastSampleDbContext dbContext)
     {
         _dbContext = dbContext;
     }
@@ -25,7 +24,7 @@ public partial class GetByIdAuthorEndpoint : Endpoint<AuthorGetByIdRequestAuthor
         if (_overrideConfigure is false)
         {
             Verbs(Http.GET);
-            Routes("/authors");
+            Routes("/authors/{id}");
 
             AllowAnonymous();
         }
@@ -35,6 +34,15 @@ public partial class GetByIdAuthorEndpoint : Endpoint<AuthorGetByIdRequestAuthor
 
     public override async Task HandleAsync(AuthorGetByIdRequest req, CancellationToken ct)
     {
-        return base.HandleAsync(req, ct);
+        var result = await _dbContext.Authors.FindAsync(new [] { req.Id }, ct);
+
+        if (result is null)
+        {
+            await SendNotFoundAsync(ct);
+        }
+
+        var response = Map.FromEntity(author);
+
+        await SendOkAsync(response, ct);
     }
 }

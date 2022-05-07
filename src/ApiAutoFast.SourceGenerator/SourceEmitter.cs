@@ -65,30 +65,43 @@ internal class AutoFastContextAttribute : System.Attribute
 
         var response = Map.FromEntity(entity);
 
-        await SendCreatedAtAsync<GetById").Append(endpointConfig.EntityName).Append(@"Endpoint>(response.Id, response, Http.GET, false, ct);");
+        await SendCreatedAtAsync<GetById").Append(endpointConfig.EntityName).Append(@"Endpoint>(response.Id, response, Http.GET, cancellation: ct);");
             return sb;
         }
         ,
         EndpointTargetType.Update => static (sb, endpointConfig) =>
         {
             sb.Append(@"
-            var result = await _dbContext.").Append(endpointConfig.EntityName).Append(@"s.FindAsync(new [] { req.Id }, ct);
+        var result = await _dbContext.").Append(endpointConfig.EntityName).Append(@"s.FindAsync(new [] { req.Id }, ct);
 
-            if (result is null)
-            {
-                await SendNotFoundAsync(ct);
-            }
+        if (result is null)
+        {
+            await SendNotFoundAsync(ct);
+        }
 
-");
+        var entity = Map.UpdateEntity(result, req);
 
+        var response = Map.FromEntity(entity);
+
+        await SendOkAsync(response, ct);");
             return sb;
         }
         ,
         EndpointTargetType.Delete => static (sb, endpointConfig) =>
         {
             sb.Append(@"
-");
+        var result = await _dbContext.").Append(endpointConfig.EntityName).Append(@"s.FindAsync(new [] { req.Id }, ct);
 
+        if (result is null)
+        {
+            await SendNotFoundAsync(ct);
+        }
+
+        _dbContext.").Append(endpointConfig.EntityName).Append(@"s.Remove(result);
+
+        await _dbContext.SaveChangesAsync(ct);
+
+        await SendOkAsync(ct);");
             return sb;
         }
         ,
@@ -102,7 +115,7 @@ internal class AutoFastContextAttribute : System.Attribute
             await SendNotFoundAsync(ct);
         }
 
-        var response = Map.FromEntity(author);
+        var response = Map.FromEntity(result);
 
         await SendOkAsync(response, ct);");
             return sb;
@@ -255,8 +268,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
-namespace ").Append(@namespace).Append(@";
-");
+namespace ").Append(@namespace).Append(@";");
         sb.Append(@"
 public partial class ")
             .Append(endpointConfig.Name)
@@ -392,11 +404,9 @@ public partial class ")
     .Append(entityConfig.BaseName)
     .Append(@">
 {
-
     private readonly bool _onOverrideUpdateEntity = false;
 
-    public ")
-    .Append(entityConfig.BaseName)
+    partial void")
     .Append(@" OnOverrideUpdateEntity(")
     .Append(entityConfig.BaseName)
     .Append(@" originalEntity, ")
@@ -413,9 +423,9 @@ public partial class ")
         return e.AdaptToResponse();
     }
 
-    public partial ")
+    public ")
     .Append(entityConfig.BaseName)
-    .Append(@"UpdateEntity(")
+    .Append(@" UpdateEntity(")
     .Append(entityConfig.BaseName)
     .Append(@" originalEntity, ")
     .Append(entityConfig.BaseName)
@@ -424,13 +434,14 @@ public partial class ")
     {
         if(_onOverrideUpdateEntity)
         {
-            return OnOverrideUpdateEntity(originalEntity, e);
+            OnOverrideUpdateEntity(originalEntity, e);
+            return originalEntity;
         }
 ");
         foreach (var propertyName in YieldModifyCommandProperties(entityConfig))
         {
             sb.Append(@"
-        originalEntity.").Append(propertyName).Append(@" = e").Append(propertyName).Append(';');
+        originalEntity.").Append(propertyName).Append(@" = e.").Append(propertyName).Append(';');
         }
         sb.Append(@"
         return originalEntity;
