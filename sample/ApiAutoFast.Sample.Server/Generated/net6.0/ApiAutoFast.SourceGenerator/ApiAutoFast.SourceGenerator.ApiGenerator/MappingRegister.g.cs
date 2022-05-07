@@ -43,7 +43,7 @@ public partial class MappingRegister : ICodeGenerationRegister
         ExtendRegister(config);
 
         config.GenerateMapper("[name]Mapper")
-        .ForType<Author>();
+            .ForType<Author>();
     }
 }
 
@@ -51,16 +51,14 @@ public static class AdaptAttributeBuilderExtensions
 {
     public static AdaptAttributeBuilder ForTypeDefaultValues(this AdaptAttributeBuilder aab)
     {
-        aab
-        .ForType<Author>(cfg =>
-        {
-            cfg.Map(poco => poco.Id, typeof(string));
-            cfg.Map(poco => poco.CreatedDateTime, typeof(string));
-            cfg.Map(poco => poco.ModifiedDateTime, typeof(string));
-            // todo: enums?
-            // foreach enum property in entity write cfg.map => enum, typeof(string)
-        });
-
-        return aab;
+        return aab
+            .ForType<Author>(cfg =>
+            {
+                cfg.Map(poco => poco.Id, typeof(string));
+                cfg.Map(poco => poco.CreatedDateTime, typeof(string));
+                cfg.Map(poco => poco.ModifiedDateTime, typeof(string));
+                // todo: enums?
+                // foreach enum property in entity write cfg.map => enum, typeof(string)
+            });
     }
 }

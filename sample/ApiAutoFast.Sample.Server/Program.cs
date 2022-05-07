@@ -17,6 +17,8 @@ builder.Services
         s.Version = "v0.0";
     }, shortSchemaNames: true);
 
+builder.Services.AddTransient<IService, FooService>();
+
 var app = await builder.BuildAutoFastAsync<AutoFastSampleDbContext>("sqlConn");
 //var app = builder.Build();
 

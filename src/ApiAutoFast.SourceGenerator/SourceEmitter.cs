@@ -29,7 +29,7 @@ internal class AutoFastContextAttribute : System.Attribute
     public string? CreatedDateTime { get; set; }
     public string? ModifiedDateTime { get; set; }",
         _ => @"
-    public string? Id { get; set; }",
+    public string Id { get; set; }",
     };
 
     private static readonly Func<EndpointTargetType, Func<StringBuilder, EndpointConfig, StringBuilder>> _endpointSourceGets = static (target) => target switch
@@ -64,6 +64,45 @@ internal class AutoFastContextAttribute : System.Attribute
         await _dbContext.SaveChangesAsync(ct);
 
         var response = Map.FromEntity(entity);
+
+        await SendCreatedAtAsync<GetById").Append(endpointConfig.EntityName).Append(@"Endpoint>(response.Id, response, Http.GET, false, ct);");
+            return sb;
+        }
+        ,
+        EndpointTargetType.Update => static (sb, endpointConfig) =>
+        {
+            sb.Append(@"
+            var result = await _dbContext.").Append(endpointConfig.EntityName).Append(@"s.FindAsync(new [] { req.Id }, ct);
+
+            if (result is null)
+            {
+                await SendNotFoundAsync(ct);
+            }
+
+");
+
+            return sb;
+        }
+        ,
+        EndpointTargetType.Delete => static (sb, endpointConfig) =>
+        {
+            sb.Append(@"
+");
+
+            return sb;
+        }
+        ,
+        EndpointTargetType.GetById => static (sb, endpointConfig) =>
+        {
+            sb.Append(@"
+        var result = await _dbContext.").Append(endpointConfig.EntityName).Append(@"s.FindAsync(new [] { req.Id }, ct);
+
+        if (result is null)
+        {
+            await SendNotFoundAsync(ct);
+        }
+
+        var response = Map.FromEntity(author);
 
         await SendOkAsync(response, ct);");
             return sb;
@@ -130,7 +169,7 @@ public partial class MappingRegister : ICodeGenerationRegister
         foreach (var entity in generationConfig.EntityConfigs)
         {
             sb.Append(@"
-        .ForType<").Append(entity.BaseName).Append(@">()");
+            .ForType<").Append(entity.BaseName).Append(@">()");
         }
         sb.Append(@";").Append(@"
     }
@@ -140,23 +179,20 @@ public static class AdaptAttributeBuilderExtensions
 {
     public static AdaptAttributeBuilder ForTypeDefaultValues(this AdaptAttributeBuilder aab)
     {
-        aab");
+        return aab");
         foreach (var entity in generationConfig.EntityConfigs)
         {
             sb.Append(@"
-        .ForType<").Append(entity.BaseName).Append(@">(cfg =>
-        {
-            cfg.Map(poco => poco.Id, typeof(string));
-            cfg.Map(poco => poco.CreatedDateTime, typeof(string));
-            cfg.Map(poco => poco.ModifiedDateTime, typeof(string));
-            // todo: enums?
-            // foreach enum property in entity write cfg.map => enum, typeof(string)
-        })");
+            .ForType<").Append(entity.BaseName).Append(@">(cfg =>
+            {
+                cfg.Map(poco => poco.Id, typeof(string));
+                cfg.Map(poco => poco.CreatedDateTime, typeof(string));
+                cfg.Map(poco => poco.ModifiedDateTime, typeof(string));
+                // todo: enums?
+                // foreach enum property in entity write cfg.map => enum, typeof(string)
+            })");
         }
-
         sb.Append(@";
-
-        return aab;
     }
 }
 ");
@@ -356,6 +392,18 @@ public partial class ")
     .Append(entityConfig.BaseName)
     .Append(@">
 {
+
+    private readonly bool _onOverrideUpdateEntity = false;
+
+    public ")
+    .Append(entityConfig.BaseName)
+    .Append(@" OnOverrideUpdateEntity(")
+    .Append(entityConfig.BaseName)
+    .Append(@" originalEntity, ")
+    .Append(entityConfig.BaseName)
+    .Append(nameof(AttributeModelTargetType.ModifyCommand))
+    .Append(@" e);
+
     public override ")
     .Append(entityConfig.Response)
     .Append(@" FromEntity(")
@@ -364,10 +412,47 @@ public partial class ")
     {
         return e.AdaptToResponse();
     }
+
+    public partial ")
+    .Append(entityConfig.BaseName)
+    .Append(@"UpdateEntity(")
+    .Append(entityConfig.BaseName)
+    .Append(@" originalEntity, ")
+    .Append(entityConfig.BaseName)
+    .Append(nameof(AttributeModelTargetType.ModifyCommand))
+    .Append(@" e)
+    {
+        if(_onOverrideUpdateEntity)
+        {
+            return OnOverrideUpdateEntity(originalEntity, e);
+        }
+");
+        foreach (var propertyName in YieldModifyCommandProperties(entityConfig))
+        {
+            sb.Append(@"
+        originalEntity.").Append(propertyName).Append(@" = e").Append(propertyName).Append(';');
+        }
+        sb.Append(@"
+        return originalEntity;
+    }
 }
 ");
-
         return sb.ToString();
+    }
+
+    private static IEnumerable<string> YieldModifyCommandProperties(EntityConfig entityConfig)
+    {
+        if (entityConfig.PropertyMetadatas?.Length > 0)
+        {
+            foreach (var propertyMetadata in entityConfig.PropertyMetadatas.Value)
+            {
+                if (propertyMetadata.AttributeMetadatas?.Length > 0
+                    && propertyMetadata.AttributeMetadatas.Value.Any(x => x.Name is nameof(AttributeModelTargetType.ModifyCommand)))
+                {
+                    yield return propertyMetadata.Name;
+                }
+            }
+        }
     }
 
     private static IEnumerable<string> YieldModelTargetPropertySource(EntityConfig entityConfig, string modelTarget)

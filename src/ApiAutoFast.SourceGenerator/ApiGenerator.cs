@@ -214,7 +214,7 @@ public class ApiGenerator : IIncrementalGenerator
 
             var attributes = YieldAttributeMetadatas(property).ToImmutableArray();
 
-            yield return new PropertyMetadata(source, attributes);
+            yield return new PropertyMetadata(source, property.Name, attributes);
 
         }
     }

@@ -1,7 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
-using ApiAutoFast;
+﻿using FastEndpoints;
 using Mapster;
+using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace ApiAutoFast.Sample.Server.Database;
 
@@ -45,8 +45,20 @@ public partial class MappingRegister
     }
 }
 
+public partial class AuthorMappingProfile
+{
+    public partial Author OnOverrideUpdateEntity(Author originalEntity, AuthorModifyCommand e);
+}
 public partial class AuthorMappingProfile //: Mapper<AuthorCreateCommand, AuthorEntityResponse, AuthorEntity>
 {
+    private readonly bool _onOverrideUpdateEntity = false;
+
+    public partial Author OnOverrideUpdateEntity(Author originalEntity, AuthorModifyCommand e)
+    {
+        return null;
+    }
+
+    // default impl for toentity?
     public override Author ToEntity(AuthorCreateCommand e)
     {
         return new Author
@@ -59,5 +71,82 @@ public partial class AuthorMappingProfile //: Mapper<AuthorCreateCommand, Author
 }
 
 
+public partial class GetByIdAuthorEndpoint
+{
+    public override Task OnBeforeHandleAsync(AuthorGetByIdRequest req)
+    {
+        return base.OnBeforeHandleAsync(req);
+    }
+
+    public override Task<AuthorResponse> ExecuteAsync(AuthorGetByIdRequest req, CancellationToken ct)
+    {
+        return base.ExecuteAsync(req, ct);
+    }
+
+    //public override async Task<AuthorResponse> ExecuteAsync(AuthorGetByIdRequest req, CancellationToken ct)
+    //{
+    //    var author = await _dbContext.Authors.SingleOrDefaultAsync(x => x.Id == req.Id, ct);
+
+    //    if(author is null)
+    //    {
+    //        await SendNotFoundAsync(ct);
+    //    }
+
+    //    var response = Map.FromEntity(author);
+
+    //    await SendOkAsync(response, ct);
+    //}
+}
+
+
 //[JsonSerializable(typeof(AuthorResponse))]
 //public partial class AuthorSerializerContext : JsonSerializerContext { }
+
+public partial class CreateAuthorEndpoint
+{
+    private readonly IService _service;
+
+    public CreateAuthorEndpoint(AutoFastSampleDbContext dbContext, IService service)
+    {
+        _dbContext = dbContext;
+        _service = service;
+    }
+
+    partial void ExtendConfigure()
+    {
+    }
+
+    public override async Task OnBeforeHandleAsync(AuthorCreateCommand req)
+    {
+        _service.Log();
+
+        var count = await _dbContext.Authors.FindAsync(new[] { "" });
+
+        //var add = await _dbContext.Authors.AddAsync(null);
+
+        Console.WriteLine($"Hej! {count}st.");
+
+        //SendCreatedAtAsync<GetByIdAuthorEndpoint>(result.Id, response, Http.GET, false, ct);
+
+        await base.OnBeforeHandleAsync(req);
+    }
+
+    public override void OnBeforeValidate(AuthorCreateCommand req)
+    {
+        base.OnBeforeValidate(req);
+    }
+}
+
+
+public interface IService
+{
+    public void Log();
+}
+
+public class FooService : IService
+{
+    public void Log()
+    {
+        Console.WriteLine("hej");
+    }
+}

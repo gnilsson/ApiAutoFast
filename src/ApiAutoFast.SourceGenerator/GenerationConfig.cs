@@ -65,7 +65,9 @@ internal readonly struct EndpointConfig
         MappingProfile = entityConfig.MappingProfile;
         Route = requestEndpointPair.EndpointTarget switch
         {
-            EndpointTargetType.GetById => $"/{entityConfig.BaseName.ToLower()}s/{{id}}",
+            EndpointTargetType.GetById
+            or EndpointTargetType.Update
+            or EndpointTargetType.Delete => $"/{entityConfig.BaseName.ToLower()}s/{{id}}",
             _ => $"/{entityConfig.BaseName.ToLower()}s",
         };
         Response = requestEndpointPair.EndpointTarget switch
@@ -102,13 +104,15 @@ internal struct RequestEndpointPair
 
 internal readonly struct PropertyMetadata
 {
-    public PropertyMetadata(string source, ImmutableArray<AttributeMetadata>? attributeMetadatas)
+    public PropertyMetadata(string source, string name, ImmutableArray<AttributeMetadata>? attributeMetadatas)
     {
         Source = source;
+        Name = name;
         AttributeMetadatas = attributeMetadatas;
     }
 
     public string Source { get; }
+    public string Name { get; }
     public ImmutableArray<AttributeMetadata>? AttributeMetadatas { get; }
 }
 
