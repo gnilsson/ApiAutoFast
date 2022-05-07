@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
 namespace ApiAutoFast.Sample.Server.Database;
+
 public partial class DeleteAuthorEndpoint : Endpoint<AuthorDeleteRequest, AuthorResponse, AuthorMappingProfile>
 {
-    partial void ExtendConfigure();
-    private bool _overrideConfigure = false;
+    partial void OnExtendConfigure();
+    private bool _extendConfigure = false;
     private readonly AutoFastSampleDbContext _dbContext;
 
     public DeleteAuthorEndpoint(AutoFastSampleDbContext dbContext)
@@ -23,7 +24,6 @@ public partial class DeleteAuthorEndpoint : Endpoint<AuthorDeleteRequest, Author
         {
             Verbs(Http.DELETE);
             Routes("/authors/{id}");
-
             AllowAnonymous();
         }
 

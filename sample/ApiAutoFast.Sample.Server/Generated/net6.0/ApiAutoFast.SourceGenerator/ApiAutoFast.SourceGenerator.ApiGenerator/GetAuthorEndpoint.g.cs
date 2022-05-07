@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
 namespace ApiAutoFast.Sample.Server.Database;
+
 public partial class GetAuthorEndpoint : Endpoint<AuthorQueryRequest, PaginatedResponse<AuthorResponse>, AuthorMappingProfile>
 {
-    partial void ExtendConfigure();
-    private bool _overrideConfigure = false;
+    partial void OnExtendConfigure();
+    private bool _extendConfigure = false;
     private readonly AutoFastSampleDbContext _dbContext;
 
     public GetAuthorEndpoint(AutoFastSampleDbContext dbContext)
@@ -23,7 +24,6 @@ public partial class GetAuthorEndpoint : Endpoint<AuthorQueryRequest, PaginatedR
         {
             Verbs(Http.GET);
             Routes("/authors");
-
             AllowAnonymous();
         }
 
