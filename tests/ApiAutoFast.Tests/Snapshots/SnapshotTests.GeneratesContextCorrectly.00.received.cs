@@ -1,0 +1,17 @@
+﻿//HintName: Author.g.cs
+
+using ApiAutoFast;
+using System.ComponentModel.DataAnnotations;
+
+namespace ApiAutoFast.Sample.Server.Database;
+
+public class Author : IEntity
+{
+    public Identifier Id { get; set; }
+    public DateTime CreatedDateTime { get; set; }
+    public DateTime ModifiedDateTime { get; set; }
+    [Required]
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+    public ProfessionCategory Profession { get; set; }
+}

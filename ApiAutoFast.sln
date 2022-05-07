@@ -1,0 +1,62 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32328.378
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C0DB23B0-027B-4B9E-A624-8127ADB866DD}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiAutoFast", "src\ApiAutoFast\ApiAutoFast.csproj", "{7B72D755-09AD-41E4-A86E-F436179ECF69}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiAutoFast.SourceGenerator", "src\ApiAutoFast.SourceGenerator\ApiAutoFast.SourceGenerator.csproj", "{4F3CEA6E-E43A-4E27-9A8F-27AD618819D3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sample", "sample", "{85E05F5B-F9F5-4202-9CA1-D155CD2CC5D9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiAutoFast.Sample.Server", "sample\ApiAutoFast.Sample.Server\ApiAutoFast.Sample.Server.csproj", "{569C98C8-6E01-4CC4-81D0-27D9A02B13ED}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{5232EC81-D303-4116-B829-FCC50D9309F8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiAutoFast.Tests", "tests\ApiAutoFast.Tests\ApiAutoFast.Tests.csproj", "{7D036D6E-8B1C-4393-AE4E-5AF23D414919}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiAutoFast.IntegrationTests", "tests\ApiAutoFast.IntegrationTests\ApiAutoFast.IntegrationTests.csproj", "{50956AFC-3028-455E-BF75-391BB298EB8F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7B72D755-09AD-41E4-A86E-F436179ECF69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B72D755-09AD-41E4-A86E-F436179ECF69}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B72D755-09AD-41E4-A86E-F436179ECF69}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B72D755-09AD-41E4-A86E-F436179ECF69}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F3CEA6E-E43A-4E27-9A8F-27AD618819D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F3CEA6E-E43A-4E27-9A8F-27AD618819D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F3CEA6E-E43A-4E27-9A8F-27AD618819D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F3CEA6E-E43A-4E27-9A8F-27AD618819D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{569C98C8-6E01-4CC4-81D0-27D9A02B13ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{569C98C8-6E01-4CC4-81D0-27D9A02B13ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{569C98C8-6E01-4CC4-81D0-27D9A02B13ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{569C98C8-6E01-4CC4-81D0-27D9A02B13ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7D036D6E-8B1C-4393-AE4E-5AF23D414919}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7D036D6E-8B1C-4393-AE4E-5AF23D414919}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7D036D6E-8B1C-4393-AE4E-5AF23D414919}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7D036D6E-8B1C-4393-AE4E-5AF23D414919}.Release|Any CPU.Build.0 = Release|Any CPU
+		{50956AFC-3028-455E-BF75-391BB298EB8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{50956AFC-3028-455E-BF75-391BB298EB8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{50956AFC-3028-455E-BF75-391BB298EB8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{50956AFC-3028-455E-BF75-391BB298EB8F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{7B72D755-09AD-41E4-A86E-F436179ECF69} = {C0DB23B0-027B-4B9E-A624-8127ADB866DD}
+		{4F3CEA6E-E43A-4E27-9A8F-27AD618819D3} = {C0DB23B0-027B-4B9E-A624-8127ADB866DD}
+		{569C98C8-6E01-4CC4-81D0-27D9A02B13ED} = {85E05F5B-F9F5-4202-9CA1-D155CD2CC5D9}
+		{7D036D6E-8B1C-4393-AE4E-5AF23D414919} = {5232EC81-D303-4116-B829-FCC50D9309F8}
+		{50956AFC-3028-455E-BF75-391BB298EB8F} = {5232EC81-D303-4116-B829-FCC50D9309F8}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B7CE5866-5398-42C9-A6AA-1523D01D71A0}
+	EndGlobalSection
+EndGlobal
