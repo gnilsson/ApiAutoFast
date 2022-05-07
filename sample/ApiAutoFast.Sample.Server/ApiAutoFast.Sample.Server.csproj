@@ -56,6 +56,10 @@
 	<ItemGroup>
 		<Generated Include="**\*.g.cs" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Endpoints\" />
+	</ItemGroup>
 	<Target Name="CleanGenerated">
 		<Delete Files="@(Generated)" />
 	</Target>

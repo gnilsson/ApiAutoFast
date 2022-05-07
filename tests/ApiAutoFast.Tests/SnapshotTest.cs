@@ -50,49 +50,7 @@ public class AuthorConfig
         // override ToEntity
     }
 }
-
 ";
-
-
-
-        //[AutoFastContext]
-        //public partial class AutoFastSampleDbContext : DbContext
-        //{ }
-
-        //            var source = @"
-        //using ApiAutoFast;
-        //using GN.Toolkit;
-
-        //[AutoFastEndpoints]
-        //internal struct Blog
-        //{
-        //	// generates BlogEntity
-
-        //	internal class Configuration
-        //	{
-        //	//	public Type[] RegisteredEnums { get; } = new[] { .. }
-        //	//	public Type RegisteredContext { get; } = typeof(..DbContext)
-        //	}
-
-        //	public string Title { get; set; }
-
-        //	public partial class Command { };
-        //	public partial class Request { };
-
-        //	public partial class MappingProfile
-        //        {
-        //		// override ToEntity
-        //	}
-
-        //	public partial class GetEndpoint
-        //	{
-        //		partial void ExtendConfigure()
-        //		{
-        //			// configure
-        //		}
-        //	}
-        //}
-        //";
         return TestHelper.Verify(source);
     }
 }

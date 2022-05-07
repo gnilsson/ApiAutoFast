@@ -57,3 +57,7 @@ public partial class AuthorMappingProfile //: Mapper<AuthorCreateCommand, Author
         };
     }
 }
+
+
+//[JsonSerializable(typeof(AuthorResponse))]
+//public partial class AuthorSerializerContext : JsonSerializerContext { }

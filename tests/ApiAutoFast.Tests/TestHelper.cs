@@ -27,7 +27,7 @@ public static class TestHelper
             syntaxTrees: new[] { syntaxTree },
             references: references);//GetMetadataReferences()
 
-        var generator = new ApiGenerator2();
+        var generator = new ApiGenerator();
 
         GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
 
