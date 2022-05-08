@@ -20,14 +20,14 @@ public partial class CreateAuthorEndpoint : Endpoint<AuthorCreateCommand, Author
 
     public override void Configure()
     {
-        if (_overrideConfigure is false)
+        if (_extendConfigure is false)
         {
             Verbs(Http.POST);
             Routes("/authors");
             AllowAnonymous();
         }
 
-        ExtendConfigure();
+        OnExtendConfigure();
     }
 
     public override async Task HandleAsync(AuthorCreateCommand req, CancellationToken ct)

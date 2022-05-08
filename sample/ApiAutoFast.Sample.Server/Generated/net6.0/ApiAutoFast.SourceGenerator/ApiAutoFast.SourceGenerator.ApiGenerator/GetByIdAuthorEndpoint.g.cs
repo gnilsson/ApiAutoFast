@@ -20,19 +20,19 @@ public partial class GetByIdAuthorEndpoint : Endpoint<AuthorGetByIdRequest, Auth
 
     public override void Configure()
     {
-        if (_overrideConfigure is false)
+        if (_extendConfigure is false)
         {
             Verbs(Http.GET);
             Routes("/authors/{id}");
             AllowAnonymous();
         }
 
-        ExtendConfigure();
+        OnExtendConfigure();
     }
 
     public override async Task HandleAsync(AuthorGetByIdRequest req, CancellationToken ct)
     {
-        var result = await _dbContext.Authors.FindAsync(new [] { req.Id }, ct);
+        var result = await _dbContext.Authors.FindAsync((Identifier)req.Id, ct);
 
         if (result is null)
         {

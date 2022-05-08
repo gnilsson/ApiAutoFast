@@ -8,10 +8,6 @@ namespace ApiAutoFast.Sample.Server.Database;
 [AutoFastContext]
 public partial class AutoFastSampleDbContext : DbContext
 {
-    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
-    {
-        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
-    }
 }
 
 
@@ -69,9 +65,11 @@ public partial class AuthorMappingProfile //: Mapper<AuthorCreateCommand, Author
 
 public partial class GetByIdAuthorEndpoint
 {
-    public override Task OnBeforeHandleAsync(AuthorGetByIdRequest req)
+    public override async Task OnBeforeHandleAsync(AuthorGetByIdRequest req)
     {
-        return base.OnBeforeHandleAsync(req);
+        var result = await _dbContext.Authors.FindAsync((Identifier)req.Id);
+
+        await base.OnBeforeHandleAsync(req);
     }
 
 
@@ -94,11 +92,6 @@ public partial class GetByIdAuthorEndpoint
 //[JsonSerializable(typeof(AuthorResponse))]
 //public partial class AuthorSerializerContext : JsonSerializerContext { }
 
-public class Ah : IEntityMapper
-{
-
-}
-
 public partial class CreateAuthorEndpoint
 {
     private readonly IService _service;
@@ -109,26 +102,26 @@ public partial class CreateAuthorEndpoint
         _service = service;
     }
 
-    partial void ExtendConfigure()
-    {
-    }
+    //partial void ExtendConfigure()
+    //{
+    //}
 
-    public override async Task OnBeforeHandleAsync(AuthorCreateCommand req)
-    {
-        _service.Log();
+    //public override async Task OnBeforeHandleAsync(AuthorCreateCommand req)
+    //{
+    //    _service.Log();
 
-        var count = await _dbContext.Authors.FindAsync(new[] { "" });
+    //    //var count = await _dbContext.Authors.FindAsync(new[] { "" });
 
-        //var add = await _dbContext.Authors.AddAsync(null);
+    //    //var add = await _dbContext.Authors.AddAsync(null);
 
-     //   Map
+    // //   Map
 
-        Console.WriteLine($"Hej! {count}st.");
+    //    //Console.WriteLine($"Hej! {count}st.");
 
-      //  SendCreatedAtAsync<GetByIdAuthorEndpoint>("", default, Http.GET, cancellation: CancellationToken.None);
+    //  //  SendCreatedAtAsync<GetByIdAuthorEndpoint>("", default, Http.GET, cancellation: CancellationToken.None);
 
-        await base.OnBeforeHandleAsync(req);
-    }
+    //    await base.OnBeforeHandleAsync(req);
+    //}
 
     public override void OnBeforeValidate(AuthorCreateCommand req)
     {

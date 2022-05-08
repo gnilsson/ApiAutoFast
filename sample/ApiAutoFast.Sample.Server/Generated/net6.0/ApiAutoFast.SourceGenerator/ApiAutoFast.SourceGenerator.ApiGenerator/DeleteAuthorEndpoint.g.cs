@@ -20,19 +20,19 @@ public partial class DeleteAuthorEndpoint : Endpoint<AuthorDeleteRequest, Author
 
     public override void Configure()
     {
-        if (_overrideConfigure is false)
+        if (_extendConfigure is false)
         {
             Verbs(Http.DELETE);
             Routes("/authors/{id}");
             AllowAnonymous();
         }
 
-        ExtendConfigure();
+        OnExtendConfigure();
     }
 
     public override async Task HandleAsync(AuthorDeleteRequest req, CancellationToken ct)
     {
-        var result = await _dbContext.Authors.FindAsync(new [] { req.Id }, ct);
+        var result = await _dbContext.Authors.FindAsync((Identifier)req.Id, ct);
 
         if (result is null)
         {

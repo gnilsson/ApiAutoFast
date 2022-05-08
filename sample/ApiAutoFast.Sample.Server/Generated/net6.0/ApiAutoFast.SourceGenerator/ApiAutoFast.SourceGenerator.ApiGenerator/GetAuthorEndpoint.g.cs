@@ -20,14 +20,14 @@ public partial class GetAuthorEndpoint : Endpoint<AuthorQueryRequest, PaginatedR
 
     public override void Configure()
     {
-        if (_overrideConfigure is false)
+        if (_extendConfigure is false)
         {
             Verbs(Http.GET);
             Routes("/authors");
             AllowAnonymous();
         }
 
-        ExtendConfigure();
+        OnExtendConfigure();
     }
 
     public override async Task HandleAsync(AuthorQueryRequest req, CancellationToken ct)

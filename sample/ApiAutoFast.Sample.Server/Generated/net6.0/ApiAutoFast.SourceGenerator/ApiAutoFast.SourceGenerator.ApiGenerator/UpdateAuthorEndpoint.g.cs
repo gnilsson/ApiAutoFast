@@ -20,19 +20,19 @@ public partial class UpdateAuthorEndpoint : Endpoint<AuthorModifyCommand, Author
 
     public override void Configure()
     {
-        if (_overrideConfigure is false)
+        if (_extendConfigure is false)
         {
             Verbs(Http.PUT);
             Routes("/authors/{id}");
             AllowAnonymous();
         }
 
-        ExtendConfigure();
+        OnExtendConfigure();
     }
 
     public override async Task HandleAsync(AuthorModifyCommand req, CancellationToken ct)
     {
-        var result = await _dbContext.Authors.FindAsync(new [] { req.Id }, ct);
+        var result = await _dbContext.Authors.FindAsync((Identifier)req.Id, ct);
 
         if (result is null)
         {
