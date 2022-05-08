@@ -14,11 +14,11 @@ public class ApiGenerator : IIncrementalGenerator
     {
         _requestEndpointPairs = new RequestEndpointPair[]
         {
-            new($"{nameof(EndpointTargetType.GetById)}Request", EndpointTargetType.GetById, "Http.GET"),
-            new($"{nameof(EndpointTargetType.Delete)}Request",EndpointTargetType.Delete, "Http.DELETE"),
-            new(nameof(AttributeModelTargetType.ModifyCommand),EndpointTargetType.Update, "Http.PUT"),
-            new(nameof(AttributeModelTargetType.CreateCommand),EndpointTargetType.Create, "Http.POST"),
-            new(nameof(AttributeModelTargetType.QueryRequest),EndpointTargetType.Get, "Http.GET"),
+            new ($"{nameof(EndpointTargetType.GetById)}Request", EndpointTargetType.GetById, "Http.GET"),
+            new ($"{nameof(EndpointTargetType.Delete)}Command",  EndpointTargetType.Delete,  "Http.DELETE"),
+            new (nameof(AttributeModelTargetType.ModifyCommand), EndpointTargetType.Update,  "Http.PUT"),
+            new (nameof(AttributeModelTargetType.CreateCommand), EndpointTargetType.Create,  "Http.POST"),
+            new (nameof(AttributeModelTargetType.QueryRequest),  EndpointTargetType.Get,     "Http.GET"),
         };
     }
 
@@ -87,9 +87,7 @@ public class ApiGenerator : IIncrementalGenerator
 
         var generationConfig = GetGenerationConfig(compilation, distinctSemanticTargets, context.CancellationToken);
 
-        if (generationConfig is null) return;
-
-        if ((generationConfig!.Value.EntityGeneration?.EntityConfigs.Length) <= 0) return;
+        if (generationConfig is null or { EntityGeneration.EntityConfigs.Length: <= 0 }) return;
 
         var entityGenerationConfig = generationConfig.Value.EntityGeneration!.Value;
 
@@ -134,40 +132,55 @@ public class ApiGenerator : IIncrementalGenerator
         var endpointAttribute = compilation.GetTypeByMetadataName(AutoFastEndpointsAttribute);
         var contextAttribute = compilation.GetTypeByMetadataName(AutoFastContextAttribute);
 
-        if (endpointAttribute is null || contextAttribute is null || semanticTargetInformations.Where(x => x.Target == AutoFastEndpointsAttribute) is null)
+        if (endpointAttribute is null || contextAttribute is null || semanticTargetInformations.Where(x => x.Target is AutoFastEndpointsAttribute) is null)
         {
             return GenerationConfig.Empty;
         }
 
-        var entityEndpoints = new List<EntityConfig>();
-        var contextGenerationConfig = default(ContextGenerationConfig?);
-        var @namespace = string.Empty;
+        var entityClassDeclarations = semanticTargetInformations
+            .Where(x => x.Target is AutoFastEndpointsAttribute && x.ClassDeclarationSyntax is not null)
+            .Select(x => x.ClassDeclarationSyntax!)
+            .ToImmutableArray();
 
-        foreach (var semanticTargetInformation in semanticTargetInformations)
+        if (entityClassDeclarations.Length == 0) return GenerationConfig.Empty;
+
+        var entityConfigs = YieldEntityConfigs(entityClassDeclarations, compilation, ct).ToImmutableArray();
+
+        var context = semanticTargetInformations?.FirstOrDefault(x => x.Target == AutoFastContextAttribute);
+
+        if (context.HasValue is false || compilation
+                .GetSemanticModel(context.Value.ClassDeclarationSyntax!.SyntaxTree)
+                .GetDeclaredSymbol(context.Value.ClassDeclarationSyntax!) is not INamedTypeSymbol namedTypeSymbol)
+        {
+            return new GenerationConfig(
+                new EntityGenerationConfig(entityConfigs, GetNamespace(entityClassDeclarations.First())));
+        }
+
+        return new GenerationConfig(
+            new EntityGenerationConfig(entityConfigs, GetNamespace(context.Value.ClassDeclarationSyntax)),
+            new ContextGenerationConfig(NormaliseName(namedTypeSymbol)));
+    }
+
+    private static string NormaliseName(INamedTypeSymbol namedTypeSymbol)
+    {
+        var tempName = namedTypeSymbol.ToString().Split('.');
+        var name = string.Join(".", tempName.Skip(tempName.Length - 1));
+        return name;
+    }
+
+    private static IEnumerable<EntityConfig> YieldEntityConfigs(ImmutableArray<ClassDeclarationSyntax> entityClassDeclarations, Compilation compilation, CancellationToken ct)
+    {
+        foreach (var entityClassDeclaration in entityClassDeclarations)
         {
             ct.ThrowIfCancellationRequested();
 
-            var semanticModel = compilation.GetSemanticModel(semanticTargetInformation.ClassDeclarationSyntax!.SyntaxTree);
+            var semanticModel = compilation.GetSemanticModel(entityClassDeclaration.SyntaxTree);
 
-            if (semanticModel.GetDeclaredSymbol(semanticTargetInformation.ClassDeclarationSyntax) is not INamedTypeSymbol namedTypeSymbol)
-            {
-                continue;
-            }
+            if (semanticModel.GetDeclaredSymbol(entityClassDeclaration) is not INamedTypeSymbol namedTypeSymbol) continue;
 
-            var tempName = namedTypeSymbol.ToString().Split('.');
-            var name = string.Join(".", tempName.Skip(tempName.Length - 1));
+            var name = NormaliseName(namedTypeSymbol).Replace("Config", "");
 
-            if (semanticTargetInformation.Target == AutoFastContextAttribute)
-            {
-                contextGenerationConfig = new ContextGenerationConfig(name);
-
-                continue;
-            }
-
-            name = name.Replace("Config", "");
-            @namespace = GetNamespace(semanticTargetInformation.ClassDeclarationSyntax);
-
-            var entityConfigClassDeclarationSyntaxes = semanticTargetInformation.ClassDeclarationSyntax
+            var entityConfigClassDeclarationSyntaxes = entityClassDeclaration
                 .ChildNodes()
                 .Where(x => x.Kind() == SyntaxKind.ClassDeclaration)?
                 .Cast<ClassDeclarationSyntax>();
@@ -178,13 +191,12 @@ public class ApiGenerator : IIncrementalGenerator
                 continue;
             }
 
-            var propertiesClass = entityConfigClassDeclarationSyntaxes.SingleOrDefault(x => x.Identifier.Text == "Properties");
+            var propertiesClass = entityConfigClassDeclarationSyntaxes.SingleOrDefault(x => x.Identifier.Text is "Properties");
 
             if (propertiesClass is null)
             {
-                // throw?
-                entityEndpoints.Add(new EntityConfig(name));
-
+                // log warning no properties
+                yield return new EntityConfig(name);
                 continue;
             }
 
@@ -192,12 +204,8 @@ public class ApiGenerator : IIncrementalGenerator
 
             var propertyMetadatas = YieldPropertyMetadatas(members).ToImmutableArray();
 
-            entityEndpoints.Add(new EntityConfig(name, propertyMetadatas));
+            yield return new EntityConfig(name, propertyMetadatas);
         }
-
-        return new GenerationConfig(
-            contextGenerationConfig,
-            new EntityGenerationConfig(entityEndpoints.ToImmutableArray(), @namespace));
     }
 
     private static IEnumerable<PropertyMetadata> YieldPropertyMetadatas(ImmutableArray<ISymbol> members)
@@ -244,9 +252,7 @@ public class ApiGenerator : IIncrementalGenerator
 
         var potentialNamespaceParent = enumDeclarationSyntax.Parent;
 
-        while (potentialNamespaceParent != null &&
-               potentialNamespaceParent is not NamespaceDeclarationSyntax
-               && potentialNamespaceParent is not FileScopedNamespaceDeclarationSyntax)
+        while (potentialNamespaceParent is not null and not NamespaceDeclarationSyntax and not FileScopedNamespaceDeclarationSyntax)
         {
             potentialNamespaceParent = potentialNamespaceParent.Parent;
         }

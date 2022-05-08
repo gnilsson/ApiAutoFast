@@ -21,10 +21,6 @@ namespace ApiAutoFast.Sample.Server.Database;
 [AutoFastContext]
 public partial class AutoFastSampleDbContext : DbContext
 {
-    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
-    {
-        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
-    }
 }
 
 [AutoFastEndpoints]
@@ -39,15 +35,19 @@ public class AuthorConfig
         [QueryRequest, CreateCommand]
         public ProfessionCategory Profession { get; set; }
     }
+}
 
-
-    public partial class Command { };
-
-    public partial class Request { };
-
-    public partial class MappingProfile
+[AutoFastEndpoints]
+public class BlogConfig
+{
+    internal class Properties
     {
-        // override ToEntity
+        [CreateCommand, ModifyCommand, QueryRequest]
+        public string Title { get; set; } = default!;
+        [Required]
+        public AuthorConfig Author { get; set; } = default!;
+        [CreateCommand, QueryRequest]
+        public Identifier AuthorId { get; set; }
     }
 }
 ";

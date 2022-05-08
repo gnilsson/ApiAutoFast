@@ -5,7 +5,7 @@ namespace ApiAutoFast.SourceGenerator;
 
 internal readonly struct GenerationConfig
 {
-    internal GenerationConfig(ContextGenerationConfig? contextGeneration, EntityGenerationConfig entityGeneration)
+    internal GenerationConfig(EntityGenerationConfig entityGeneration, ContextGenerationConfig? contextGeneration = null)
     {
         ContextGeneration = contextGeneration;
         EntityGeneration = entityGeneration;
@@ -14,7 +14,7 @@ internal readonly struct GenerationConfig
     public static readonly GenerationConfig Empty = default;
 
     public ContextGenerationConfig? ContextGeneration { get; }
-    public EntityGenerationConfig? EntityGeneration { get; } = null;
+    public EntityGenerationConfig? EntityGeneration { get; }
 }
 
 internal readonly struct ContextGenerationConfig
@@ -41,7 +41,7 @@ internal readonly struct EntityGenerationConfig
 
 internal readonly struct EntityConfig
 {
-    internal EntityConfig(string name, ImmutableArray<PropertyMetadata>? propertyMetadatas = null)
+    internal EntityConfig(string name, in ImmutableArray<PropertyMetadata>? propertyMetadatas = null)
     {
         BaseName = name;
         Response = $"{name}Response";
@@ -104,16 +104,38 @@ internal struct RequestEndpointPair
 
 internal readonly struct PropertyMetadata
 {
-    public PropertyMetadata(string source, string name, ImmutableArray<AttributeMetadata>? attributeMetadatas)
+    public PropertyMetadata(string source, string name, ImmutableArray<AttributeMetadata>? attributeMetadatas, Relational? relational = null)
     {
         Source = source;
         Name = name;
         AttributeMetadatas = attributeMetadatas;
+        Relational = relational;
     }
 
     public string Source { get; }
     public string Name { get; }
     public ImmutableArray<AttributeMetadata>? AttributeMetadatas { get; }
+    public Relational? Relational { get; }
+}
+
+internal readonly struct Relational
+{
+    public Relational(string foreignEntity, RelationalType relationalType, bool idOnly = false)
+    {
+        ForeignEntity = foreignEntity;
+        RelationalType = relationalType;
+        IdOnly = idOnly;
+    }
+
+    public string ForeignEntity { get; }
+    public RelationalType RelationalType { get; }
+    public bool IdOnly { get; }
+}
+
+internal enum RelationalType
+{
+    ToOne = 0,
+    ToMany
 }
 
 internal readonly struct SemanticTargetInformation

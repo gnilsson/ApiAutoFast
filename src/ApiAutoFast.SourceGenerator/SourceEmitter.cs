@@ -10,6 +10,12 @@ namespace ApiAutoFast;
 [System.AttributeUsage(System.AttributeTargets.Class)]
 internal class AutoFastEndpointsAttribute : System.Attribute
 {
+    internal AutoFastEndpointsAttribute(string replaceNamePart = ""Config"")
+    {
+        ReplaceNamePart = replaceNamePart;
+    }
+
+    public string ReplaceNamePart { get; }
 }
 ";
 
@@ -173,7 +179,7 @@ public partial class MappingRegister : ICodeGenerationRegister
 
         TypeAdapterConfig.GlobalSettings
             .When((src, dest, map) => src.GetInterface(nameof(IEntity)) is not null)
-            .Map(nameof(IEntity.CreatedDateTime), (IEntity e) => e.CreatedDateTime.ToString(""dddd, dd MMMM yyyy HH: mm""))
+            .Map(nameof(IEntity.CreatedDateTime), (IEntity e) => e.CreatedDateTime.ToString(""dddd, dd MMMM yyyy HH:mm""))
             .Map(nameof(IEntity.ModifiedDateTime), (IEntity e) => e.ModifiedDateTime.ToString(""dddd, dd MMMM yyyy HH:mm""));
 
         ExtendRegister(config);
@@ -407,7 +413,7 @@ public partial class ")
     private readonly bool _onOverrideUpdateEntity = false;
 
     partial void")
-    .Append(@" OnOverrideUpdateEntity(")
+    .Append(@" OnOverrideUpdateEntity(ref ")
     .Append(entityConfig.BaseName)
     .Append(@" originalEntity, ")
     .Append(entityConfig.BaseName)
