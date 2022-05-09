@@ -138,7 +138,7 @@ internal enum RelationalType
     ToMany
 }
 
-internal readonly struct SemanticTargetInformation
+internal readonly record SemanticTargetInformation
 {
     public SemanticTargetInformation(ClassDeclarationSyntax classDeclarationSyntax, string target)
     {
