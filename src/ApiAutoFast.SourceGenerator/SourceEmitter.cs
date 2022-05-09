@@ -136,9 +136,9 @@ internal class AutoFastContextAttribute : System.Attribute
     };
 
 
-    internal static string EmitMappingRegister(EntityGenerationConfig generationConfig)
+    internal static string EmitMappingRegister(StringBuilder sb, EntityGenerationConfig generationConfig)
     {
-        var sb = new StringBuilder();
+        sb.Clear();
 
         sb.Append(@"
 using Mapster;
@@ -219,10 +219,10 @@ public static class AdaptAttributeBuilderExtensions
         return sb.ToString();
     }
 
-    internal static string EmitEntityModels(string @namespace, EntityConfig entityConfig)
+    internal static string EmitEntityModels(StringBuilder sb, string @namespace, EntityConfig entityConfig)
     {
         //todo: get extra namespaces from config entity
-        var sb = new StringBuilder();
+        sb.Clear();
 
         sb.Append(@"
 using ApiAutoFast;
@@ -263,9 +263,9 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity
         return sb.ToString();
     }
 
-    internal static string EmitEndpoint(string @namespace, EndpointConfig endpointConfig, string contextName)
+    internal static string EmitEndpoint(StringBuilder sb, string @namespace, EndpointConfig endpointConfig, string contextName)
     {
-        var sb = new StringBuilder();
+        sb.Clear();
 
         sb.Append(@"
 using ApiAutoFast;
@@ -318,9 +318,9 @@ public partial class ")
         return sb.ToString();
     }
 
-    internal static string EmitModelTarget(string @namespace, EntityConfig entityConfig, string modelTarget)
+    internal static string EmitModelTarget(StringBuilder sb, string @namespace, EntityConfig entityConfig, string modelTarget)
     {
-        var sb = new StringBuilder();
+        sb.Clear();
 
         sb.Append(@"
 using ApiAutoFast;
@@ -344,9 +344,9 @@ public class ").Append(entityConfig.BaseName).Append(modelTarget).Append(@"
         return sb.ToString();
     }
 
-    internal static string EmitDbContext(ContextGenerationConfig contextConfig, EntityGenerationConfig endpointsConfig)
+    internal static string EmitDbContext(StringBuilder sb, ContextGenerationConfig contextConfig, EntityGenerationConfig endpointsConfig)
     {
-        var sb = new StringBuilder();
+        sb.Clear();
 
         sb.Append(@"
 using ApiAutoFast;
@@ -390,9 +390,9 @@ public partial class ").Append(contextConfig.Name).Append(@" : DbContext
         return sb.ToString();
     }
 
-    internal static string EmitMappingProfile(string @namespace, EntityConfig entityConfig)
+    internal static string EmitMappingProfile(StringBuilder sb, string @namespace, EntityConfig entityConfig)
     {
-        var sb = new StringBuilder();
+        sb.Clear();
 
         sb.Append(@"
 using FastEndpoints;
