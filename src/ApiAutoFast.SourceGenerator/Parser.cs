@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp;
+using ApiAutoFast.SourceGenerator.Configuration;
 
 namespace ApiAutoFast.SourceGenerator;
 
@@ -63,8 +64,8 @@ internal static class Parser
         var semanticTarget = semanticTargetInformations?.FirstOrDefault(x => x.Target == AutoFastContextAttribute);
 
         if (semanticTarget is null || compilation
-                .GetSemanticModel(semanticTarget.ClassDeclarationSyntax!.SyntaxTree)
-                .GetDeclaredSymbol(semanticTarget.ClassDeclarationSyntax!) is not INamedTypeSymbol namedTypeSymbol)
+            .GetSemanticModel(semanticTarget.ClassDeclarationSyntax!.SyntaxTree)
+            .GetDeclaredSymbol(semanticTarget.ClassDeclarationSyntax!) is not INamedTypeSymbol namedTypeSymbol)
         {
             return new GenerationConfig(
                 new EntityGenerationConfig(entityConfigs, GetNamespace(entityClassDeclarations.First())));
@@ -75,54 +76,60 @@ internal static class Parser
             new ContextGenerationConfig(NormaliseName(namedTypeSymbol)));
     }
 
-    private static IEnumerable<EntityConfig> YieldEntityConfigs(ImmutableArray<ClassDeclarationSyntax> entityClassDeclarations, Compilation compilation, CancellationToken ct)
+    private static IEnumerable<EntityConfigSetup> YieldEntityConfigSetup(
+        ImmutableArray<ClassDeclarationSyntax> entityClassDeclarations,
+        Compilation compilation)
     {
         foreach (var entityClassDeclaration in entityClassDeclarations)
         {
-            ct.ThrowIfCancellationRequested();
-
             var semanticModel = compilation.GetSemanticModel(entityClassDeclaration.SyntaxTree);
 
             if (semanticModel.GetDeclaredSymbol(entityClassDeclaration) is not INamedTypeSymbol namedTypeSymbol) continue;
 
-            var name = NormaliseName(namedTypeSymbol).Replace("Config", "");
+            var name = GetEntityName(namedTypeSymbol);
 
-            var entityConfigClassDeclarationSyntaxes = entityClassDeclaration
+            yield return new EntityConfigSetup(entityClassDeclaration, semanticModel, name);
+        }
+    }
+
+    private static IEnumerable<EntityConfig> YieldEntityConfigs(
+        ImmutableArray<ClassDeclarationSyntax> entityClassDeclarations,
+        Compilation compilation,
+        CancellationToken ct)
+    {
+        var entityConfigSetups = YieldEntityConfigSetup(entityClassDeclarations, compilation).ToArray();
+
+        foreach (var entityConfigSetup in entityConfigSetups)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            var entitySubClassDeclarations = entityConfigSetup.ClassDeclarationSyntax
                 .ChildNodes()
-                .Where(x => x.Kind() == SyntaxKind.ClassDeclaration)?
-                .Cast<ClassDeclarationSyntax>();
+                .Where(x => x.Kind() is SyntaxKind.ClassDeclaration)
+                .Select(x => x as ClassDeclarationSyntax)
+                .ToImmutableArray();
 
-            if (entityConfigClassDeclarationSyntaxes is null)
+            if (entitySubClassDeclarations.Length <= 0
+                || entitySubClassDeclarations.SingleOrDefault(x => x!.Identifier.Text is "Properties") is not ClassDeclarationSyntax propertiesClass)
             {
                 // throw invalid config
                 continue;
             }
 
-            var propertiesClass = entityConfigClassDeclarationSyntaxes.SingleOrDefault(x => x.Identifier.Text is "Properties");
+            var members = entityConfigSetup.SemanticModel.GetDeclaredSymbol(propertiesClass)!.GetMembers();
 
-            if (propertiesClass is null)
-            {
-                // log warning no properties
-                yield return new EntityConfig(name);
-                continue;
-            }
+            var foreignEntityNames = entityConfigSetups
+                .Where(x => x.Name != entityConfigSetup.Name)
+                .Select(x => x.Name)
+                .ToImmutableArray();
 
-            var members = semanticModel.GetDeclaredSymbol(propertiesClass)!.GetMembers();
+            var propertyMetadatas = YieldPropertyMetadatas(members, foreignEntityNames).ToImmutableArray();
 
-            var propertyMetadatas = YieldPropertyMetadatas(members).ToImmutableArray();
-
-            yield return new EntityConfig(name, propertyMetadatas);
+            yield return new EntityConfig(entityConfigSetup.Name, propertyMetadatas);
         }
     }
 
-    private static string NormaliseName(INamedTypeSymbol namedTypeSymbol)
-    {
-        var tempName = namedTypeSymbol.ToString().Split('.');
-        var name = string.Join(".", tempName.Skip(tempName.Length - 1));
-        return name;
-    }
-
-    private static IEnumerable<PropertyMetadata> YieldPropertyMetadatas(ImmutableArray<ISymbol> members)
+    private static IEnumerable<PropertyMetadata> YieldPropertyMetadatas(ImmutableArray<ISymbol> members, ImmutableArray<string> foreignEntityNames)
     {
         foreach (var member in members)
         {
@@ -132,13 +139,70 @@ internal static class Parser
                 propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
                 memberOptions: SymbolDisplayMemberOptions.IncludeAccessibility));
 
-            var source = propertyString.Insert(propertyString.IndexOf(' '), $" {property.Type.ToDisplayString()}");
+            var relational = GetRelationalEntity(foreignEntityNames, property);
+
+            var type = relational switch
+            {
+                null or
+                { RelationalType: RelationalType.ToManyHidden or RelationalType.ToOneHidden } => property.Type.ToDisplayString(),
+                { RelationalType: RelationalType.ToMany } => $"ICollection<{relational.Value.ForeignEntityName}>",
+                { RelationalType: RelationalType.ToOne } => relational.Value.ForeignEntityName,
+                _ => "object"
+            };
+
+            var source = propertyString.Insert(propertyString.IndexOf(' '), $" {type}");
 
             var attributes = YieldAttributeMetadatas(property).ToImmutableArray();
 
-            yield return new PropertyMetadata(source, property.Name, attributes);
+            yield return new PropertyMetadata(source, property.Name, attributes, relational);
 
         }
+    }
+
+    private static Relational? GetRelationalEntity(ImmutableArray<string> foreignEntityNames, IPropertySymbol property)
+    {
+        foreach (var foreignEntityName in foreignEntityNames)
+        {
+            if (property.Name.Contains(foreignEntityName) is false) continue;
+
+            if (property.Type.ToDisplayString().Contains("ICollection"))
+            {
+                if ($"{foreignEntityName}s" == property.Name)
+                {
+                    return new Relational(foreignEntityName, property.Name, RelationalType.ToMany);
+                }
+
+                return new Relational(foreignEntityName, property.Name, RelationalType.ToManyHidden);
+            }
+
+            if (foreignEntityName == property.Name)
+            {
+                return new Relational(foreignEntityName, property.Name, RelationalType.ToOne);
+            }
+
+            return new Relational(foreignEntityName, property.Name, RelationalType.ToOneHidden);
+        }
+
+        return null;
+    }
+
+    private static string GetEntityName(INamedTypeSymbol namedTypeSymbol)
+    {
+        var endpointsAttribute = namedTypeSymbol.GetAttributes()[0];
+
+        if (endpointsAttribute.ConstructorArguments.Length > 0 && endpointsAttribute.ConstructorArguments[0].IsNull is false)
+        {
+            return (endpointsAttribute.ConstructorArguments[0].Value as string)!;
+        }
+
+        return NormaliseName(namedTypeSymbol).Replace("Config", "");
+    }
+
+    private static string NormaliseName(INamedTypeSymbol namedTypeSymbol)
+    {
+        var tempName = namedTypeSymbol.ToString().Split('.');
+        var name = string.Join(".", tempName.Skip(tempName.Length - 1));
+        return name;
     }
 
     private static IEnumerable<AttributeMetadata> YieldAttributeMetadatas(IPropertySymbol propertyMember)
@@ -188,4 +252,7 @@ internal static class Parser
 
         return nameSpace;
     }
+
+
+
 }

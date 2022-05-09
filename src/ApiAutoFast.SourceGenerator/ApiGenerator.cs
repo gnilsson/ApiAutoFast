@@ -21,6 +21,7 @@ public class ApiGenerator : IIncrementalGenerator
     }
 
     private static readonly RequestEndpointPair[] _requestEndpointPairs;
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         context.RegisterPostInitializationOutput(ctx =>

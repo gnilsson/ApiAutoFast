@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using ApiAutoFast.SourceGenerator;
+using Microsoft.VisualStudio.TestPlatform.Utilities;
+using System.Threading.Tasks;
 using VerifyXunit;
 using Xunit;
 
@@ -34,11 +36,12 @@ public class AuthorConfig
         public string? LastName { get; set; }
         [QueryRequest, CreateCommand]
         public ProfessionCategory Profession { get; set; }
+        public ICollection<BlogCunfig>? Blogs { get; set; }
     }
 }
 
-[AutoFastEndpoints]
-public class BlogConfig
+[AutoFastEndpoints(""Blog"")]
+public class BlogCunfig
 {
     internal class Properties
     {
@@ -50,7 +53,14 @@ public class BlogConfig
         public Identifier AuthorId { get; set; }
     }
 }
+
 ";
+        //var (diagnostics, output) = TestHelper.GetGeneratedOutput<ApiGenerator>(source);
+
+        //return Verifier
+        //    .Verify(output)
+        //    .UseDirectory("Snapshots");
+
         return TestHelper.Verify(source);
     }
 }

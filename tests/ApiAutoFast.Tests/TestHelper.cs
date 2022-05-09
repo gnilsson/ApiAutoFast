@@ -1,6 +1,7 @@
 ﻿using ApiAutoFast.SourceGenerator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -12,6 +13,31 @@ namespace ApiAutoFast.Tests;
 
 public static class TestHelper
 {
+    public static (ImmutableArray<Diagnostic> Diagnostics, string Output) GetGeneratedOutput<T>(string source)
+    where T : IIncrementalGenerator, new()
+    {
+        var syntaxTree = CSharpSyntaxTree.ParseText(source);
+        var references = AppDomain.CurrentDomain.GetAssemblies()
+            .Where(_ => !_.IsDynamic && !string.IsNullOrWhiteSpace(_.Location))
+            .Select(_ => MetadataReference.CreateFromFile(_.Location))
+            .Concat(new[] { MetadataReference.CreateFromFile(typeof(T).Assembly.Location) });
+        var compilation = CSharpCompilation.Create(
+            "generator",
+            new[] { syntaxTree },
+            references,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+        var originalTreeCount = compilation.SyntaxTrees.Length;
+        var generator = new T();
+
+        var driver = CSharpGeneratorDriver.Create(generator);
+        driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+
+        var trees = outputCompilation.SyntaxTrees.ToList();
+
+        return (diagnostics, trees.Count != originalTreeCount ? trees[^1].ToString() : string.Empty);
+    }
+
     public static Task Verify(string source)
     {
         SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(source);
@@ -19,11 +45,12 @@ public static class TestHelper
         IEnumerable<PortableExecutableReference> references = new[]
         {
             MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+        //    MetadataReference.CreateFromFile(typeof(ApiAutoFast.IAssemblyMarker).Assembly.Location),
           //  MetadataReference.CreateFromFile(typeof(AutoFastDbContext).Assembly.Location)
         };
 
         CSharpCompilation compilation = CSharpCompilation.Create(
-            assemblyName: "Tests",
+            assemblyName: "ApiAutoFast.Tests",
             syntaxTrees: new[] { syntaxTree },
             references: references);//GetMetadataReferences()
 

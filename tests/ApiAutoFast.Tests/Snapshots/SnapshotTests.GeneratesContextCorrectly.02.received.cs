@@ -1,10 +1,10 @@
-﻿//HintName: AuthorDeleteRequest.g.cs
+﻿//HintName: AuthorDeleteCommand.g.cs
 
 using ApiAutoFast;
 
 namespace ApiAutoFast.Sample.Server.Database;
 
-public class AuthorDeleteRequest
+public class AuthorDeleteCommand
 {
     public string Id { get; set; }
 }

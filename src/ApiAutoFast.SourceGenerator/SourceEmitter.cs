@@ -7,15 +7,19 @@ public static class SourceEmitter
     public const string AutoFastEndpointsAttribute = @"
 namespace ApiAutoFast;
 
+/// <summary>
+/// Marker attribute for source generator.
+/// <param name=""entityName"">Name of the entity to generate, will default to this class name and remove ""Config""</param>
+/// </summary>
 [System.AttributeUsage(System.AttributeTargets.Class)]
 internal class AutoFastEndpointsAttribute : System.Attribute
 {
-    internal AutoFastEndpointsAttribute(string replaceNamePart = ""Config"")
+    internal AutoFastEndpointsAttribute(string? entityName = null)
     {
-        ReplaceNamePart = replaceNamePart;
+        EntityName = entityName;
     }
 
-    public string ReplaceNamePart { get; }
+    public string? EntityName { get; }
 }
 ";
 
@@ -232,6 +236,32 @@ namespace ").Append(@namespace).Append(@";
 
 public class ").Append(entityConfig.BaseName).Append(@" : IEntity
 {
+
+    public ").Append(entityConfig.BaseName).Append(@"()
+    {
+        ");
+        if (entityConfig.PropertyMetadatas?.Length > 0)
+        {
+
+            foreach (var propertyMetadata in entityConfig.PropertyMetadatas.Value)
+            {
+                if (propertyMetadata.Relational?.RelationalType is RelationalType.ToMany)
+                {
+                    sb
+                        .Append(@"this.")
+                        .Append(propertyMetadata.Relational.Value.ForeigEntityProperty)
+                        .Append(@" = new HashSet<")
+                        .Append(propertyMetadata.Relational.Value.ForeignEntityName)
+                        .Append(@">();
+");
+
+                }
+            }
+        }
+        sb.Append(@"
+    }
+
+
     public Identifier Id { get; set; }
     public DateTime CreatedDateTime { get; set; }
     public DateTime ModifiedDateTime { get; set; }");

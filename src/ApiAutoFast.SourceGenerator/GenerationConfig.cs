@@ -120,33 +120,33 @@ internal readonly struct PropertyMetadata
 
 internal readonly struct Relational
 {
-    public Relational(string foreignEntity, RelationalType relationalType, bool idOnly = false)
+    public Relational(string foreignEntityName, string foreigEntityProperty, RelationalType relationalType)
     {
-        ForeignEntity = foreignEntity;
+        ForeignEntityName = foreignEntityName;
+        ForeigEntityProperty = foreigEntityProperty;
         RelationalType = relationalType;
-        IdOnly = idOnly;
     }
 
-    public string ForeignEntity { get; }
+    public string ForeignEntityName { get; }
+    public string ForeigEntityProperty { get; }
     public RelationalType RelationalType { get; }
-    public bool IdOnly { get; }
 }
 
 internal enum RelationalType
 {
     ToOne = 0,
-    ToMany
+    ToMany,
+    ToOneHidden,
+    ToManyHidden,
 }
 
-internal readonly record SemanticTargetInformation
+internal record SemanticTargetInformation
 {
     public SemanticTargetInformation(ClassDeclarationSyntax classDeclarationSyntax, string target)
     {
         ClassDeclarationSyntax = classDeclarationSyntax;
         Target = target;
     }
-
-    public static readonly SemanticTargetInformation Empty = default;
 
     public ClassDeclarationSyntax? ClassDeclarationSyntax { get; } = default!;
     public string? Target { get; } = default!;

@@ -1,47 +1,24 @@
-﻿//HintName: CreateAuthorEndpoint.g.cs
+﻿//HintName: Blog.g.cs
 
 using ApiAutoFast;
-using FastEndpoints;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace ApiAutoFast.Sample.Server.Database;
 
-public partial class CreateAuthorEndpoint : Endpoint<AuthorCreateCommand, AuthorResponse, AuthorMappingProfile>
+public class Blog : IEntity
 {
-    partial void ExtendConfigure();
-    private bool _overrideConfigure = false;
-    private readonly AutoFastSampleDbContext _dbContext;
 
-    public CreateAuthorEndpoint(AutoFastSampleDbContext dbContext)
+    public Blog()
     {
-        _dbContext = dbContext;
+        
     }
 
-    public override void Configure()
-    {
-        if (_overrideConfigure is false)
-        {
-            Verbs(Http.POST);
-            Routes("/authors");
 
-            AllowAnonymous();
-        }
-
-        ExtendConfigure();
-    }
-
-    public override async Task HandleAsync(AuthorCreateCommand req, CancellationToken ct)
-    {
-        var entity = Map.ToEntity(req);
-
-        await _dbContext.AddAsync(entity, ct);
-
-        await _dbContext.SaveChangesAsync(ct);
-
-        var response = Map.FromEntity(entity);
-
-        await SendCreatedAtAsync<GetByIdAuthorEndpoint>(response.Id, response, Http.GET, false, ct);
-    }
+    public Identifier Id { get; set; }
+    public DateTime CreatedDateTime { get; set; }
+    public DateTime ModifiedDateTime { get; set; }
+    public string Title { get; set; }
+    [Required]
+    public Author Author { get; set; }
+    public Identifier AuthorId { get; set; }
 }

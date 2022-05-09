@@ -1,5 +1,4 @@
-﻿//HintName: AutoFastEndpointsAttribute.g.cs
-
+﻿
 namespace ApiAutoFast;
 
 /// <summary>

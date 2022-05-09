@@ -12,7 +12,7 @@ public partial class AutoFastSampleDbContext : DbContext
 }
 
 
-//[AutoFastEndpoints]
+//[AutoFastEndpoints("Author")]
 public class AuthorConfig
 {
     internal class Properties
@@ -23,19 +23,19 @@ public class AuthorConfig
         public string? LastName { get; set; }
         [QueryRequest, CreateCommand, ModifyCommand]
         public ProfessionCategory? Profession { get; set; }
-        public ICollection<BlogConfig>? Blogs { get; set; }
+        //public ICollection<BlogConfig>? Blogs { get; set; }
     }
 }
 
-public class BlogConfig
-{
-    internal class Properties
-    {
-        [CreateCommand, ModifyCommand, QueryRequest]
-        public string Title { get; set; } = default!;
-        [Required]
-        public AuthorConfig Author { get; set; } = default!;
-        [CreateCommand, QueryRequest]
-        public Identifier AuthorId { get; set; }
-    }
-}
+//public class BlogConfig
+//{
+//    internal class Properties
+//    {
+//        [CreateCommand, ModifyCommand, QueryRequest]
+//        public string Title { get; set; } = default!;
+//        [Required]
+//        public AuthorConfig Author { get; set; } = default!;
+//        [CreateCommand, QueryRequest]
+//        public Identifier AuthorId { get; set; }
+//    }
+//}
