@@ -72,7 +72,7 @@ internal readonly struct EndpointConfig
         };
         Response = requestEndpointPair.EndpointTarget switch
         {
-            EndpointTargetType.Get => $"PaginatedResponse<{entityConfig.Response}>",
+            EndpointTargetType.Get => $"Paginated<{entityConfig.Response}>",
             _ => entityConfig.Response,
         };
         Request = $"{entityConfig.BaseName}{requestEndpointPair.RequestModel}";

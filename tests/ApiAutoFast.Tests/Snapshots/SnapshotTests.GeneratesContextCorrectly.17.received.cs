@@ -41,6 +41,6 @@ public partial class CreateAuthorEndpoint : Endpoint<AuthorCreateCommand, Author
 
         var response = Map.FromEntity(entity);
 
-        await SendCreatedAtAsync<GetByIdAuthorEndpoint>(response.Id, response, Http.GET, cancellation: ct);
+        await SendCreatedAtAsync<GetByIdAuthorEndpoint>(new { Id = response.Id }, response, generateAbsoluteUrl: true, cancellation: ct);
     }
 }

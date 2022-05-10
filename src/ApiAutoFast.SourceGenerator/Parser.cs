@@ -97,7 +97,7 @@ internal static class Parser
         Compilation compilation,
         CancellationToken ct)
     {
-        var entityConfigSetups = YieldEntityConfigSetup(entityClassDeclarations, compilation).ToArray();
+        var entityConfigSetups = YieldEntityConfigSetup(entityClassDeclarations, compilation).ToImmutableArray();
 
         foreach (var entityConfigSetup in entityConfigSetups)
         {
@@ -141,6 +141,7 @@ internal static class Parser
 
             var relational = GetRelationalEntity(foreignEntityNames, property);
 
+            // define type seperately across requests and entity
             var type = relational switch
             {
                 null or
@@ -155,10 +156,11 @@ internal static class Parser
             var attributes = YieldAttributeMetadatas(property).ToImmutableArray();
 
             yield return new PropertyMetadata(source, property.Name, attributes, relational);
-
         }
     }
 
+    // note: this method is based on some conventions, i.e that an entity with a one-to-many relation will declare that
+    //       with a property of type ICollection<Foo> and with name Foos.
     private static Relational? GetRelationalEntity(ImmutableArray<string> foreignEntityNames, IPropertySymbol property)
     {
         foreach (var foreignEntityName in foreignEntityNames)

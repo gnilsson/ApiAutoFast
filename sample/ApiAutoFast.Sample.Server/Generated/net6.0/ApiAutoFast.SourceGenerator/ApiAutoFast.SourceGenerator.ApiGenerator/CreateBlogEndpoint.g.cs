@@ -1,5 +1,4 @@
-﻿//HintName: CreateBlogEndpoint.g.cs
-
+﻿
 using ApiAutoFast;
 using FastEndpoints;
 using System.Threading;

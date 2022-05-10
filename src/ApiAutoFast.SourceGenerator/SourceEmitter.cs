@@ -75,7 +75,7 @@ internal class AutoFastContextAttribute : System.Attribute
 
         var response = Map.FromEntity(entity);
 
-        await SendCreatedAtAsync<GetById").Append(endpointConfig.EntityName).Append(@"Endpoint>(response.Id, response, Http.GET, cancellation: ct);");
+        await SendCreatedAtAsync<GetById").Append(endpointConfig.EntityName).Append(@"Endpoint>(new { Id = response.Id }, response, generateAbsoluteUrl: true, cancellation: ct);");
             return sb;
         }
         ,
@@ -470,7 +470,7 @@ public partial class ")
     {
         if(_onOverrideUpdateEntity)
         {
-            OnOverrideUpdateEntity(originalEntity, e);
+            OnOverrideUpdateEntity(ref originalEntity, e);
             return originalEntity;
         }
 ");

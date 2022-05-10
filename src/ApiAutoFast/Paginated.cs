@@ -1,6 +1,6 @@
 ﻿namespace ApiAutoFast;
 
-public class PaginatedResponse<TResponse>
+public class Paginated<TResponse>
 {
     public IEnumerable<TResponse>? Data { get; init; }
 }

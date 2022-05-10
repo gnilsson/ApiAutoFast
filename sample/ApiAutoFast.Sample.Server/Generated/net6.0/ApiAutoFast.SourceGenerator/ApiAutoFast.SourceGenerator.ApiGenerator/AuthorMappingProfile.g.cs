@@ -1,5 +1,4 @@
-﻿//HintName: AuthorMappingProfile.g.cs
-
+﻿
 using FastEndpoints;
 
 namespace ApiAutoFast.Sample.Server.Database;
@@ -15,14 +14,15 @@ public partial class AuthorMappingProfile : Mapper<AuthorCreateCommand, AuthorRe
         return e.AdaptToResponse();
     }
 
-    public Author UpdateEntity(Author ref originalEntity, AuthorModifyCommand e)
+    public Author UpdateEntity(Author originalEntity, AuthorModifyCommand e)
     {
         if(_onOverrideUpdateEntity)
         {
-            OnOverrideUpdateEntity(originalEntity, e);
+            OnOverrideUpdateEntity(ref originalEntity, e);
             return originalEntity;
         }
 
+        originalEntity.Profession = e.Profession;
         return originalEntity;
     }
 }

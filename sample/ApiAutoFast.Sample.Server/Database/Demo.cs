@@ -123,21 +123,45 @@
 //}
 
 
+using ApiAutoFast.Sample.Server.Database;
+using FastEndpoints;
+using YamlDotNet.Core.Tokens;
+
 public partial class Lul
 {
-    void Hmm()
+    void Hmm(string hm)
     {
-        var hm = ".";
         Hej(ref hm);
     }
 
     partial void Hej(ref string ah)
     {
-        return;
-    }
+return;
 }
-
+}
 public partial class Lul
 {
-    partial void Hej(ref string ah);
+partial void Hej(ref string ah);
 }
+
+//public partial class AuthorMappingProfile : Mapper<object, AuthorResponse, object>
+//{
+//private readonly bool _onOverrideUpdateEntity = false;
+
+//    partial void OnOverrideUpdateEntity(ref object originalEntity, object e);
+
+//    public override AuthorResponse FromEntity(object e)
+//{
+//return e.AdaptToResponse();
+//}
+//public object UpdateEntity(object originalEntity, object e)
+//    {
+//        if (_onOverrideUpdateEntity)
+//        {
+//            OnOverrideUpdateEntity(ref originalEntity, e);
+//            return originalEntity;
+//        }
+
+//        return originalEntity;
+//    }
+//}
