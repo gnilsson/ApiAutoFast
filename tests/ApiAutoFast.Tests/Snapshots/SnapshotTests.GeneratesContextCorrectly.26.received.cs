@@ -10,8 +10,8 @@ namespace ApiAutoFast.Sample.Server.Database;
 
 public partial class UpdateAuthorEndpoint : Endpoint<AuthorModifyCommand, AuthorResponse, AuthorMappingProfile>
 {
-    partial void OnExtendConfigure();
-    private bool _extendConfigure = false;
+    partial void ExtendConfigure();
+    private bool _overrideConfigure = false;
     private readonly AutoFastSampleDbContext _dbContext;
 
     public UpdateAuthorEndpoint(AutoFastSampleDbContext dbContext)
@@ -21,14 +21,15 @@ public partial class UpdateAuthorEndpoint : Endpoint<AuthorModifyCommand, Author
 
     public override void Configure()
     {
-        if (_extendConfigure is false)
+        if (_overrideConfigure is false)
         {
             Verbs(Http.PUT);
             Routes("/authors/{id}");
+            // note: temporarily allow anonymous
             AllowAnonymous();
         }
 
-        OnExtendConfigure();
+        ExtendConfigure();
     }
 
     public override async Task HandleAsync(AuthorModifyCommand req, CancellationToken ct)

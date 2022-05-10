@@ -236,23 +236,16 @@ namespace ").Append(@namespace).Append(@";
 
 public class ").Append(entityConfig.BaseName).Append(@" : IEntity
 {
-
     public ").Append(entityConfig.BaseName).Append(@"()
-    {
-        ");
+    {");
         if (entityConfig.PropertyMetadatas?.Length > 0)
         {
-
             foreach (var propertyMetadata in entityConfig.PropertyMetadatas.Value)
             {
                 if (propertyMetadata.Relational?.RelationalType is RelationalType.ToMany)
                 {
-                    sb
-                        .Append(@"this.")
-                        .Append(propertyMetadata.Relational.Value.ForeigEntityProperty)
-                        .Append(@" = new HashSet<")
-                        .Append(propertyMetadata.Relational.Value.ForeignEntityName)
-                        .Append(@">();
+                    sb.Append(@"
+        this.").Append(propertyMetadata.Relational.Value.ForeigEntityProperty).Append(@" = new HashSet<").Append(propertyMetadata.Relational.Value.ForeignEntityName).Append(@">();
 ");
 
                 }
@@ -260,7 +253,6 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity
         }
         sb.Append(@"
     }
-
 
     public Identifier Id { get; set; }
     public DateTime CreatedDateTime { get; set; }
@@ -283,7 +275,7 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity
                 }
 
                 sb.Append(@"
-    ").Append(propertyMetadata.Source);
+    ").Append(propertyMetadata.Source.EntityModel);
             }
         }
 
@@ -317,8 +309,8 @@ public partial class ")
             .Append(endpointConfig.MappingProfile)
             .Append(@">
 {
-    partial void OnExtendConfigure();
-    private bool _extendConfigure = false;
+    partial void ExtendConfigure();
+    private bool _overrideConfigure = false;
     private readonly ").Append(contextName).Append(@" _dbContext;
 
     public ").Append(endpointConfig.Name).Append(@"(").Append(contextName).Append(@" dbContext)
@@ -328,14 +320,15 @@ public partial class ")
 
     public override void Configure()
     {
-        if (_extendConfigure is false)
+        if (_overrideConfigure is false)
         {
             Verbs(").Append(endpointConfig.RequestEndpointPair.HttpVerb).Append(@");
             Routes(""").Append(endpointConfig.Route).Append(@""");
+            // note: temporarily allow anonymous
             AllowAnonymous();
         }
 
-        OnExtendConfigure();
+        ExtendConfigure();
     }
 ");
         sb.Append(@"
@@ -348,7 +341,7 @@ public partial class ")
         return sb.ToString();
     }
 
-    internal static string EmitModelTarget(StringBuilder sb, string @namespace, EntityConfig entityConfig, string modelTarget)
+    internal static string EmitRequestModelTarget(StringBuilder sb, string @namespace, EntityConfig entityConfig, string modelTarget)
     {
         sb.Clear();
 
@@ -363,7 +356,7 @@ public class ").Append(entityConfig.BaseName).Append(modelTarget).Append(@"
 {");
         sb.Append(_getModelTargetSource(modelTarget));
 
-        foreach (var propertySource in YieldModelTargetPropertySource(entityConfig, modelTarget))
+        foreach (var propertySource in YieldRequestModelTargetPropertySource(entityConfig, modelTarget))
         {
             sb.Append(@"
     ").Append(propertySource);
@@ -502,7 +495,7 @@ public partial class ")
         }
     }
 
-    private static IEnumerable<string> YieldModelTargetPropertySource(EntityConfig entityConfig, string modelTarget)
+    private static IEnumerable<string> YieldRequestModelTargetPropertySource(EntityConfig entityConfig, string modelTarget)
     {
         if (entityConfig.PropertyMetadatas?.Length > 0)
         {
@@ -516,7 +509,7 @@ public partial class ")
 
                     if (targetNames.Contains(modelTarget))
                     {
-                        yield return propertyMetadata.Source;
+                        yield return propertyMetadata.Source.RequestModel;
                     }
                 }
             }

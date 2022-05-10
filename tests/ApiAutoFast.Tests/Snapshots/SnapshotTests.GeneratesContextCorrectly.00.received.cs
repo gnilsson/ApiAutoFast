@@ -7,13 +7,11 @@ namespace ApiAutoFast.Sample.Server.Database;
 
 public class Author : IEntity
 {
-
     public Author()
     {
         this.Blogs = new HashSet<Blog>();
 
     }
-
 
     public Identifier Id { get; set; }
     public DateTime CreatedDateTime { get; set; }

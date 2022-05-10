@@ -10,8 +10,8 @@ namespace ApiAutoFast.Sample.Server.Database;
 
 public partial class GetByIdAuthorEndpoint : Endpoint<AuthorGetByIdRequest, AuthorResponse, AuthorMappingProfile>
 {
-    partial void OnExtendConfigure();
-    private bool _extendConfigure = false;
+    partial void ExtendConfigure();
+    private bool _overrideConfigure = false;
     private readonly AutoFastSampleDbContext _dbContext;
 
     public GetByIdAuthorEndpoint(AutoFastSampleDbContext dbContext)
@@ -21,14 +21,15 @@ public partial class GetByIdAuthorEndpoint : Endpoint<AuthorGetByIdRequest, Auth
 
     public override void Configure()
     {
-        if (_extendConfigure is false)
+        if (_overrideConfigure is false)
         {
             Verbs(Http.GET);
             Routes("/authors/{id}");
+            // note: temporarily allow anonymous
             AllowAnonymous();
         }
 
-        OnExtendConfigure();
+        ExtendConfigure();
     }
 
     public override async Task HandleAsync(AuthorGetByIdRequest req, CancellationToken ct)

@@ -76,7 +76,7 @@ public class ApiGenerator : IIncrementalGenerator
         {
             foreach (var requestEndpointPair in _requestEndpointPairs)
             {
-                var requestModelsResult = SourceEmitter.EmitModelTarget(sb, entityGenerationConfig.Namespace, entityConfig, requestEndpointPair.RequestModel);
+                var requestModelsResult = SourceEmitter.EmitRequestModelTarget(sb, entityGenerationConfig.Namespace, entityConfig, requestEndpointPair.RequestModel);
                 context.AddSource($"{entityConfig.BaseName}{requestEndpointPair.RequestModel}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
             }
 

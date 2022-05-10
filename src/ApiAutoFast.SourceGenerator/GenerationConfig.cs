@@ -102,9 +102,10 @@ internal struct RequestEndpointPair
     public string HttpVerb { get; }
 }
 
+// note: should probably restructure this to have propertymetadata of type entitymodel and requestmodel insted of making the distinction twice on attributes and source
 internal readonly struct PropertyMetadata
 {
-    public PropertyMetadata(string source, string name, ImmutableArray<AttributeMetadata>? attributeMetadatas, Relational? relational = null)
+    public PropertyMetadata(PropertySource source, string name, ImmutableArray<PropertyAttributeMetadata>? attributeMetadatas, PropertyRelational? relational = null)
     {
         Source = source;
         Name = name;
@@ -112,15 +113,27 @@ internal readonly struct PropertyMetadata
         Relational = relational;
     }
 
-    public string Source { get; }
+    public PropertySource Source { get; }
     public string Name { get; }
-    public ImmutableArray<AttributeMetadata>? AttributeMetadatas { get; }
-    public Relational? Relational { get; }
+    public ImmutableArray<PropertyAttributeMetadata>? AttributeMetadatas { get; }
+    public PropertyRelational? Relational { get; }
 }
 
-internal readonly struct Relational
+internal readonly struct PropertySource
 {
-    public Relational(string foreignEntityName, string foreigEntityProperty, RelationalType relationalType)
+    public PropertySource(string entityModel, string? requestModel = null)
+    {
+        EntityModel = entityModel;
+        _requestModel = requestModel;
+    }
+    private readonly string? _requestModel = null;
+    public string EntityModel { get; }
+    public string RequestModel => _requestModel is not null ? _requestModel : EntityModel;
+}
+
+internal readonly struct PropertyRelational
+{
+    public PropertyRelational(string foreignEntityName, string foreigEntityProperty, RelationalType relationalType)
     {
         ForeignEntityName = foreignEntityName;
         ForeigEntityProperty = foreigEntityProperty;
@@ -158,9 +171,9 @@ internal enum AttributeType
     Appliable
 }
 
-internal readonly struct AttributeMetadata
+internal readonly struct PropertyAttributeMetadata
 {
-    internal AttributeMetadata(AttributeType attributeType, string name)
+    internal PropertyAttributeMetadata(AttributeType attributeType, string name)
     {
         AttributeType = attributeType;
         Name = name;

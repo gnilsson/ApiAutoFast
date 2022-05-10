@@ -59,7 +59,7 @@ internal static class Parser
 
         if (entityClassDeclarations.Length == 0) return GenerationConfig.Empty;
 
-        var entityConfigs = YieldEntityConfigs(entityClassDeclarations, compilation, ct).ToImmutableArray();
+        var entityConfigs = YieldEntityConfig(entityClassDeclarations, compilation, ct).ToImmutableArray();
 
         var semanticTarget = semanticTargetInformations?.FirstOrDefault(x => x.Target == AutoFastContextAttribute);
 
@@ -92,7 +92,7 @@ internal static class Parser
         }
     }
 
-    private static IEnumerable<EntityConfig> YieldEntityConfigs(
+    private static IEnumerable<EntityConfig> YieldEntityConfig(
         ImmutableArray<ClassDeclarationSyntax> entityClassDeclarations,
         Compilation compilation,
         CancellationToken ct)
@@ -112,7 +112,7 @@ internal static class Parser
             if (entitySubClassDeclarations.Length <= 0
                 || entitySubClassDeclarations.SingleOrDefault(x => x!.Identifier.Text is "Properties") is not ClassDeclarationSyntax propertiesClass)
             {
-                // throw invalid config
+                // todo: throw invalid config
                 continue;
             }
 
@@ -123,13 +123,13 @@ internal static class Parser
                 .Select(x => x.Name)
                 .ToImmutableArray();
 
-            var propertyMetadatas = YieldPropertyMetadatas(members, foreignEntityNames).ToImmutableArray();
+            var propertyMetadatas = YieldPropertyMetadata(members, foreignEntityNames).ToImmutableArray();
 
             yield return new EntityConfig(entityConfigSetup.Name, propertyMetadatas);
         }
     }
 
-    private static IEnumerable<PropertyMetadata> YieldPropertyMetadatas(ImmutableArray<ISymbol> members, ImmutableArray<string> foreignEntityNames)
+    private static IEnumerable<PropertyMetadata> YieldPropertyMetadata(ImmutableArray<ISymbol> members, ImmutableArray<string> foreignEntityNames)
     {
         foreach (var member in members)
         {
@@ -141,17 +141,7 @@ internal static class Parser
 
             var relational = GetRelationalEntity(foreignEntityNames, property);
 
-            // define type seperately across requests and entity
-            var type = relational switch
-            {
-                null or
-                { RelationalType: RelationalType.ToManyHidden or RelationalType.ToOneHidden } => property.Type.ToDisplayString(),
-                { RelationalType: RelationalType.ToMany } => $"ICollection<{relational.Value.ForeignEntityName}>",
-                { RelationalType: RelationalType.ToOne } => relational.Value.ForeignEntityName,
-                _ => "object"
-            };
-
-            var source = propertyString.Insert(propertyString.IndexOf(' '), $" {type}");
+            var source = GetPropertySource(property, propertyString, relational);
 
             var attributes = YieldAttributeMetadatas(property).ToImmutableArray();
 
@@ -159,9 +149,38 @@ internal static class Parser
         }
     }
 
+    private static PropertySource GetPropertySource(IPropertySymbol property, string propertyString, PropertyRelational? relational)
+    {
+        // note: define type seperately across requests and entity
+        var type = relational switch
+        {
+            null or
+            { RelationalType: RelationalType.ToManyHidden or RelationalType.ToOneHidden } => property.Type.ToDisplayString(),
+            { RelationalType: RelationalType.ToMany } => $"ICollection<{relational.Value.ForeignEntityName}>",
+            { RelationalType: RelationalType.ToOne } => relational.Value.ForeignEntityName,
+            _ => "object"
+        };
+
+        var entitySource = propertyString.Insert(propertyString.IndexOf(' '), $" {type}");
+
+        // note: temporary way of checking types
+        //       nullable?
+        if (type.Contains("Identifier"))
+        {
+            if (type.Contains("ICollection"))
+            {
+                return new PropertySource(entitySource, propertyString.Insert(propertyString.IndexOf(' '), $" IEnumerable<string>?"));
+            }
+
+            return new PropertySource(entitySource, propertyString.Insert(propertyString.IndexOf(' '), $" string?"));
+        }
+
+        return new PropertySource(entitySource);
+    }
+
     // note: this method is based on some conventions, i.e that an entity with a one-to-many relation will declare that
     //       with a property of type ICollection<Foo> and with name Foos.
-    private static Relational? GetRelationalEntity(ImmutableArray<string> foreignEntityNames, IPropertySymbol property)
+    private static PropertyRelational? GetRelationalEntity(ImmutableArray<string> foreignEntityNames, IPropertySymbol property)
     {
         foreach (var foreignEntityName in foreignEntityNames)
         {
@@ -171,18 +190,18 @@ internal static class Parser
             {
                 if ($"{foreignEntityName}s" == property.Name)
                 {
-                    return new Relational(foreignEntityName, property.Name, RelationalType.ToMany);
+                    return new PropertyRelational(foreignEntityName, property.Name, RelationalType.ToMany);
                 }
 
-                return new Relational(foreignEntityName, property.Name, RelationalType.ToManyHidden);
+                return new PropertyRelational(foreignEntityName, property.Name, RelationalType.ToManyHidden);
             }
 
             if (foreignEntityName == property.Name)
             {
-                return new Relational(foreignEntityName, property.Name, RelationalType.ToOne);
+                return new PropertyRelational(foreignEntityName, property.Name, RelationalType.ToOne);
             }
 
-            return new Relational(foreignEntityName, property.Name, RelationalType.ToOneHidden);
+            return new PropertyRelational(foreignEntityName, property.Name, RelationalType.ToOneHidden);
         }
 
         return null;
@@ -207,7 +226,7 @@ internal static class Parser
         return name;
     }
 
-    private static IEnumerable<AttributeMetadata> YieldAttributeMetadatas(IPropertySymbol propertyMember)
+    private static IEnumerable<PropertyAttributeMetadata> YieldAttributeMetadatas(IPropertySymbol propertyMember)
     {
         foreach (var attributeData in propertyMember.GetAttributes())
         {

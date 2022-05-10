@@ -7,5 +7,5 @@ namespace ApiAutoFast.Sample.Server.Database;
 public class BlogCreateCommand
 {
     public string Title { get; set; }
-    public Identifier AuthorId { get; set; }
+    public string? AuthorId { get; set; }
 }

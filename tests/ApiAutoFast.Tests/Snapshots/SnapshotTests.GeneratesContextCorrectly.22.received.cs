@@ -8,10 +8,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ApiAutoFast.Sample.Server.Database;
 
-public partial class GetBlogEndpoint : Endpoint<BlogQueryRequest, PaginatedResponse<BlogResponse>, BlogMappingProfile>
+public partial class GetBlogEndpoint : Endpoint<BlogQueryRequest, Paginated<BlogResponse>, BlogMappingProfile>
 {
-    partial void OnExtendConfigure();
-    private bool _extendConfigure = false;
+    partial void ExtendConfigure();
+    private bool _overrideConfigure = false;
     private readonly AutoFastSampleDbContext _dbContext;
 
     public GetBlogEndpoint(AutoFastSampleDbContext dbContext)
@@ -21,14 +21,15 @@ public partial class GetBlogEndpoint : Endpoint<BlogQueryRequest, PaginatedRespo
 
     public override void Configure()
     {
-        if (_extendConfigure is false)
+        if (_overrideConfigure is false)
         {
             Verbs(Http.GET);
             Routes("/blogs");
+            // note: temporarily allow anonymous
             AllowAnonymous();
         }
 
-        OnExtendConfigure();
+        ExtendConfigure();
     }
 
     public override async Task HandleAsync(BlogQueryRequest req, CancellationToken ct)
@@ -44,7 +45,7 @@ public partial class GetBlogEndpoint : Endpoint<BlogQueryRequest, PaginatedRespo
 
         var response = result.Select(x => Map.FromEntity(x));
 
-        var pag = new PaginatedResponse<BlogResponse> { Data = response };
+        var pag = new Paginated<BlogResponse> { Data = response };
 
         await SendOkAsync(pag, ct);
     }

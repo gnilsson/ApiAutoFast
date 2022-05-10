@@ -15,11 +15,11 @@ public partial class BlogMappingProfile : Mapper<BlogCreateCommand, BlogResponse
         return e.AdaptToResponse();
     }
 
-    public Blog UpdateEntity(Blog ref originalEntity, BlogModifyCommand e)
+    public Blog UpdateEntity(Blog originalEntity, BlogModifyCommand e)
     {
         if(_onOverrideUpdateEntity)
         {
-            OnOverrideUpdateEntity(originalEntity, e);
+            OnOverrideUpdateEntity(ref originalEntity, e);
             return originalEntity;
         }
 

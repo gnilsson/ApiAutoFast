@@ -7,12 +7,9 @@ namespace ApiAutoFast.Sample.Server.Database;
 
 public class Blog : IEntity
 {
-
     public Blog()
     {
-        
     }
-
 
     public Identifier Id { get; set; }
     public DateTime CreatedDateTime { get; set; }

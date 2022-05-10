@@ -122,28 +122,6 @@
 //    }
 //}
 
-
-using ApiAutoFast.Sample.Server.Database;
-using FastEndpoints;
-using YamlDotNet.Core.Tokens;
-
-public partial class Lul
-{
-    void Hmm(string hm)
-    {
-        Hej(ref hm);
-    }
-
-    partial void Hej(ref string ah)
-    {
-return;
-}
-}
-public partial class Lul
-{
-partial void Hej(ref string ah);
-}
-
 //public partial class AuthorMappingProfile : Mapper<object, AuthorResponse, object>
 //{
 //private readonly bool _onOverrideUpdateEntity = false;
