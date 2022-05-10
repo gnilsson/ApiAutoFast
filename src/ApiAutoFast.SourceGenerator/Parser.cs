@@ -73,7 +73,7 @@ internal static class Parser
 
         return new GenerationConfig(
             new EntityGenerationConfig(entityConfigs, GetNamespace(semanticTarget.ClassDeclarationSyntax)),
-            new ContextGenerationConfig(NormaliseName(namedTypeSymbol)));
+            new ContextGenerationConfig(namedTypeSymbol.Name));
     }
 
     private static IEnumerable<EntityConfigSetup> YieldEntityConfigSetup(
@@ -216,14 +216,19 @@ internal static class Parser
             return (endpointsAttribute.ConstructorArguments[0].Value as string)!;
         }
 
-        return NormaliseName(namedTypeSymbol).Replace("Config", "");
+        return GetLastPart(namedTypeSymbol.Name).Replace("Config", "");
     }
 
-    private static string NormaliseName(INamedTypeSymbol namedTypeSymbol)
+    private static string GetLastPart(string @string, char seperator = '.')
     {
-        var tempName = namedTypeSymbol.ToString().Split('.');
-        var name = string.Join(".", tempName.Skip(tempName.Length - 1));
-        return name;
+        var index = @string.LastIndexOf(seperator);
+
+        if (index == -1) return @string;
+
+        var lastPart = @string.Substring(index, @string.Length - index);
+
+        return lastPart;
+
     }
 
     private static IEnumerable<PropertyAttributeMetadata> YieldAttributeMetadatas(IPropertySymbol propertyMember)
@@ -232,7 +237,7 @@ internal static class Parser
         {
             if (attributeData.AttributeClass is null) continue;
 
-            var attributeName = attributeData.AttributeClass.Name.Split('.').Last().Replace("Attribute", "");
+            var attributeName = GetLastPart(attributeData.AttributeClass.Name).Replace("Attribute", "");
 
             if (_propertyTargetAttributeNames.Contains(attributeName))
             {
