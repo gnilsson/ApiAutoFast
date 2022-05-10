@@ -180,20 +180,29 @@ internal static class Parser
 
     // note: this method is based on some conventions, i.e that an entity with a one-to-many relation will declare that
     //       with a property of type ICollection<Foo> and with name Foos.
+    //       alot of this is temporary.
     private static PropertyRelational? GetRelationalEntity(ImmutableArray<string> foreignEntityNames, IPropertySymbol property)
     {
         foreach (var foreignEntityName in foreignEntityNames)
         {
             if (property.Name.Contains(foreignEntityName) is false) continue;
 
-            if (property.Type.ToDisplayString().Contains("ICollection"))
+            var typeString = property.Type.ToDisplayString();
+
+            if (typeString.Contains("ICollection"))
             {
                 if ($"{foreignEntityName}s" == property.Name)
                 {
                     return new PropertyRelational(foreignEntityName, property.Name, RelationalType.ToMany);
                 }
 
-                return new PropertyRelational(foreignEntityName, property.Name, RelationalType.ToManyHidden);
+                if (typeString.Contains("Identifer") || typeString.Contains("Guid"))
+                {
+                    return new PropertyRelational(foreignEntityName, property.Name, RelationalType.ToManyHidden);
+                }
+
+                // note: we need exact match to be certain, so just continue here.
+                continue;
             }
 
             if (foreignEntityName == property.Name)
@@ -201,7 +210,10 @@ internal static class Parser
                 return new PropertyRelational(foreignEntityName, property.Name, RelationalType.ToOne);
             }
 
-            return new PropertyRelational(foreignEntityName, property.Name, RelationalType.ToOneHidden);
+            if (typeString.Contains("Identifer") || typeString.Contains("Guid"))
+            {
+                return new PropertyRelational(foreignEntityName, property.Name, RelationalType.ToOneHidden);
+            }
         }
 
         return null;

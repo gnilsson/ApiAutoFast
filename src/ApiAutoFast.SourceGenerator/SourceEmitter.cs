@@ -245,8 +245,7 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity
                 if (propertyMetadata.Relational?.RelationalType is RelationalType.ToMany)
                 {
                     sb.Append(@"
-        this.").Append(propertyMetadata.Relational.Value.ForeigEntityProperty).Append(@" = new HashSet<").Append(propertyMetadata.Relational.Value.ForeignEntityName).Append(@">();
-");
+        this.").Append(propertyMetadata.Relational.Value.ForeigEntityProperty).Append(@" = new HashSet<").Append(propertyMetadata.Relational.Value.ForeignEntityName).Append(@">();");
 
                 }
             }
