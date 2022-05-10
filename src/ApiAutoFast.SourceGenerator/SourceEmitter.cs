@@ -202,6 +202,8 @@ public static class AdaptAttributeBuilderExtensions
 {
     public static AdaptAttributeBuilder ForTypeDefaultValues(this AdaptAttributeBuilder aab)
     {
+        // todo: enums?
+        // foreach enum property in entity write cfg.map => enum, typeof(string)
         return aab");
         foreach (var entity in generationConfig.EntityConfigs)
         {
@@ -211,8 +213,6 @@ public static class AdaptAttributeBuilderExtensions
                 cfg.Map(poco => poco.Id, typeof(string));
                 cfg.Map(poco => poco.CreatedDateTime, typeof(string));
                 cfg.Map(poco => poco.ModifiedDateTime, typeof(string));
-                // todo: enums?
-                // foreach enum property in entity write cfg.map => enum, typeof(string)
             })");
         }
         sb.Append(@";
@@ -231,6 +231,7 @@ public static class AdaptAttributeBuilderExtensions
         sb.Append(@"
 using ApiAutoFast;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace ").Append(@namespace).Append(@";
 
@@ -386,11 +387,16 @@ public partial class ").Append(contextConfig.Name).Append(@" : DbContext
         _entityTypes = AutoFastDbContextHelper.GetEntityTypes<").Append(contextConfig.Name).Append(@">();
     }
 
+    partial void ExtendOnModelCreating(ModelBuilder modelBuilder);
+    partial void ExtendSaveChanges();
+
     public ").Append(contextConfig.Name).Append(@"(DbContextOptions<").Append(contextConfig.Name).Append(@"> options) : base(options) { }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         AutoFastDbContextHelper.UpdateModifiedDateTime(ChangeTracker.Entries());
+
+        ExtendSaveChanges();
 
         return await base.SaveChangesAsync(cancellationToken);
     }
@@ -398,6 +404,8 @@ public partial class ").Append(contextConfig.Name).Append(@" : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         AutoFastDbContextHelper.BuildEntities(modelBuilder, _entityTypes);
+
+        ExtendOnModelCreating(modelBuilder);
     }
 ");
         foreach (var entity in endpointsConfig.EntityConfigs)
