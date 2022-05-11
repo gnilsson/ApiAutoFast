@@ -90,14 +90,14 @@ internal readonly struct EndpointConfig
 
 internal struct RequestEndpointPair
 {
-    internal RequestEndpointPair(string requestModel, EndpointTargetType endpointTarget, string httpVerb)
+    internal RequestEndpointPair(RequestModelTarget requestModel, EndpointTargetType endpointTarget, string httpVerb)
     {
         RequestModel = requestModel;
         EndpointTarget = endpointTarget;
         HttpVerb = httpVerb;
     }
 
-    public string RequestModel { get; }
+    public RequestModelTarget RequestModel { get; }
     public EndpointTargetType EndpointTarget { get; }
     public string HttpVerb { get; }
 }
@@ -105,18 +105,26 @@ internal struct RequestEndpointPair
 // note: should probably restructure this to have propertymetadata of type entitymodel and requestmodel insted of making the distinction twice on attributes and source
 internal readonly struct PropertyMetadata
 {
-    public PropertyMetadata(PropertySource source, string name, ImmutableArray<PropertyAttributeMetadata>? attributeMetadatas, bool isEnum, PropertyRelational? relational = null)
+    public PropertyMetadata(
+        PropertySource source,
+        string name,
+        bool isEnum,
+        RequestModelTarget requestModelTarget,
+        ImmutableArray<PropertyAttributeMetadata>? attributeMetadatas = null,
+        PropertyRelational? relational = null)
     {
         Source = source;
         Name = name;
         AttributeMetadatas = attributeMetadatas;
         IsEnum = isEnum;
+        RequestModelTarget = requestModelTarget;
         Relational = relational;
     }
 
     public PropertySource Source { get; }
     public string Name { get; }
     public ImmutableArray<PropertyAttributeMetadata>? AttributeMetadatas { get; }
+    public RequestModelTarget RequestModelTarget { get; }
     public bool IsEnum { get; }
     public PropertyRelational? Relational { get; }
 }
@@ -169,27 +177,25 @@ internal record SemanticTargetInformation
 
 internal enum AttributeType
 {
-    Target = 0,
-    Appliable
+    Custom = 0,
+    Default
 }
 
 internal readonly struct PropertyAttributeMetadata
 {
-    internal PropertyAttributeMetadata(AttributeType attributeType, string name)
+    internal PropertyAttributeMetadata(
+        AttributeType attributeType,
+        string name,
+        RequestModelTarget? requestModelTarget = null)
     {
         AttributeType = attributeType;
         Name = name;
+        RequestModelTarget = requestModelTarget;
     }
 
     public AttributeType AttributeType { get; }
     public string Name { get; }
-}
-
-internal enum AttributeModelTargetType
-{
-    CreateCommand = 0,
-    ModifyCommand,
-    QueryRequest,
+    public RequestModelTarget? RequestModelTarget { get; }
 }
 
 internal enum EndpointTargetType
@@ -200,3 +206,16 @@ internal enum EndpointTargetType
     Update,
     Delete,
 }
+
+// todo: move to common lib
+
+//[Flags]
+//internal enum RequestModelTarget
+//{
+//    None = 0,
+//    CreateCommand = 1,
+//    ModifyCommand = 2,
+//    QueryRequest = 4,
+//    GetByIdRequest = 8,
+//    DeleteCommand = 16,
+//}

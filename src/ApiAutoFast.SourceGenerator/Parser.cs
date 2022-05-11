@@ -1,15 +1,12 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis;
-using System.Collections.Immutable;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using ApiAutoFast.SourceGenerator.Configuration;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Immutable;
 
 namespace ApiAutoFast.SourceGenerator;
 
 internal static class Parser
 {
-    private static readonly string[] _propertyTargetAttributeNames = Enum.GetNames(typeof(AttributeModelTargetType));
-
     private const string AutoFastEndpointsAttribute = "ApiAutoFast.AutoFastEndpointsAttribute";
     private const string AutoFastContextAttribute = "ApiAutoFast.AutoFastContextAttribute";
 
@@ -123,13 +120,13 @@ internal static class Parser
                 .Select(x => x.Name)
                 .ToImmutableArray();
 
-            var propertyMetadatas = YieldPropertyMetadata(members, foreignEntityNames).ToImmutableArray();
+            var propertyMetadatas = YieldPropertyMetadata(members, foreignEntityNames, entityConfigSetup.SemanticModel).ToImmutableArray();
 
             yield return new EntityConfig(entityConfigSetup.Name, propertyMetadatas);
         }
     }
 
-    private static IEnumerable<PropertyMetadata> YieldPropertyMetadata(ImmutableArray<ISymbol> members, ImmutableArray<string> foreignEntityNames)
+    private static IEnumerable<PropertyMetadata> YieldPropertyMetadata(ImmutableArray<ISymbol> members, ImmutableArray<string> foreignEntityNames, SemanticModel semanticModel)
     {
         // todo: stop generation if any property is property.type.typekind error
         foreach (var member in members)
@@ -148,8 +145,25 @@ internal static class Parser
 
             var attributes = YieldAttributeMetadata(property).ToImmutableArray();
 
-            yield return new PropertyMetadata(source, property.Name, attributes, typeKind == "Enum", relational);
+            var requestModelTarget = GetRequestModelTarget(attributes);
+
+            yield return new PropertyMetadata(source, property.Name, typeKind == "Enum", requestModelTarget, attributes, relational);
         }
+    }
+
+    private static RequestModelTarget GetRequestModelTarget(ImmutableArray<PropertyAttributeMetadata> attributes)
+    {
+        if (attributes.Length > 0)
+        {
+            var attriubteMetadata = attributes.FirstOrDefault(x => x.RequestModelTarget is not null);
+
+            if (attriubteMetadata.RequestModelTarget.HasValue)
+            {
+                return attriubteMetadata.RequestModelTarget.Value;
+            }
+        }
+
+        return RequestModelTarget.CreateCommand | RequestModelTarget.ModifyCommand | RequestModelTarget.QueryRequest;
     }
 
     private static string GetTypeKind(IPropertySymbol property)
@@ -266,14 +280,23 @@ internal static class Parser
 
             var attributeName = GetLastPart(attributeData.AttributeClass.Name).Replace("Attribute", "");
 
-            if (_propertyTargetAttributeNames.Contains(attributeName))
+            if (attributeName == "ExcludeRequestModel")
             {
-                yield return new(AttributeType.Target, attributeName);
+                if (attributeData.ConstructorArguments.Length > 0)
+                {
+                    yield return new PropertyAttributeMetadata(
+                        AttributeType.Custom,
+                        attributeName,
+                        (RequestModelTarget)attributeData.ConstructorArguments[0].Value!);
+
+                    continue;
+                }
+
+                yield return new PropertyAttributeMetadata(AttributeType.Custom, attributeName, RequestModelTarget.None);
                 continue;
             }
 
-            yield return new(AttributeType.Appliable, attributeName);
-            continue;
+            yield return new PropertyAttributeMetadata(AttributeType.Default, attributeName);
         }
     }
 

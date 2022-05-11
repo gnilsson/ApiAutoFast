@@ -1,5 +1,4 @@
-﻿//HintName: RequestModelTargetEnum.g.cs
-
+﻿
 namespace ApiAutoFast;
 
 [Flags]

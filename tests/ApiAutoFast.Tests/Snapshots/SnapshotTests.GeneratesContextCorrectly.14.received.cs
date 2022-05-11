@@ -1,30 +1,48 @@
-﻿//HintName: BlogMappingProfile.g.cs
+﻿//HintName: GetByIdAuthorEndpoint.g.cs
 
+using ApiAutoFast;
 using FastEndpoints;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace ApiAutoFast.Sample.Server.Database;
 
-public partial class BlogMappingProfile : Mapper<BlogCreateCommand, BlogResponse, Blog>
+public partial class GetByIdAuthorEndpoint : Endpoint<AuthorGetByIdRequest, AuthorResponse, AuthorMappingProfile>
 {
-    private readonly bool _onOverrideUpdateEntity = false;
+    partial void ExtendConfigure();
+    private bool _overrideConfigure = false;
+    private readonly AutoFastSampleDbContext _dbContext;
 
-    partial void OnOverrideUpdateEntity(ref Blog originalEntity, BlogModifyCommand e);
-
-    public override BlogResponse FromEntity(Blog e)
+    public GetByIdAuthorEndpoint(AutoFastSampleDbContext dbContext)
     {
-        return e.AdaptToResponse();
+        _dbContext = dbContext;
     }
 
-    public Blog UpdateEntity(Blog originalEntity, BlogModifyCommand e)
+    public override void Configure()
     {
-        if(_onOverrideUpdateEntity)
+        if (_overrideConfigure is false)
         {
-            OnOverrideUpdateEntity(ref originalEntity, e);
-            return originalEntity;
+            Verbs(Http.GET);
+            Routes("/authors/{id}");
+            // note: temporarily allow anonymous
+            AllowAnonymous();
         }
 
-        originalEntity.Title = e.Title;
-        originalEntity.AuthorId = e.AuthorId;
-        return originalEntity;
+        ExtendConfigure();
+    }
+
+    public override async Task HandleAsync(AuthorGetByIdRequest req, CancellationToken ct)
+    {
+        var result = await _dbContext.Authors.FindAsync((Identifier)req.Id, ct);
+
+        if (result is null)
+        {
+            await SendNotFoundAsync(ct);
+        }
+
+        var response = Map.FromEntity(result);
+
+        await SendOkAsync(response, ct);
     }
 }

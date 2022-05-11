@@ -5,14 +5,16 @@ namespace ApiAutoFast.SourceGenerator;
 public static class SourceEmitter
 {
     public const string AutoFastEndpointsAttribute = @"
+using System;
+
 namespace ApiAutoFast;
 
 /// <summary>
 /// Marker attribute for source generator.
 /// <param name=""entityName"">Name of the entity to generate, will default to this class name and remove ""Config""</param>
 /// </summary>
-[System.AttributeUsage(System.AttributeTargets.Class)]
-internal class AutoFastEndpointsAttribute : System.Attribute
+[AttributeUsage(AttributeTargets.Class)]
+internal class AutoFastEndpointsAttribute : Attribute
 {
     internal AutoFastEndpointsAttribute(string? entityName = null)
     {
@@ -24,18 +26,57 @@ internal class AutoFastEndpointsAttribute : System.Attribute
 ";
 
     public const string AutoFastContextAttribute = @"
+using System;
+
 namespace ApiAutoFast;
 
-[System.AttributeUsage(System.AttributeTargets.Class)]
-internal class AutoFastContextAttribute : System.Attribute
+[AttributeUsage(AttributeTargets.Class)]
+internal class AutoFastContextAttribute : Attribute
 {
 }
 ";
 
-    private static readonly Func<string, string> _getModelTargetSource = static (modelTarget) => modelTarget switch
+    public const string ExcludeRequestModelAttribute = @"
+using System;
+
+namespace ApiAutoFast;
+
+/// <summary>
+/// Attribute to exclude property from request model.
+/// <param name=""includeRequestModelTarget"">If not applied, property is per default included in
+/// RequestModelTarget.CreateCommand | RequestModelTarget.DeleteCommand | RequestModelTarget.QueryRequest</param>
+/// </summary>
+[AttributeUsage(AttributeTargets.Property)]
+public class ExcludeRequestModelAttribute : Attribute
+{
+    public ExcludeRequestModelAttribute(RequestModelTarget includeRequestModelTarget = RequestModelTarget.None)
     {
-        nameof(AttributeModelTargetType.CreateCommand) => string.Empty,
-        nameof(AttributeModelTargetType.QueryRequest) => @"
+        IncludeRequestModelTarget = includeRequestModelTarget;
+    }
+
+    public RequestModelTarget IncludeRequestModelTarget { get; }
+}
+";
+
+    public const string RequestModelTargetEnum = @"
+namespace ApiAutoFast;
+
+[Flags]
+public enum RequestModelTarget
+{
+    None = 0,
+    CreateCommand = 1,
+    ModifyCommand = 2,
+    QueryRequest = 4,
+    GetByIdRequest = 8,
+    DeleteCommand = 16,
+}
+";
+
+    private static readonly Func<RequestModelTarget, string> _getModelTargetSource = static (modelTarget) => modelTarget switch
+    {
+        RequestModelTarget.CreateCommand => string.Empty,
+        RequestModelTarget.QueryRequest => @"
     public string? CreatedDateTime { get; set; }
     public string? ModifiedDateTime { get; set; }",
         _ => @"
@@ -282,7 +323,7 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity
                 {
                     foreach (var attributeMetadata in propertyMetadata.AttributeMetadatas.Value)
                     {
-                        if (attributeMetadata.AttributeType is AttributeType.Appliable)
+                        if (attributeMetadata.AttributeType is AttributeType.Default)
                         {
                             sb.Append(@"
     [").Append(attributeMetadata.Name).Append(@"]");
@@ -357,7 +398,7 @@ public partial class ")
         return sb.ToString();
     }
 
-    internal static string EmitRequestModelTarget(StringBuilder sb, string @namespace, EntityConfig entityConfig, string modelTarget)
+    internal static string EmitRequestModelTarget(StringBuilder sb, string @namespace, EntityConfig entityConfig, RequestModelTarget modelTarget)
     {
         sb.Clear();
 
@@ -449,7 +490,7 @@ public partial class ")
     .Append(entityConfig.MappingProfile)
     .Append(@" : Mapper<")
     .Append(entityConfig.BaseName)
-    .Append(nameof(AttributeModelTargetType.CreateCommand))
+    .Append(nameof(RequestModelTarget.CreateCommand))
     .Append(@", ")
     .Append(entityConfig.Response)
     .Append(", ")
@@ -463,7 +504,7 @@ public partial class ")
     .Append(entityConfig.BaseName)
     .Append(@" originalEntity, ")
     .Append(entityConfig.BaseName)
-    .Append(nameof(AttributeModelTargetType.ModifyCommand))
+    .Append(nameof(RequestModelTarget.ModifyCommand))
     .Append(@" e);
 
     public override ")
@@ -481,7 +522,7 @@ public partial class ")
     .Append(entityConfig.BaseName)
     .Append(@" originalEntity, ")
     .Append(entityConfig.BaseName)
-    .Append(nameof(AttributeModelTargetType.ModifyCommand))
+    .Append(nameof(RequestModelTarget.ModifyCommand))
     .Append(@" e)
     {
         if(_onOverrideUpdateEntity)
@@ -510,7 +551,7 @@ public partial class ")
             foreach (var propertyMetadata in entityConfig.PropertyMetadatas.Value)
             {
                 if (propertyMetadata.AttributeMetadatas?.Length > 0
-                    && propertyMetadata.AttributeMetadatas.Value.Any(x => x.Name is nameof(AttributeModelTargetType.ModifyCommand)))
+                    && propertyMetadata.AttributeMetadatas.Value.Any(x => x.Name is nameof(RequestModelTarget.ModifyCommand)))
                 {
                     yield return propertyMetadata.Name;
                 }
@@ -518,22 +559,15 @@ public partial class ")
         }
     }
 
-    private static IEnumerable<string> YieldRequestModelTargetPropertySource(EntityConfig entityConfig, string modelTarget)
+    private static IEnumerable<string> YieldRequestModelTargetPropertySource(EntityConfig entityConfig, RequestModelTarget modelTarget)
     {
         if (entityConfig.PropertyMetadatas?.Length > 0)
         {
             foreach (var propertyMetadata in entityConfig.PropertyMetadatas.Value)
             {
-                if (propertyMetadata.AttributeMetadatas?.Length > 0)
+                if (propertyMetadata.RequestModelTarget.HasFlag(modelTarget))
                 {
-                    var targetNames = propertyMetadata.AttributeMetadatas.Value
-                        .Where(x => x.AttributeType is AttributeType.Target)
-                        .Select(x => x.Name);
-
-                    if (targetNames.Contains(modelTarget))
-                    {
-                        yield return propertyMetadata.Source.RequestModel;
-                    }
+                    yield return propertyMetadata.Source.RequestModel;
                 }
             }
         }

@@ -22,9 +22,6 @@ public partial class AuthorMappingProfile : Mapper<AuthorCreateCommand, AuthorRe
             return originalEntity;
         }
 
-        originalEntity.FirstName = e.FirstName;
-        originalEntity.LastName = e.LastName;
-        originalEntity.Profession = e.Profession;
         return originalEntity;
     }
 }

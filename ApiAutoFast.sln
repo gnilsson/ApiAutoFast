@@ -19,6 +19,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiAutoFast.Tests", "tests\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiAutoFast.IntegrationTests", "tests\ApiAutoFast.IntegrationTests\ApiAutoFast.IntegrationTests.csproj", "{50956AFC-3028-455E-BF75-391BB298EB8F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiAutoFast.Configuration", "src\ApiAutoFast.Configuration\ApiAutoFast.Configuration.csproj", "{C2400897-BAD8-47A2-A736-9C6D4EF4E82E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{50956AFC-3028-455E-BF75-391BB298EB8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{50956AFC-3028-455E-BF75-391BB298EB8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{50956AFC-3028-455E-BF75-391BB298EB8F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2400897-BAD8-47A2-A736-9C6D4EF4E82E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2400897-BAD8-47A2-A736-9C6D4EF4E82E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2400897-BAD8-47A2-A736-9C6D4EF4E82E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2400897-BAD8-47A2-A736-9C6D4EF4E82E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -55,6 +61,7 @@ Global
 		{569C98C8-6E01-4CC4-81D0-27D9A02B13ED} = {85E05F5B-F9F5-4202-9CA1-D155CD2CC5D9}
 		{7D036D6E-8B1C-4393-AE4E-5AF23D414919} = {5232EC81-D303-4116-B829-FCC50D9309F8}
 		{50956AFC-3028-455E-BF75-391BB298EB8F} = {5232EC81-D303-4116-B829-FCC50D9309F8}
+		{C2400897-BAD8-47A2-A736-9C6D4EF4E82E} = {C0DB23B0-027B-4B9E-A624-8127ADB866DD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B7CE5866-5398-42C9-A6AA-1523D01D71A0}

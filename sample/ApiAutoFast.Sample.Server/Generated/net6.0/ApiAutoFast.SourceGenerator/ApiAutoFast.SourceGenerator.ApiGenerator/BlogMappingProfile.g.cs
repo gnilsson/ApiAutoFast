@@ -22,8 +22,6 @@ public partial class BlogMappingProfile : Mapper<BlogCreateCommand, BlogResponse
             return originalEntity;
         }
 
-        originalEntity.Title = e.Title;
-        originalEntity.AuthorId = e.AuthorId;
         return originalEntity;
     }
 }

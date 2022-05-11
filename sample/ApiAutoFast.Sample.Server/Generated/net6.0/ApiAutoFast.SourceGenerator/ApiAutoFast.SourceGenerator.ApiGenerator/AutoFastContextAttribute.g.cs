@@ -1,7 +1,9 @@
 ﻿
+using System;
+
 namespace ApiAutoFast;
 
-[System.AttributeUsage(System.AttributeTargets.Class)]
-internal class AutoFastContextAttribute : System.Attribute
+[AttributeUsage(AttributeTargets.Class)]
+internal class AutoFastContextAttribute : Attribute
 {
 }

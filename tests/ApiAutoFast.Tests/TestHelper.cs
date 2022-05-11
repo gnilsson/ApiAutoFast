@@ -45,13 +45,13 @@ public static class TestHelper
         {
             MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(IAssemblyMarker).Assembly.Location),
-          //  MetadataReference.CreateFromFile(typeof(AutoFastDbContext).Assembly.Location)
+            //MetadataReference.CreateFromFile(typeof(ExcludeRequestModelAttribute).Assembly.Location)
         };
 
         CSharpCompilation compilation = CSharpCompilation.Create(
-            assemblyName: "ApiAutoFast.Tests",
+            assemblyName: "Tests",
             syntaxTrees: new[] { syntaxTree },
-            references: references);//GetMetadataReferences()
+            references: references);//references);//
 
         var generator = new ApiGenerator();
 
@@ -75,7 +75,11 @@ public static class TestHelper
             MetadataReference.CreateFromFile(Path.Combine(dotNetAssemblyPath, "System.dll")),
             MetadataReference.CreateFromFile(Path.Combine(dotNetAssemblyPath, "System.Core.dll")),
             MetadataReference.CreateFromFile(Path.Combine(dotNetAssemblyPath, "System.Private.CoreLib.dll")),
-            MetadataReference.CreateFromFile(Path.Combine(dotNetAssemblyPath, "System.Runtime.dll")));
+            MetadataReference.CreateFromFile(Path.Combine(dotNetAssemblyPath, "System.Runtime.dll")),
+            MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(IAssemblyMarker).Assembly.Location));
+        //    MetadataReference.CreateFromFile(typeof(ExcludeRequestModelAttribute).Assembly.Location));
+
            // MetadataReference.CreateFromFile(typeof(AutoFastDbContext).Assembly.Location));
 
             return references;

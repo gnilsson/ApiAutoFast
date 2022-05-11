@@ -20,12 +20,10 @@ public class AuthorConfig
 {
     internal class Properties
     {
-        [Required, CreateCommand, ModifyCommand, QueryRequest]
         public string? FirstName { get; set; }
-        [Required, CreateCommand, ModifyCommand, QueryRequest]
         public string? LastName { get; set; }
-        [Required, QueryRequest, CreateCommand, ModifyCommand]
         public ProfessionCategory? Profession { get; set; }
+        [ExcludeRequestModel]
         public ICollection<BlogConfig>? Blogs { get; set; }
     }
 }
@@ -35,24 +33,21 @@ public class BlogConfig
 {
     internal class Properties
     {
-        [Required, CreateCommand, ModifyCommand, QueryRequest]
         public string? Title { get; set; }
-        [Required]
         public AuthorConfig? Author { get; set; }
-        [Required, CreateCommand, ModifyCommand, QueryRequest]
         public Identifier AuthorId { get; set; }
     }
 }
 
 
-public partial class BlogMappingProfile
-{
-    public override Blog ToEntity(BlogCreateCommand r)
-    {
-        return new Blog
-        {
-            AuthorId = (Identifier)r.AuthorId!,
-            Title = r.Title,
-        };
-    }
-}
+//public partial class BlogMappingProfile
+//{
+//    public override Blog ToEntity(BlogCreateCommand r)
+//    {
+//        return new Blog
+//        {
+//            AuthorId = (Identifier)r.AuthorId!,
+//            Title = r.Title,
+//        };
+//    }
+//}

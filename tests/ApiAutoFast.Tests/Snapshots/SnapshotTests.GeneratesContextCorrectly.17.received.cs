@@ -1,4 +1,4 @@
-﻿//HintName: CreateAuthorEndpoint.g.cs
+﻿//HintName: UpdateAuthorEndpoint.g.cs
 
 using ApiAutoFast;
 using FastEndpoints;
@@ -8,13 +8,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ApiAutoFast.Sample.Server.Database;
 
-public partial class CreateAuthorEndpoint : Endpoint<AuthorCreateCommand, AuthorResponse, AuthorMappingProfile>
+public partial class UpdateAuthorEndpoint : Endpoint<AuthorModifyCommand, AuthorResponse, AuthorMappingProfile>
 {
     partial void ExtendConfigure();
     private bool _overrideConfigure = false;
     private readonly AutoFastSampleDbContext _dbContext;
 
-    public CreateAuthorEndpoint(AutoFastSampleDbContext dbContext)
+    public UpdateAuthorEndpoint(AutoFastSampleDbContext dbContext)
     {
         _dbContext = dbContext;
     }
@@ -23,8 +23,8 @@ public partial class CreateAuthorEndpoint : Endpoint<AuthorCreateCommand, Author
     {
         if (_overrideConfigure is false)
         {
-            Verbs(Http.POST);
-            Routes("/authors");
+            Verbs(Http.PUT);
+            Routes("/authors/{id}");
             // note: temporarily allow anonymous
             AllowAnonymous();
         }
@@ -32,16 +32,19 @@ public partial class CreateAuthorEndpoint : Endpoint<AuthorCreateCommand, Author
         ExtendConfigure();
     }
 
-    public override async Task HandleAsync(AuthorCreateCommand req, CancellationToken ct)
+    public override async Task HandleAsync(AuthorModifyCommand req, CancellationToken ct)
     {
-        var entity = Map.ToEntity(req);
+        var result = await _dbContext.Authors.FindAsync((Identifier)req.Id, ct);
 
-        await _dbContext.AddAsync(entity, ct);
+        if (result is null)
+        {
+            await SendNotFoundAsync(ct);
+        }
 
-        await _dbContext.SaveChangesAsync(ct);
+        var entity = Map.UpdateEntity(result, req);
 
         var response = Map.FromEntity(entity);
 
-        await SendCreatedAtAsync<GetByIdAuthorEndpoint>(new { Id = response.Id }, response, generateAbsoluteUrl: true, cancellation: ct);
+        await SendOkAsync(response, ct);
     }
 }

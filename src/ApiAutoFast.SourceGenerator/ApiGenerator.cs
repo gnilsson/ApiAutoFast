@@ -12,11 +12,11 @@ public class ApiGenerator : IIncrementalGenerator
     {
         _requestEndpointPairs = new RequestEndpointPair[]
         {
-            new ($"{nameof(EndpointTargetType.GetById)}Request", EndpointTargetType.GetById, "Http.GET"),
-            new ($"{nameof(EndpointTargetType.Delete)}Command",  EndpointTargetType.Delete,  "Http.DELETE"),
-            new (nameof(AttributeModelTargetType.ModifyCommand), EndpointTargetType.Update,  "Http.PUT"),
-            new (nameof(AttributeModelTargetType.CreateCommand), EndpointTargetType.Create,  "Http.POST"),
-            new (nameof(AttributeModelTargetType.QueryRequest),  EndpointTargetType.Get,     "Http.GET"),
+            new (RequestModelTarget.GetByIdRequest, EndpointTargetType.GetById, "Http.GET"),
+            new (RequestModelTarget.DeleteCommand,  EndpointTargetType.Delete,  "Http.DELETE"),
+            new (RequestModelTarget.ModifyCommand,  EndpointTargetType.Update,  "Http.PUT"),
+            new (RequestModelTarget.CreateCommand,  EndpointTargetType.Create,  "Http.POST"),
+            new (RequestModelTarget.QueryRequest,   EndpointTargetType.Get,     "Http.GET"),
         };
     }
 
@@ -28,6 +28,8 @@ public class ApiGenerator : IIncrementalGenerator
         {
             ctx.AddSource("AutoFastEndpointsAttribute.g.cs", SourceText.From(SourceEmitter.AutoFastEndpointsAttribute, Encoding.UTF8));
             ctx.AddSource("AutoFastContextAttribute.g.cs", SourceText.From(SourceEmitter.AutoFastContextAttribute, Encoding.UTF8));
+            ctx.AddSource("RequestModelTargetEnum.g.cs", SourceText.From(SourceEmitter.RequestModelTargetEnum, Encoding.UTF8));
+            ctx.AddSource("ExcludeRequestModelAttribute.g.cs", SourceText.From(SourceEmitter.ExcludeRequestModelAttribute, Encoding.UTF8));
         });
 
         IncrementalValuesProvider<SemanticTargetInformation> classDeclarations = context.SyntaxProvider
@@ -56,6 +58,8 @@ public class ApiGenerator : IIncrementalGenerator
 
         var sb = new StringBuilder();
 
+
+
         foreach (var entityConfig in entityGenerationConfig.EntityConfigs)
         {
             var entityResult = SourceEmitter.EmitEntityModels(sb, entityGenerationConfig.Namespace, entityConfig);
@@ -78,8 +82,11 @@ public class ApiGenerator : IIncrementalGenerator
         {
             foreach (var requestEndpointPair in _requestEndpointPairs)
             {
-                var requestModelsResult = SourceEmitter.EmitRequestModelTarget(sb, entityGenerationConfig.Namespace, entityConfig, requestEndpointPair.RequestModel);
-                context.AddSource($"{entityConfig.BaseName}{requestEndpointPair.RequestModel}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
+                //if (requestEndpointPair.RequestModel is not RequestModelTarget.None)
+                //{
+                    var requestModelsResult = SourceEmitter.EmitRequestModelTarget(sb, entityGenerationConfig.Namespace, entityConfig, requestEndpointPair.RequestModel);
+                    context.AddSource($"{entityConfig.BaseName}{requestEndpointPair.RequestModel}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
+                //}
             }
 
             var mappingProfileResult = SourceEmitter.EmitMappingProfile(sb, entityGenerationConfig.Namespace, entityConfig);
