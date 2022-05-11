@@ -58,8 +58,6 @@ public class ApiGenerator : IIncrementalGenerator
 
         var sb = new StringBuilder();
 
-
-
         foreach (var entityConfig in entityGenerationConfig.EntityConfigs)
         {
             var entityResult = SourceEmitter.EmitEntityModels(sb, entityGenerationConfig.Namespace, entityConfig);
@@ -82,11 +80,8 @@ public class ApiGenerator : IIncrementalGenerator
         {
             foreach (var requestEndpointPair in _requestEndpointPairs)
             {
-                //if (requestEndpointPair.RequestModel is not RequestModelTarget.None)
-                //{
-                    var requestModelsResult = SourceEmitter.EmitRequestModel(sb, entityGenerationConfig.Namespace, entityConfig, requestEndpointPair.RequestModel);
-                    context.AddSource($"{entityConfig.BaseName}{requestEndpointPair.RequestModel}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
-                //}
+                var requestModelsResult = SourceEmitter.EmitRequestModel(sb, entityGenerationConfig.Namespace, entityConfig, requestEndpointPair.RequestModel);
+                context.AddSource($"{entityConfig.BaseName}{requestEndpointPair.RequestModel}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
             }
 
             var mappingProfileResult = SourceEmitter.EmitMappingProfile(sb, entityGenerationConfig.Namespace, entityConfig);
