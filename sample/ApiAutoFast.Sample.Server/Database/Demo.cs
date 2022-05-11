@@ -9,21 +9,6 @@
 
 //namespace ApiAutoFast.Sample.Server.Database;
 
-//public partial class MappingRegister
-//{
-//    public MappingRegister()
-//    {
-//        _extendRegisterResponses = true;
-//    }
-
-//    static partial void OnExtendRegisterResponses(AdaptAttributeBuilder aab)
-//    {
-//        aab.ForType<Author>(cfg =>
-//        {
-//            cfg.Map(poco => poco.Profession, typeof(string));
-//        });
-//    }
-//}
 
 
 

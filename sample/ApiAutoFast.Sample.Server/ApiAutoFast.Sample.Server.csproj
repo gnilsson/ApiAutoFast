@@ -21,7 +21,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\src\ApiAutoFast.Configuration\ApiAutoFast.Configuration.csproj" />
 		<ProjectReference Include="..\..\src\ApiAutoFast.SourceGenerator\ApiAutoFast.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 		<ProjectReference Include="..\..\src\ApiAutoFast\ApiAutoFast.csproj" />
 	</ItemGroup>
@@ -56,10 +55,6 @@
 
 	<ItemGroup>
 		<Generated Include="**\*.g.cs" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Endpoints\" />
 	</ItemGroup>
 	<Target Name="CleanGenerated">
 		<Delete Files="@(Generated)" />

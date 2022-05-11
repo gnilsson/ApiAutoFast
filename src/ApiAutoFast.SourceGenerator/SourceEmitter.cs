@@ -59,6 +59,8 @@ public class ExcludeRequestModelAttribute : Attribute
 ";
 
     public const string RequestModelTargetEnum = @"
+using System;
+
 namespace ApiAutoFast;
 
 [Flags]

@@ -1,10 +1,7 @@
-﻿
-using System;
-
-namespace ApiAutoFast;
+﻿namespace ApiAutoFast.SourceGenerator;
 
 [Flags]
-public enum RequestModelTarget
+internal enum RequestModelTarget
 {
     None = 0,
     CreateCommand = 1,

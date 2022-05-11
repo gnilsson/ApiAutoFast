@@ -1,6 +1,4 @@
-﻿using ApiAutoFast.SourceGenerator;
-using Microsoft.VisualStudio.TestPlatform.Utilities;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using VerifyXunit;
 using Xunit;
 
@@ -65,62 +63,6 @@ public class AuthorConfig
 
 
 ";
-
-        //        var source = @"
-        //using ApiAutoFast;
-        //using Microsoft.EntityFrameworkCore;
-        //using System.ComponentModel.DataAnnotations;
-
-        //namespace ApiAutoFast.Sample.Server.Database;
-
-
-        ////[AutoFastContext]
-        ////public partial class AutoFastSampleDbContext : DbContext
-        ////{
-        ////}
-
-        //public enum ProfessionCategory
-        //{
-        //    None = 0,
-        //    Unemployed,
-        //    Programmer,
-        //    CoalmineWorker,
-        //    Botanist,
-        //    SpacestationArchitect,
-        //    Dragon
-        //}
-
-        //[AutoFastEndpoints]
-        //public class AuthorConfig
-        //{
-        //    internal class Properties
-        //    {
-        //        //[Required, CreateCommand, ModifyCommand, QueryRequest]
-        //        [Required, ExcludeRequestModel]
-        //        public string? FirstName { get; set; }
-        //  //      [Required, CreateCommand, ModifyCommand, QueryRequest]
-        //        [ExcludeRequestModel(RequestModelTarget.CreateCommand)]
-        //        public string? LastName { get; set; }
-        //  //      [Required, QueryRequest, CreateCommand, ModifyCommand]
-        //        public ProfessionCategory? Profession { get; set; }
-        //        public ICollection<BlogConfig>? Blogs { get; set; }
-        //    }
-        //}
-
-        //[AutoFastEndpoints]
-        //public class BlogConfig
-        //{
-        //    internal class Properties
-        //    {
-        // //       [Required, CreateCommand, ModifyCommand, QueryRequest]
-        //        public string? Title { get; set; }
-        //        [Required]
-        //        public AuthorConfig? Author { get; set; }
-        // //       [Required, CreateCommand, ModifyCommand, QueryRequest]
-        //        public Identifier AuthorId { get; set; }
-        //    }
-        //}
-
 
         //";
         //var (diagnostics, output) = TestHelper.GetGeneratedOutput<ApiGenerator>(source);

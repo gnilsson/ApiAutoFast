@@ -78,9 +78,6 @@ public static class TestHelper
             MetadataReference.CreateFromFile(Path.Combine(dotNetAssemblyPath, "System.Runtime.dll")),
             MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(IAssemblyMarker).Assembly.Location));
-        //    MetadataReference.CreateFromFile(typeof(ExcludeRequestModelAttribute).Assembly.Location));
-
-           // MetadataReference.CreateFromFile(typeof(AutoFastDbContext).Assembly.Location));
 
             return references;
         }
