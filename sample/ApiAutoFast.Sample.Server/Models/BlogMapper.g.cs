@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using ApiAutoFast;
 using ApiAutoFast.Sample.Server.Database;
 using Mapster;
+using Mapster.Utils;
 
 namespace ApiAutoFast.Sample.Server.Database
 {
@@ -18,7 +19,7 @@ namespace ApiAutoFast.Sample.Server.Database
                 ModifiedDateTime = ((IEntity)p1).ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"),
                 Title = p1.Title,
                 Author = funcMain1(p1.Author),
-                AuthorId = p1.AuthorId
+                AuthorId = p1.AuthorId.ToString()
             };
         }
         public static BlogResponse AdaptTo(this Blog p4, BlogResponse p5)
@@ -34,7 +35,7 @@ namespace ApiAutoFast.Sample.Server.Database
             result.ModifiedDateTime = ((IEntity)p4).ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm");
             result.Title = p4.Title;
             result.Author = funcMain3(p4.Author, result.Author);
-            result.AuthorId = p4.AuthorId;
+            result.AuthorId = p4.AuthorId.ToString();
             return result;
             
         }
@@ -48,7 +49,7 @@ namespace ApiAutoFast.Sample.Server.Database
                 ModifiedDateTime = ((IEntity)p2).ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"),
                 FirstName = p2.FirstName,
                 LastName = p2.LastName,
-                Profession = p2.Profession,
+                Profession = p2.Profession == null ? null : Enum<ProfessionCategory>.ToString((ProfessionCategory)p2.Profession),
                 Blogs = funcMain2(p2.Blogs)
             };
         }
@@ -66,7 +67,7 @@ namespace ApiAutoFast.Sample.Server.Database
             result.ModifiedDateTime = ((IEntity)p6).ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm");
             result.FirstName = p6.FirstName;
             result.LastName = p6.LastName;
-            result.Profession = p6.Profession;
+            result.Profession = p6.Profession == null ? null : Enum<ProfessionCategory>.ToString((ProfessionCategory)p6.Profession);
             result.Blogs = funcMain4(p6.Blogs, result.Blogs);
             return result;
             

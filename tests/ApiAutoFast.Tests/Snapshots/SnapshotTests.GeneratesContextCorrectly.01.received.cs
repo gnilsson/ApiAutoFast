@@ -8,5 +8,5 @@ public class AuthorCreateCommand
 {
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
-    public ProfessionCategory Profession { get; set; }
+    public ApiAutoFast.Sample.Server.Database.ProfessionCategory? Profession { get; set; }
 }

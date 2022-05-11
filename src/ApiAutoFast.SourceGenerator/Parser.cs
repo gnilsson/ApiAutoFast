@@ -109,10 +109,10 @@ internal static class Parser
                 .Select(x => x as ClassDeclarationSyntax)
                 .ToImmutableArray();
 
+            // note: this configuration system should basically be reworked
             if (entitySubClassDeclarations.Length <= 0
                 || entitySubClassDeclarations.SingleOrDefault(x => x!.Identifier.Text is "Properties") is not ClassDeclarationSyntax propertiesClass)
             {
-                // todo: throw invalid config
                 continue;
             }
 
@@ -131,6 +131,7 @@ internal static class Parser
 
     private static IEnumerable<PropertyMetadata> YieldPropertyMetadata(ImmutableArray<ISymbol> members, ImmutableArray<string> foreignEntityNames)
     {
+        // todo: stop generation if any property is property.type.typekind error
         foreach (var member in members)
         {
             if (member is not IPropertySymbol property) continue;
@@ -139,14 +140,29 @@ internal static class Parser
                 propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
                 memberOptions: SymbolDisplayMemberOptions.IncludeAccessibility));
 
+            var typeKind = GetTypeKind(property);
+
             var relational = GetRelationalEntity(foreignEntityNames, property);
 
             var source = GetPropertySource(property, propertyString, relational);
 
-            var attributes = YieldAttributeMetadatas(property).ToImmutableArray();
+            var attributes = YieldAttributeMetadata(property).ToImmutableArray();
 
-            yield return new PropertyMetadata(source, property.Name, attributes, relational);
+            yield return new PropertyMetadata(source, property.Name, attributes, typeKind == "Enum", relational);
         }
+    }
+
+    private static string GetTypeKind(IPropertySymbol property)
+    {
+        if (property.NullableAnnotation is NullableAnnotation.Annotated)
+        {
+            if (property.Type is INamedTypeSymbol { TypeArguments.Length: > 0 } namedTypeSymbol)
+            {
+                return namedTypeSymbol.TypeArguments[0].TypeKind.ToString();
+            }
+        }
+
+        return property.Type.TypeKind.ToString();
     }
 
     private static PropertySource GetPropertySource(IPropertySymbol property, string propertyString, PropertyRelational? relational)
@@ -155,7 +171,7 @@ internal static class Parser
         var type = relational switch
         {
             null or
-            { RelationalType: RelationalType.ToManyHidden or RelationalType.ToOneHidden } => property.Type.ToDisplayString(),
+            { RelationalType: RelationalType.ShadowToMany or RelationalType.ShadowToOne } => property.Type.ToDisplayString(),
             { RelationalType: RelationalType.ToMany } => $"ICollection<{relational.Value.ForeignEntityName}>",
             { RelationalType: RelationalType.ToOne } => relational.Value.ForeignEntityName,
             _ => "object"
@@ -187,32 +203,30 @@ internal static class Parser
         {
             if (property.Name.Contains(foreignEntityName) is false) continue;
 
-            var typeString = property.Type.ToDisplayString();
-
-            if (typeString.Contains("ICollection"))
+            if (property.Type.ToDisplayString().Contains("ICollection"))
             {
-                if ($"{foreignEntityName}s" == property.Name)
+                if (property.Name == $"{foreignEntityName}s")
                 {
                     return new PropertyRelational(foreignEntityName, property.Name, RelationalType.ToMany);
                 }
 
-                if (typeString.Contains("Identifer") || typeString.Contains("Guid"))
+                if (property.Name == $"{foreignEntityName}Ids")
                 {
-                    return new PropertyRelational(foreignEntityName, property.Name, RelationalType.ToManyHidden);
+                    return new PropertyRelational(foreignEntityName, property.Name, RelationalType.ShadowToMany);
                 }
 
                 // note: we need exact match to be certain, so just continue here.
                 continue;
             }
 
-            if (foreignEntityName == property.Name)
+            if (property.Name == foreignEntityName)
             {
                 return new PropertyRelational(foreignEntityName, property.Name, RelationalType.ToOne);
             }
 
-            if (typeString.Contains("Identifer") || typeString.Contains("Guid"))
+            if (property.Name == $"{foreignEntityName}Id")
             {
-                return new PropertyRelational(foreignEntityName, property.Name, RelationalType.ToOneHidden);
+                return new PropertyRelational(foreignEntityName, property.Name, RelationalType.ShadowToOne);
             }
         }
 
@@ -228,6 +242,7 @@ internal static class Parser
             return (endpointsAttribute.ConstructorArguments[0].Value as string)!;
         }
 
+        // note: getlastpart here might be nessescary in case of full name qualification
         return GetLastPart(namedTypeSymbol.Name).Replace("Config", "");
     }
 
@@ -243,7 +258,7 @@ internal static class Parser
 
     }
 
-    private static IEnumerable<PropertyAttributeMetadata> YieldAttributeMetadatas(IPropertySymbol propertyMember)
+    private static IEnumerable<PropertyAttributeMetadata> YieldAttributeMetadata(IPropertySymbol propertyMember)
     {
         foreach (var attributeData in propertyMember.GetAttributes())
         {

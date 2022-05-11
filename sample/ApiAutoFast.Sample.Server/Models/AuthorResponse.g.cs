@@ -10,7 +10,7 @@ namespace ApiAutoFast.Sample.Server.Database
         public string? ModifiedDateTime { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
-        public ProfessionCategory? Profession { get; set; }
+        public string? Profession { get; set; }
         public ICollection<BlogResponse> Blogs { get; set; }
     }
 }

@@ -59,16 +59,14 @@ public static class AdaptAttributeBuilderExtensions
                 cfg.Map(poco => poco.Id, typeof(string));
                 cfg.Map(poco => poco.CreatedDateTime, typeof(string));
                 cfg.Map(poco => poco.ModifiedDateTime, typeof(string));
-                // todo: enums?
-                // foreach enum property in entity write cfg.map => enum, typeof(string)
+                cfg.Map(poco => poco.Profession, typeof(string));
             })
             .ForType<Blog>(cfg =>
             {
                 cfg.Map(poco => poco.Id, typeof(string));
                 cfg.Map(poco => poco.CreatedDateTime, typeof(string));
                 cfg.Map(poco => poco.ModifiedDateTime, typeof(string));
-                // todo: enums?
-                // foreach enum property in entity write cfg.map => enum, typeof(string)
+                cfg.Map(poco => poco.AuthorId, typeof(string));
             });
     }
 }

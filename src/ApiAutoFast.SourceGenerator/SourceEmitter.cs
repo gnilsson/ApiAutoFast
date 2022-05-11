@@ -202,8 +202,6 @@ public static class AdaptAttributeBuilderExtensions
 {
     public static AdaptAttributeBuilder ForTypeDefaultValues(this AdaptAttributeBuilder aab)
     {
-        // todo: enums?
-        // foreach enum property in entity write cfg.map => enum, typeof(string)
         return aab");
         foreach (var entity in generationConfig.EntityConfigs)
         {
@@ -212,7 +210,25 @@ public static class AdaptAttributeBuilderExtensions
             {
                 cfg.Map(poco => poco.Id, typeof(string));
                 cfg.Map(poco => poco.CreatedDateTime, typeof(string));
-                cfg.Map(poco => poco.ModifiedDateTime, typeof(string));
+                cfg.Map(poco => poco.ModifiedDateTime, typeof(string));");
+            if (entity.PropertyMetadatas?.Length > 0)
+            {
+                foreach (var property in entity.PropertyMetadatas.Value)
+                {
+                    if (property.Relational?.RelationalType is RelationalType.ShadowToOne)
+                    {
+                        sb.Append(@"
+                cfg.Map(poco => poco.").Append(property.Relational.Value.ForeigEntityProperty).Append(@", typeof(string));");
+                    }
+                    else if (property.IsEnum)
+                    {
+                        sb.Append(@"
+                cfg.Map(poco => poco.").Append(property.Name).Append(@", typeof(string));");
+                    }
+                }
+            }
+
+            sb.Append(@"
             })");
         }
         sb.Append(@";

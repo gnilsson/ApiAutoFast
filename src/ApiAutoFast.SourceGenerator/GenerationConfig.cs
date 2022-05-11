@@ -105,17 +105,19 @@ internal struct RequestEndpointPair
 // note: should probably restructure this to have propertymetadata of type entitymodel and requestmodel insted of making the distinction twice on attributes and source
 internal readonly struct PropertyMetadata
 {
-    public PropertyMetadata(PropertySource source, string name, ImmutableArray<PropertyAttributeMetadata>? attributeMetadatas, PropertyRelational? relational = null)
+    public PropertyMetadata(PropertySource source, string name, ImmutableArray<PropertyAttributeMetadata>? attributeMetadatas, bool isEnum, PropertyRelational? relational = null)
     {
         Source = source;
         Name = name;
         AttributeMetadatas = attributeMetadatas;
+        IsEnum = isEnum;
         Relational = relational;
     }
 
     public PropertySource Source { get; }
     public string Name { get; }
     public ImmutableArray<PropertyAttributeMetadata>? AttributeMetadatas { get; }
+    public bool IsEnum { get; }
     public PropertyRelational? Relational { get; }
 }
 
@@ -149,8 +151,8 @@ internal enum RelationalType
 {
     ToOne = 0,
     ToMany,
-    ToOneHidden,
-    ToManyHidden,
+    ShadowToOne,
+    ShadowToMany,
 }
 
 internal record SemanticTargetInformation

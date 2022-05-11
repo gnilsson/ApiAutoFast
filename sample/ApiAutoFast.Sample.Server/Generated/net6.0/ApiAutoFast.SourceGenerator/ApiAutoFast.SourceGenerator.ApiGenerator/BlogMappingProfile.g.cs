@@ -23,6 +23,7 @@ public partial class BlogMappingProfile : Mapper<BlogCreateCommand, BlogResponse
         }
 
         originalEntity.Title = e.Title;
+        originalEntity.AuthorId = e.AuthorId;
         return originalEntity;
     }
 }

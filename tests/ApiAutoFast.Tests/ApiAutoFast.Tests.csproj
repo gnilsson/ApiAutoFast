@@ -28,5 +28,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\ApiAutoFast.SourceGenerator\ApiAutoFast.SourceGenerator.csproj" />
+    <ProjectReference Include="..\..\src\ApiAutoFast\ApiAutoFast.csproj" />
   </ItemGroup>
 </Project>

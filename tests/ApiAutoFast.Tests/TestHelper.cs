@@ -13,8 +13,7 @@ namespace ApiAutoFast.Tests;
 
 public static class TestHelper
 {
-    public static (ImmutableArray<Diagnostic> Diagnostics, string Output) GetGeneratedOutput<T>(string source)
-    where T : IIncrementalGenerator, new()
+    public static (ImmutableArray<Diagnostic> Diagnostics, string Output) GetGeneratedOutput<T>(string source) where T : IIncrementalGenerator, new()
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(source);
         var references = AppDomain.CurrentDomain.GetAssemblies()
@@ -45,7 +44,7 @@ public static class TestHelper
         IEnumerable<PortableExecutableReference> references = new[]
         {
             MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-        //    MetadataReference.CreateFromFile(typeof(ApiAutoFast.IAssemblyMarker).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(IAssemblyMarker).Assembly.Location),
           //  MetadataReference.CreateFromFile(typeof(AutoFastDbContext).Assembly.Location)
         };
 

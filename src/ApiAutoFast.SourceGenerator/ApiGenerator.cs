@@ -65,6 +65,8 @@ public class ApiGenerator : IIncrementalGenerator
         var mappingRegisterResult = SourceEmitter.EmitMappingRegister(sb, entityGenerationConfig);
         context.AddSource("MappingRegister.g.cs", SourceText.From(mappingRegisterResult, Encoding.UTF8));
 
+        // note: it would be great if we could make the check on what files the compiler has generated
+        //       maybe check should be made on mapster files?
         if (!generationConfig!.Value.ContextGeneration.HasValue) return;
 
         var contextConfig = generationConfig!.Value.ContextGeneration.Value;

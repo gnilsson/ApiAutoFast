@@ -26,6 +26,7 @@
 //}
 
 
+
 //public partial class AuthorMappingProfile //: Mapper<AuthorCreateCommand, AuthorEntityResponse, AuthorEntity>
 //{
 ////private readonly bool _onOverrideUpdateEntity = false;

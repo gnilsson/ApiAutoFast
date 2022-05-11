@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using ApiAutoFast;
 using ApiAutoFast.Sample.Server.Database;
 using Mapster;
+using Mapster.Utils;
 
 namespace ApiAutoFast.Sample.Server.Database
 {
@@ -18,7 +19,7 @@ namespace ApiAutoFast.Sample.Server.Database
                 ModifiedDateTime = ((IEntity)p1).ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"),
                 FirstName = p1.FirstName,
                 LastName = p1.LastName,
-                Profession = p1.Profession,
+                Profession = p1.Profession == null ? null : Enum<ProfessionCategory>.ToString((ProfessionCategory)p1.Profession),
                 Blogs = funcMain1(p1.Blogs)
             };
         }
@@ -35,7 +36,7 @@ namespace ApiAutoFast.Sample.Server.Database
             result.ModifiedDateTime = ((IEntity)p3).ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm");
             result.FirstName = p3.FirstName;
             result.LastName = p3.LastName;
-            result.Profession = p3.Profession;
+            result.Profession = p3.Profession == null ? null : Enum<ProfessionCategory>.ToString((ProfessionCategory)p3.Profession);
             result.Blogs = funcMain2(p3.Blogs, result.Blogs);
             return result;
             
@@ -61,7 +62,7 @@ namespace ApiAutoFast.Sample.Server.Database
                     ModifiedDateTime = ((IEntity)item).ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"),
                     Title = item.Title,
                     Author = TypeAdapterConfig1.GetMapFunction<Author, AuthorResponse>().Invoke(item.Author),
-                    AuthorId = item.AuthorId
+                    AuthorId = item.AuthorId.ToString()
                 });
             }
             return result;
@@ -88,7 +89,7 @@ namespace ApiAutoFast.Sample.Server.Database
                     ModifiedDateTime = ((IEntity)item).ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"),
                     Title = item.Title,
                     Author = TypeAdapterConfig1.GetMapFunction<Author, AuthorResponse>().Invoke(item.Author),
-                    AuthorId = item.AuthorId
+                    AuthorId = item.AuthorId.ToString()
                 });
             }
             return result;
