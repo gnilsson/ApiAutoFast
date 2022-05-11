@@ -84,7 +84,7 @@ public class ApiGenerator : IIncrementalGenerator
             {
                 //if (requestEndpointPair.RequestModel is not RequestModelTarget.None)
                 //{
-                    var requestModelsResult = SourceEmitter.EmitRequestModelTarget(sb, entityGenerationConfig.Namespace, entityConfig, requestEndpointPair.RequestModel);
+                    var requestModelsResult = SourceEmitter.EmitRequestModel(sb, entityGenerationConfig.Namespace, entityConfig, requestEndpointPair.RequestModel);
                     context.AddSource($"{entityConfig.BaseName}{requestEndpointPair.RequestModel}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
                 //}
             }

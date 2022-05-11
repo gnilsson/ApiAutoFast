@@ -59,7 +59,7 @@ public class ExcludeRequestModelAttribute : Attribute
 ";
 
     public const string RequestModelTargetEnum = @"
-using System;
+
 
 namespace ApiAutoFast;
 
@@ -400,7 +400,7 @@ public partial class ")
         return sb.ToString();
     }
 
-    internal static string EmitRequestModelTarget(StringBuilder sb, string @namespace, EntityConfig entityConfig, RequestModelTarget modelTarget)
+    internal static string EmitRequestModel(StringBuilder sb, string @namespace, EntityConfig entityConfig, RequestModelTarget modelTarget)
     {
         sb.Clear();
 
