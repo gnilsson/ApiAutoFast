@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using ApiAutoFast.SourceGenerator.Configuration;
+using ApiAutoFast.SourceGenerator.Configuration.Enums;
+using System.Text;
 
 namespace ApiAutoFast.SourceGenerator;
 
@@ -59,7 +61,7 @@ public class ExcludeRequestModelAttribute : Attribute
 ";
 
     public const string RequestModelTargetEnum = @"
-
+using System;
 
 namespace ApiAutoFast;
 
@@ -367,6 +369,9 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity
 
         sb.Append(@"
 }
+");
+        sb.Append(@"
+public partial class ").Append(entityConfig.Response).Append(@" { }
 ");
         return sb.ToString();
     }

@@ -1,4 +1,4 @@
-﻿namespace ApiAutoFast.SourceGenerator;
+﻿namespace ApiAutoFast.SourceGenerator.Configuration.Enums;
 
 [Flags]
 internal enum RequestModelTarget

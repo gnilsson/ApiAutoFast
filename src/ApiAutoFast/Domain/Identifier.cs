@@ -42,7 +42,7 @@ public readonly struct Identifier
 
     public static bool TryParse(string valueToParse, out Identifier identifier)
     {
-        identifier = default;
+        identifier = Empty;
 
         if (Regex.IsMatch(valueToParse, Base64RegexPattern, RegexOptions.Compiled))
         {

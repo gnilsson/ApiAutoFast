@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using ApiAutoFast.SourceGenerator.Configuration;
+using ApiAutoFast.SourceGenerator.Configuration.Enums;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Immutable;
@@ -269,7 +271,6 @@ internal static class Parser
         var lastPart = @string.Substring(index, @string.Length - index);
 
         return lastPart;
-
     }
 
     private static IEnumerable<PropertyAttributeMetadata> YieldAttributeMetadata(IPropertySymbol propertyMember)
@@ -300,11 +301,11 @@ internal static class Parser
         }
     }
 
-    private static string GetNamespace(ClassDeclarationSyntax enumDeclarationSyntax)
+    private static string GetNamespace(ClassDeclarationSyntax classDeclarationSyntax)
     {
         var nameSpace = string.Empty;
 
-        var potentialNamespaceParent = enumDeclarationSyntax.Parent;
+        var potentialNamespaceParent = classDeclarationSyntax.Parent;
 
         while (potentialNamespaceParent is not null and not NamespaceDeclarationSyntax and not FileScopedNamespaceDeclarationSyntax)
         {

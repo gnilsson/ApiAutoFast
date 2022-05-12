@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using ApiAutoFast.SourceGenerator.Configuration;
+using ApiAutoFast.SourceGenerator.Configuration.Enums;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Immutable;
 using System.Text;
@@ -38,10 +40,10 @@ public class ApiGenerator : IIncrementalGenerator
                 transform: static (ctx, _) => Parser.GetSemanticTargetForGeneration(ctx))
             .Where(static m => m is not null)!;
 
-        IncrementalValueProvider<(Compilation Compilation, ImmutableArray<SemanticTargetInformation> SemanticTargetInformations)> compilationAndEnums =
+        IncrementalValueProvider<(Compilation Compilation, ImmutableArray<SemanticTargetInformation> SemanticTargetInformations)> compilationSemanticTargetInformations =
             context.CompilationProvider.Combine(classDeclarations.Collect());
 
-        context.RegisterSourceOutput(compilationAndEnums, static (spc, source) => Execute(source.Compilation, source.SemanticTargetInformations, spc));
+        context.RegisterSourceOutput(compilationSemanticTargetInformations, static (spc, source) => Execute(source.Compilation, source.SemanticTargetInformations, spc));
     }
 
     private static void Execute(Compilation compilation, ImmutableArray<SemanticTargetInformation> semanticTargets, SourceProductionContext context)
@@ -84,6 +86,8 @@ public class ApiGenerator : IIncrementalGenerator
                 context.AddSource($"{entityConfig.BaseName}{requestEndpointPair.RequestModel}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
             }
 
+            // note: with empty partial responses pre mapster & context attribute existing, error begins here.
+            //       if filepath.exists models?
             var mappingProfileResult = SourceEmitter.EmitMappingProfile(sb, entityGenerationConfig.Namespace, entityConfig);
             context.AddSource($"{entityConfig.MappingProfile}.g.cs", SourceText.From(mappingProfileResult, Encoding.UTF8));
 

@@ -18,3 +18,5 @@ public class Blog : IEntity
     public Author Author { get; set; }
     public ApiAutoFast.Identifier AuthorId { get; set; }
 }
+
+public partial class BlogResponse { }

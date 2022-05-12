@@ -20,3 +20,5 @@ public class Author : IEntity
     public ApiAutoFast.Sample.Server.Database.ProfessionCategory? Profession { get; set; }
     public ICollection<Blog> Blogs { get; set; }
 }
+
+public partial class AuthorResponse { }

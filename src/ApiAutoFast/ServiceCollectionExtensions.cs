@@ -1,34 +1,13 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ApiAutoFast;
 
-public static class WebApplicationBuilderExtensions
+internal static class ServiceCollectionExtensions
 {
-    public static async Task<WebApplication> BuildAutoFastAsync<TContext>(this WebApplicationBuilder builder, string connectionStringConfigurationName) where TContext : DbContext
+    internal static IServiceCollection AddUriService(this IServiceCollection services)
     {
-        builder.Services.AddDbContext<TContext>(options => options
-            .UseSqlServer(builder.Configuration.GetConnectionString(connectionStringConfigurationName))
-            .LogTo(Console.WriteLine)
-            .EnableSensitiveDataLogging());
-
-        builder.Services.AddUriService();
-
-        var app = builder.Build();
-
-        var scope = app.Services.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<TContext>();
-        await context.Database.MigrateAsync();
-
-        return app;
-    }
-
-    private static void AddUriService(this IServiceCollection services)
-    {
-        services.AddScoped<IUriService>(provider =>
+        return services.AddScoped<IUriService>(provider =>
         {
             var accessor = provider.GetRequiredService<IHttpContextAccessor>();
             var request = accessor.HttpContext!.Request;

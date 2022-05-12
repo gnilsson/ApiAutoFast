@@ -9,17 +9,21 @@ public class PaginatedResponseBuilder
         ICollection<TResponse> response,
         int? total)
     {
-        var nextPage = paginationQuery!.PageNumber >= 1 ? uriService.GetUri(route, new PaginationQuery
-        {
-            PageNumber = paginationQuery.PageNumber + 1,
-            PageSize = paginationQuery.PageSize
-        }).ToString() : null;
+        var nextPage = paginationQuery!.PageNumber >= 1
+            ? uriService.GetUri(route, new PaginationQuery
+            {
+                PageNumber = paginationQuery.PageNumber + 1,
+                PageSize = paginationQuery.PageSize
+            }).ToString()
+            : null;
 
-        var previousPage = paginationQuery.PageNumber - 1 >= 1 ? uriService.GetUri(route, new PaginationQuery
-        {
-            PageNumber = paginationQuery.PageNumber - 1,
-            PageSize = paginationQuery.PageSize
-        }).ToString() : null;
+        var previousPage = paginationQuery.PageNumber - 1 >= 1
+            ? uriService.GetUri(route, new PaginationQuery
+            {
+                PageNumber = paginationQuery.PageNumber - 1,
+                PageSize = paginationQuery.PageSize
+            }).ToString()
+            : null;
 
         return new Paginated<TResponse>
         {
