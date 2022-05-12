@@ -1,5 +1,6 @@
 ﻿using System.Buffers.Text;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 
 namespace ApiAutoFast;
 
@@ -14,6 +15,7 @@ public readonly struct Identifier
     private const char Slash = '/';
     private const byte PlusByte = (byte)Plus;
     private const byte SlashByte = (byte)Slash;
+    private const string Base64RegexPattern = "^([A-Za-z0-9_-]{4})*([A-Za-z0-9_-]{3}=|[A-Za-z0-9_-]{2})?$";
 
     private readonly Guid _guidValue;
     private readonly string _base64Value;
@@ -37,6 +39,20 @@ public readonly struct Identifier
     }
 
     public static Identifier New() => new(Guid.NewGuid());
+
+    public static bool TryParse(string valueToParse, out Identifier identifier)
+    {
+        identifier = default;
+
+        if (Regex.IsMatch(valueToParse, Base64RegexPattern, RegexOptions.Compiled))
+        {
+            identifier = new Identifier(valueToParse);
+
+            return true;
+        }
+
+        return false;
+    }
 
     private static string ToIdentifierString(Guid id)
     {
@@ -90,7 +106,6 @@ public readonly struct Identifier
     public override string ToString() => _base64Value;
 
     public static implicit operator Identifier(Guid guidValue) => new(guidValue);
-    public static implicit operator Identifier(string base64Value) => new(base64Value);
     public static implicit operator string(Identifier identifier) => identifier._base64Value;
     public static implicit operator Guid(Identifier identifier) => identifier._guidValue;
 

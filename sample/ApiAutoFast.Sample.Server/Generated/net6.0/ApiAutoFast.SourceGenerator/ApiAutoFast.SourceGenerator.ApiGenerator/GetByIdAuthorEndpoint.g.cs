@@ -33,11 +33,20 @@ public partial class GetByIdAuthorEndpoint : Endpoint<AuthorGetByIdRequest, Auth
 
     public override async Task HandleAsync(AuthorGetByIdRequest req, CancellationToken ct)
     {
-        var result = await _dbContext.Authors.FindAsync((Identifier)req.Id, ct);
+        if (Identifier.TryParse(req.Id, out var identifier) is false)
+        {
+            // todo: think out a good way to do validation. this does not include foreign ids.
+            ValidationFailures.Add(new FluentValidation.Results.ValidationFailure(nameof(req.Id), "Incorrect format."));
+            await SendErrorsAsync(400, ct);
+            return;
+        }
+
+        var result = await _dbContext.Authors.FindAsync(identifier);
 
         if (result is null)
         {
             await SendNotFoundAsync(ct);
+            return;
         }
 
         var response = Map.FromEntity(result);

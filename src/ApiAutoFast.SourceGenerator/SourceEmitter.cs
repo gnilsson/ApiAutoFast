@@ -44,7 +44,7 @@ namespace ApiAutoFast;
 /// <summary>
 /// Attribute to exclude property from request model.
 /// <param name=""includeRequestModelTarget"">If not applied, property is per default included in
-/// RequestModelTarget.CreateCommand | RequestModelTarget.DeleteCommand | RequestModelTarget.QueryRequest</param>
+/// RequestModelTarget.CreateCommand | RequestModelTarget.ModifyCommand | RequestModelTarget.QueryRequest</param>
 /// </summary>
 [AttributeUsage(AttributeTargets.Property)]
 public class ExcludeRequestModelAttribute : Attribute
@@ -125,11 +125,20 @@ public enum RequestModelTarget
         EndpointTargetType.Update => static (sb, endpointConfig) =>
         {
             sb.Append(@"
-        var result = await _dbContext.").Append(endpointConfig.EntityName).Append(@"s.FindAsync((Identifier)req.Id, ct);
+        if (Identifier.TryParse(req.Id, out var identifier) is false)
+        {
+            // todo: think out a good way to do validation. this does not include foreign ids.
+            ValidationFailures.Add(new FluentValidation.Results.ValidationFailure(nameof(req.Id), ""Incorrect format.""));
+            await SendErrorsAsync(400, ct);
+            return;
+        }
+
+        var result = await _dbContext.").Append(endpointConfig.EntityName).Append(@"s.FindAsync(identifier);
 
         if (result is null)
         {
             await SendNotFoundAsync(ct);
+            return;
         }
 
         var entity = Map.UpdateEntity(result, req);
@@ -143,11 +152,20 @@ public enum RequestModelTarget
         EndpointTargetType.Delete => static (sb, endpointConfig) =>
         {
             sb.Append(@"
-        var result = await _dbContext.").Append(endpointConfig.EntityName).Append(@"s.FindAsync((Identifier)req.Id, ct);
+        if (Identifier.TryParse(req.Id, out var identifier) is false)
+        {
+            // todo: think out a good way to do validation. this does not include foreign ids.
+            ValidationFailures.Add(new FluentValidation.Results.ValidationFailure(nameof(req.Id), ""Incorrect format.""));
+            await SendErrorsAsync(400, ct);
+            return;
+        }
+
+        var result = await _dbContext.").Append(endpointConfig.EntityName).Append(@"s.FindAsync(identifier);
 
         if (result is null)
         {
             await SendNotFoundAsync(ct);
+            return;
         }
 
         _dbContext.").Append(endpointConfig.EntityName).Append(@"s.Remove(result);
@@ -161,11 +179,20 @@ public enum RequestModelTarget
         EndpointTargetType.GetById => static (sb, endpointConfig) =>
         {
             sb.Append(@"
-        var result = await _dbContext.").Append(endpointConfig.EntityName).Append(@"s.FindAsync((Identifier)req.Id, ct);
+        if (Identifier.TryParse(req.Id, out var identifier) is false)
+        {
+            // todo: think out a good way to do validation. this does not include foreign ids.
+            ValidationFailures.Add(new FluentValidation.Results.ValidationFailure(nameof(req.Id), ""Incorrect format.""));
+            await SendErrorsAsync(400, ct);
+            return;
+        }
+
+        var result = await _dbContext.").Append(endpointConfig.EntityName).Append(@"s.FindAsync(identifier);
 
         if (result is null)
         {
             await SendNotFoundAsync(ct);
+            return;
         }
 
         var response = Map.FromEntity(result);
