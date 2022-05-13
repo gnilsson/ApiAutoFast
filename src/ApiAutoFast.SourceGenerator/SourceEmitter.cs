@@ -4,79 +4,8 @@ using System.Text;
 
 namespace ApiAutoFast.SourceGenerator;
 
-public static class SourceEmitter
+internal static class SourceEmitter
 {
-    public const string AutoFastEndpointsAttribute = @"
-using System;
-
-namespace ApiAutoFast;
-
-/// <summary>
-/// Marker attribute for source generator.
-/// <param name=""entityName"">Name of the entity to generate, will default to this class name and remove ""Config""</param>
-/// </summary>
-[AttributeUsage(AttributeTargets.Class)]
-internal class AutoFastEndpointsAttribute : Attribute
-{
-    internal AutoFastEndpointsAttribute(string? entityName = null)
-    {
-        EntityName = entityName;
-    }
-
-    public string? EntityName { get; }
-}
-";
-
-    public const string AutoFastContextAttribute = @"
-using System;
-
-namespace ApiAutoFast;
-
-[AttributeUsage(AttributeTargets.Class)]
-internal class AutoFastContextAttribute : Attribute
-{
-}
-";
-
-    public const string ExcludeRequestModelAttribute = @"
-using System;
-
-namespace ApiAutoFast;
-
-/// <summary>
-/// Attribute to exclude property from request model.
-/// <param name=""includeRequestModelTarget"">If not applied, property is per default included in
-/// RequestModelTarget.CreateCommand | RequestModelTarget.ModifyCommand | RequestModelTarget.QueryRequest</param>
-/// </summary>
-[AttributeUsage(AttributeTargets.Property)]
-public class ExcludeRequestModelAttribute : Attribute
-{
-    public ExcludeRequestModelAttribute(RequestModelTarget includeRequestModelTarget = RequestModelTarget.None)
-    {
-        IncludeRequestModelTarget = includeRequestModelTarget;
-    }
-
-    public RequestModelTarget IncludeRequestModelTarget { get; }
-}
-";
-
-    public const string RequestModelTargetEnum = @"
-using System;
-
-namespace ApiAutoFast;
-
-[Flags]
-public enum RequestModelTarget
-{
-    None = 0,
-    CreateCommand = 1,
-    ModifyCommand = 2,
-    QueryRequest = 4,
-    GetByIdRequest = 8,
-    DeleteCommand = 16,
-}
-";
-
     private static readonly Func<RequestModelTarget, string> _getModelTargetSource = static (modelTarget) => modelTarget switch
     {
         RequestModelTarget.CreateCommand => string.Empty,
@@ -210,7 +139,6 @@ public enum RequestModelTarget
             return sb;
         }
     };
-
 
     internal static string EmitMappingRegister(StringBuilder sb, EntityGenerationConfig generationConfig)
     {

@@ -1,6 +1,6 @@
 ﻿namespace ApiAutoFast;
 
-public class PaginatedResponseBuilder
+public static class PaginatedResponseBuilder
 {
     public static Paginated<TResponse> Build<TResponse>(
         IUriService uriService,

@@ -85,10 +85,23 @@ internal static class Parser
 
             if (semanticModel.GetDeclaredSymbol(entityClassDeclaration) is not INamedTypeSymbol namedTypeSymbol) continue;
 
-            var name = GetEntityName(namedTypeSymbol);
+            var endpointsAttributeArguments = GetEndpointsAttributeArguments(namedTypeSymbol);
 
-            yield return new EntityConfigSetup(entityClassDeclaration, semanticModel, name);
+            yield return new EntityConfigSetup(entityClassDeclaration, semanticModel, endpointsAttributeArguments);
         }
+    }
+
+    private static EndpointsAttributeArguments GetEndpointsAttributeArguments(INamedTypeSymbol namedTypeSymbol)
+    {
+        var endpointsAttribute = namedTypeSymbol.GetAttributes()[0];
+
+        var entityName = endpointsAttribute.ConstructorArguments[0].IsNull is false
+            ? endpointsAttribute.ConstructorArguments[0].Value as string
+            : GetLastPart(namedTypeSymbol.Name).Replace("Config", "");
+
+        var endpointTarget = (EndpointTargetType)endpointsAttribute.ConstructorArguments[1].Value!;
+
+        return new EndpointsAttributeArguments(entityName!, endpointTarget);
     }
 
     private static IEnumerable<EntityConfig> YieldEntityConfig(
@@ -118,19 +131,19 @@ internal static class Parser
             var members = entityConfigSetup.SemanticModel.GetDeclaredSymbol(propertiesClass)!.GetMembers();
 
             var foreignEntityNames = entityConfigSetups
-                .Where(x => x.Name != entityConfigSetup.Name)
-                .Select(x => x.Name)
+                .Where(x => x.EndpointsAttributeArguments.EntityName != entityConfigSetup.EndpointsAttributeArguments.EntityName)
+                .Select(x => x.EndpointsAttributeArguments.EntityName)
                 .ToImmutableArray();
 
-            var propertyMetadatas = YieldPropertyMetadata(members, foreignEntityNames, entityConfigSetup.SemanticModel).ToImmutableArray();
+            var propertyMetadatas = YieldPropertyMetadata(members, foreignEntityNames).ToImmutableArray();
 
-            yield return new EntityConfig(entityConfigSetup.Name, propertyMetadatas);
+            yield return new EntityConfig(entityConfigSetup.EndpointsAttributeArguments, propertyMetadatas);
         }
     }
 
-    private static IEnumerable<PropertyMetadata> YieldPropertyMetadata(ImmutableArray<ISymbol> members, ImmutableArray<string> foreignEntityNames, SemanticModel semanticModel)
+    private static IEnumerable<PropertyMetadata> YieldPropertyMetadata(ImmutableArray<ISymbol> members, ImmutableArray<string> foreignEntityNames)
     {
-        // todo: stop generation if any property is property.type.typekind error
+        // note: stop generation if any property is property.type.typekind error?
         foreach (var member in members)
         {
             if (member is not IPropertySymbol property) continue;
@@ -249,26 +262,23 @@ internal static class Parser
         return null;
     }
 
-    private static string GetEntityName(INamedTypeSymbol namedTypeSymbol)
+    //private static string GetEntityName(string defaultName, AttributeData nameAttribute)
+    //{
+    //    if (endpointsAttribute.ConstructorArguments.Length > 0 && endpointsAttribute.ConstructorArguments[0].IsNull is false)
+    //    {
+    //        return (endpointsAttribute.ConstructorArguments[0].Value as string)!;
+    //    }
+
+    //    return GetLastPart(defaultName).Replace("Config", "");
+    //}
+
+    private static string GetLastPart(string valueToSubstring, char seperator = '.')
     {
-        var endpointsAttribute = namedTypeSymbol.GetAttributes()[0];
+        var index = valueToSubstring.LastIndexOf(seperator);
 
-        if (endpointsAttribute.ConstructorArguments.Length > 0 && endpointsAttribute.ConstructorArguments[0].IsNull is false)
-        {
-            return (endpointsAttribute.ConstructorArguments[0].Value as string)!;
-        }
+        if (index == -1) return valueToSubstring;
 
-        // note: getlastpart here might be nessescary in case of full name qualification
-        return GetLastPart(namedTypeSymbol.Name).Replace("Config", "");
-    }
-
-    private static string GetLastPart(string @string, char seperator = '.')
-    {
-        var index = @string.LastIndexOf(seperator);
-
-        if (index == -1) return @string;
-
-        var lastPart = @string.Substring(index, @string.Length - index);
+        var lastPart = valueToSubstring.Substring(index, valueToSubstring.Length - index);
 
         return lastPart;
     }

@@ -1,12 +1,21 @@
-﻿//HintName: AuthorQueryRequest.g.cs
+﻿//HintName: ExcludeRequestModelAttribute.g.cs
 
-using ApiAutoFast;
+using System;
 
-namespace ApiAutoFast.Sample.Server.Database;
+namespace ApiAutoFast;
 
-public class AuthorQueryRequest
+/// <summary>
+/// Attribute to exclude property from request model.
+/// <param name="includeRequestModelTarget">If not applied, property is per default included in
+/// RequestModelTarget.CreateCommand | RequestModelTarget.ModifyCommand | RequestModelTarget.QueryRequest</param>
+/// </summary>
+[AttributeUsage(AttributeTargets.Property)]
+public class ExcludeRequestModelAttribute : Attribute
 {
-    public string? CreatedDateTime { get; set; }
-    public string? ModifiedDateTime { get; set; }
-    public ApiAutoFast.Sample.Server.Database.ProfessionCategory? Profession { get; set; }
+    public ExcludeRequestModelAttribute(RequestModelTarget includeRequestModelTarget = RequestModelTarget.None)
+    {
+        IncludeRequestModelTarget = includeRequestModelTarget;
+    }
+
+    public RequestModelTarget IncludeRequestModelTarget { get; }
 }

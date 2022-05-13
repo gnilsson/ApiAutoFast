@@ -1,28 +1,40 @@
-﻿//HintName: AuthorMappingProfile.g.cs
+﻿//HintName: AutoFastSampleDbContext.g.cs
 
-using FastEndpoints;
+using ApiAutoFast;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace ApiAutoFast.Sample.Server.Database;
 
-public partial class AuthorMappingProfile : Mapper<AuthorCreateCommand, AuthorResponse, Author>
+public partial class AutoFastSampleDbContext : DbContext
 {
-    private readonly bool _onOverrideUpdateEntity = false;
+    private static readonly Type[] _entityTypes;
 
-    partial void OnOverrideUpdateEntity(ref Author originalEntity, AuthorModifyCommand e);
-
-    public override AuthorResponse FromEntity(Author e)
+    static AutoFastSampleDbContext()
     {
-        return e.AdaptToResponse();
+        _entityTypes = AutoFastDbContextHelper.GetEntityTypes<AutoFastSampleDbContext>();
     }
 
-    public Author UpdateEntity(Author originalEntity, AuthorModifyCommand e)
-    {
-        if(_onOverrideUpdateEntity)
-        {
-            OnOverrideUpdateEntity(ref originalEntity, e);
-            return originalEntity;
-        }
+    partial void ExtendOnModelCreating(ModelBuilder modelBuilder);
+    partial void ExtendSaveChanges();
 
-        return originalEntity;
+    public AutoFastSampleDbContext(DbContextOptions<AutoFastSampleDbContext> options) : base(options) { }
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        AutoFastDbContextHelper.UpdateModifiedDateTime(ChangeTracker.Entries());
+
+        ExtendSaveChanges();
+
+        return await base.SaveChangesAsync(cancellationToken);
     }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        AutoFastDbContextHelper.BuildEntities(modelBuilder, _entityTypes);
+
+        ExtendOnModelCreating(modelBuilder);
+    }
+
+    public DbSet<Abc> Abcs { get; init; } = default!;
 }

@@ -15,7 +15,7 @@ public partial class AutoFastSampleDbContext : DbContext
 {
 }
 
-[AutoFastEndpoints]
+[AutoFastEndpoints(includeEndpointTarget: EndpointTargetType.Get)]
 public class AuthorConfig
 {
     internal class Properties
@@ -34,6 +34,7 @@ public class BlogConfig
     internal class Properties
     {
         public string? Title { get; set; }
+        [ExcludeRequestModel]
         public AuthorConfig? Author { get; set; }
         public Identifier AuthorId { get; set; }
     }

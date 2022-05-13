@@ -1,10 +1,22 @@
-﻿//HintName: AuthorGetByIdRequest.g.cs
+﻿//HintName: AutoFastEndpointsAttribute.g.cs
 
-using ApiAutoFast;
+using System;
 
-namespace ApiAutoFast.Sample.Server.Database;
+namespace ApiAutoFast;
 
-public class AuthorGetByIdRequest
+/// <summary>
+/// Marker attribute for source generator.
+/// <param name="entityName">Name of the entity to generate, will default to this class name and remove "Config"</param>
+/// </summary>
+[AttributeUsage(AttributeTargets.Class)]
+internal class AutoFastEndpointsAttribute : Attribute
 {
-    public string Id { get; set; }
+    internal AutoFastEndpointsAttribute(string? entityName = null, EndpointTargetType includeEndpointTarget = EndpointTargetType.All)
+    {
+        EntityName = entityName;
+        IncludeEndpointTarget = includeEndpointTarget;
+    }
+
+    public string? EntityName { get; }
+    public EndpointTargetType IncludeEndpointTarget { get; }
 }

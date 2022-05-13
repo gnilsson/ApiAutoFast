@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using ApiAutoFast.SourceGenerator.Configuration.Enums;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ApiAutoFast.SourceGenerator;
 

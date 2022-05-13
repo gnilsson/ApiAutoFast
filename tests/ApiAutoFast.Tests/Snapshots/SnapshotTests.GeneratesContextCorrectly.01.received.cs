@@ -1,11 +1,12 @@
-﻿//HintName: AuthorCreateCommand.g.cs
+﻿//HintName: AbcQueryRequest.g.cs
 
 using ApiAutoFast;
 
 namespace ApiAutoFast.Sample.Server.Database;
 
-public class AuthorCreateCommand
+public class AbcQueryRequest
 {
-    public string? LastName { get; set; }
+    public string? CreatedDateTime { get; set; }
+    public string? ModifiedDateTime { get; set; }
     public ApiAutoFast.Sample.Server.Database.ProfessionCategory? Profession { get; set; }
 }

@@ -28,10 +28,11 @@ public class ApiGenerator : IIncrementalGenerator
     {
         context.RegisterPostInitializationOutput(ctx =>
         {
-            ctx.AddSource("AutoFastEndpointsAttribute.g.cs", SourceText.From(SourceEmitter.AutoFastEndpointsAttribute, Encoding.UTF8));
-            ctx.AddSource("AutoFastContextAttribute.g.cs", SourceText.From(SourceEmitter.AutoFastContextAttribute, Encoding.UTF8));
-            ctx.AddSource("RequestModelTargetEnum.g.cs", SourceText.From(SourceEmitter.RequestModelTargetEnum, Encoding.UTF8));
-            ctx.AddSource("ExcludeRequestModelAttribute.g.cs", SourceText.From(SourceEmitter.ExcludeRequestModelAttribute, Encoding.UTF8));
+            ctx.AddSource("EndpointTargetEnum.g.cs", SourceText.From(EmbeddedSourceEmitter.EndpointTargetEnum, Encoding.UTF8));
+            ctx.AddSource("AutoFastEndpointsAttribute.g.cs", SourceText.From(EmbeddedSourceEmitter.AutoFastEndpointsAttribute, Encoding.UTF8));
+            ctx.AddSource("AutoFastContextAttribute.g.cs", SourceText.From(EmbeddedSourceEmitter.AutoFastContextAttribute, Encoding.UTF8));
+            ctx.AddSource("RequestModelTargetEnum.g.cs", SourceText.From(EmbeddedSourceEmitter.RequestModelTargetEnum, Encoding.UTF8));
+            ctx.AddSource("ExcludeRequestModelAttribute.g.cs", SourceText.From(EmbeddedSourceEmitter.ExcludeRequestModelAttribute, Encoding.UTF8));
         });
 
         IncrementalValuesProvider<SemanticTargetInformation> classDeclarations = context.SyntaxProvider
@@ -71,7 +72,7 @@ public class ApiGenerator : IIncrementalGenerator
 
         // note: it would be great if we could make the check on what files the compiler has generated
         //       maybe check should be made on mapster files?
-        if (!generationConfig!.Value.ContextGeneration.HasValue) return;
+        if (generationConfig!.Value.ContextGeneration.HasValue is false) return;
 
         var contextConfig = generationConfig!.Value.ContextGeneration.Value;
 
@@ -93,9 +94,12 @@ public class ApiGenerator : IIncrementalGenerator
 
             foreach (var requestEndpointPair in _requestEndpointPairs)
             {
-                var endpointConfig = new EndpointConfig(entityConfig, requestEndpointPair);
-                var requestModelsResult = SourceEmitter.EmitEndpoint(sb, entityGenerationConfig.Namespace, endpointConfig, contextConfig.Name);
-                context.AddSource($"{endpointConfig.Name}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
+                if (entityConfig.EndpointsAttributeArguments.EndpointTargetType.HasFlag(requestEndpointPair.EndpointTarget))
+                {
+                    var endpointConfig = new EndpointConfig(entityConfig, requestEndpointPair);
+                    var requestModelsResult = SourceEmitter.EmitEndpoint(sb, entityGenerationConfig.Namespace, endpointConfig, contextConfig.Name);
+                    context.AddSource($"{endpointConfig.Name}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
+                }
             }
         }
     }

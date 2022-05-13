@@ -56,7 +56,7 @@ csharp_preserve_single_line_statements = true
 #Style - Code block preferences
 
 #prefer curly braces even for one line of code
-csharp_prefer_braces = true:suggestion
+csharp_prefer_braces = when_multiline:suggestion
 
 #Style - expression bodied member options
 
@@ -163,6 +163,7 @@ csharp_style_prefer_tuple_swap = true:suggestion
 csharp_style_deconstructed_variable_declaration = true:suggestion
 csharp_style_unused_value_assignment_preference = discard_variable:suggestion
 csharp_style_unused_value_expression_statement_preference = discard_variable:silent
+csharp_style_allow_blank_lines_between_consecutive_braces_experimental = true:silent
 
 [*.{cs,vb}]
 #### Naming styles ####

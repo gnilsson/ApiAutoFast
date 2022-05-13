@@ -34,7 +34,7 @@ public enum ProfessionCategory
     Dragon
 }
 
-[AutoFastEndpoints]
+[AutoFastEndpoints(""Abc"", EndpointTargetType.Get)]
 public class AuthorConfig
 {
     internal class Properties
@@ -53,9 +53,7 @@ public class AuthorConfig
 //{
 //    internal class Properties
 //    {
-//        [Required]
 //        public string? Title { get; set; }
-//        [Required]
 //        public AuthorConfig? Author { get; set; }
 //        public Identifier AuthorId { get; set; }
 //    }

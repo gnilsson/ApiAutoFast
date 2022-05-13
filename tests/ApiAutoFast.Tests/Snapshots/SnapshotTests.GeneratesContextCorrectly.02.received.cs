@@ -1,11 +1,10 @@
-﻿//HintName: AuthorDeleteCommand.g.cs
+﻿//HintName: AutoFastContextAttribute.g.cs
 
-using ApiAutoFast;
+using System;
 
-namespace ApiAutoFast.Sample.Server.Database;
+namespace ApiAutoFast;
 
-public class AuthorDeleteCommand
+[AttributeUsage(AttributeTargets.Class)]
+internal class AutoFastContextAttribute : Attribute
 {
-    public string Id { get; set; }
-    public string? LastName { get; set; }
 }

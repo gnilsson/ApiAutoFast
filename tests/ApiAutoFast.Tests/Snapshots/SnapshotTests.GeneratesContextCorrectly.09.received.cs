@@ -1,40 +1,16 @@
-﻿//HintName: AutoFastSampleDbContext.g.cs
+﻿//HintName: RequestModelTargetEnum.g.cs
 
-using ApiAutoFast;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
+using System;
 
-namespace ApiAutoFast.Sample.Server.Database;
+namespace ApiAutoFast;
 
-public partial class AutoFastSampleDbContext : DbContext
+[Flags]
+public enum RequestModelTarget
 {
-    private static readonly Type[] _entityTypes;
-
-    static AutoFastSampleDbContext()
-    {
-        _entityTypes = AutoFastDbContextHelper.GetEntityTypes<AutoFastSampleDbContext>();
-    }
-
-    partial void ExtendOnModelCreating(ModelBuilder modelBuilder);
-    partial void ExtendSaveChanges();
-
-    public AutoFastSampleDbContext(DbContextOptions<AutoFastSampleDbContext> options) : base(options) { }
-
-    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        AutoFastDbContextHelper.UpdateModifiedDateTime(ChangeTracker.Entries());
-
-        ExtendSaveChanges();
-
-        return await base.SaveChangesAsync(cancellationToken);
-    }
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        AutoFastDbContextHelper.BuildEntities(modelBuilder, _entityTypes);
-
-        ExtendOnModelCreating(modelBuilder);
-    }
-
-    public DbSet<Author> Authors { get; init; } = default!;
+    None = 0,
+    CreateCommand = 1,
+    ModifyCommand = 2,
+    QueryRequest = 4,
+    GetByIdRequest = 8,
+    DeleteCommand = 16,
 }

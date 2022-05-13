@@ -1,4 +1,4 @@
-﻿//HintName: Author.g.cs
+﻿//HintName: Abc.g.cs
 
 using ApiAutoFast;
 using System.ComponentModel.DataAnnotations;
@@ -6,9 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ApiAutoFast.Sample.Server.Database;
 
-public class Author : IEntity
+public class Abc : IEntity
 {
-    public Author()
+    public Abc()
     {
     }
 
@@ -19,3 +19,5 @@ public class Author : IEntity
     public string? LastName { get; set; }
     public ApiAutoFast.Sample.Server.Database.ProfessionCategory? Profession { get; set; }
 }
+
+public partial class AbcResponse { }

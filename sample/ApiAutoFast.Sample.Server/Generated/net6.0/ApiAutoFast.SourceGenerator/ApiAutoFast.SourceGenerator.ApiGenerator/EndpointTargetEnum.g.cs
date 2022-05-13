@@ -1,5 +1,4 @@
-﻿//HintName: EndpointTargetEnum.g.cs
-
+﻿
 using System;
 
 namespace ApiAutoFast;

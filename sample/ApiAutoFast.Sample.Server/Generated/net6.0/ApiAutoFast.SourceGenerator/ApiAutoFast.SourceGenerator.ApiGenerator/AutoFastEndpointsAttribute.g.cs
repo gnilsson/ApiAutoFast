@@ -10,10 +10,12 @@ namespace ApiAutoFast;
 [AttributeUsage(AttributeTargets.Class)]
 internal class AutoFastEndpointsAttribute : Attribute
 {
-    internal AutoFastEndpointsAttribute(string? entityName = null)
+    internal AutoFastEndpointsAttribute(string? entityName = null, EndpointTargetType includeEndpointTarget = EndpointTargetType.All)
     {
         EntityName = entityName;
+        IncludeEndpointTarget = includeEndpointTarget;
     }
 
     public string? EntityName { get; }
+    public EndpointTargetType IncludeEndpointTarget { get; }
 }
