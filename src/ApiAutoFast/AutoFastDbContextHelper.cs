@@ -1,12 +1,20 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System;
 using System.Reflection;
 
 namespace ApiAutoFast;
 
 public static class AutoFastDbContextHelper
 {
+    private const string ComplexString = nameof(ApiAutoFast.DefaultString);
+    private const string Identifier = nameof(ApiAutoFast.Identifier);
+    private const string ComplexOf2 = "ComplexOf`2";
+    private const string CreatedDateTime = nameof(IEntity.CreatedDateTime);
+    private const string ModifiedDateTime = nameof(IEntity.ModifiedDateTime);
+
+
     public static Type[] GetEntityTypes<T>()
     {
         return typeof(T)
@@ -45,27 +53,45 @@ public static class AutoFastDbContextHelper
 
     private static void SetPropertyFactories(EntityTypeBuilder entityTypeBuilder, PropertyInfo propertyInfo)
     {
-        if (propertyInfo.Name.EndsWith("Id"))
+        Func<PropertyBuilder> _ = propertyInfo switch
         {
-            entityTypeBuilder.Property(propertyInfo.Name)
-                .HasConversion<IdentifierValueConverter>()
-                .HasValueGenerator<IdentifierValueGenerator>();
+            { PropertyType.BaseType.Name: ComplexString } or { PropertyType.IsEnum: true } => () =>
+            {
+                return entityTypeBuilder
+                        .Property(propertyInfo.Name)
+                        .HasConversion<string>();
+            }
+            ,
+            { PropertyType.Name: Identifier } => () =>
+            {
+                return entityTypeBuilder
+                        .Property(propertyInfo.Name)
+                        .HasConversion<IdentifierValueConverter>()
+                        .HasValueGenerator<IdentifierValueGenerator>();
+            }
+            ,
 
-            return;
-        }
+            { PropertyType.BaseType.Name: ComplexOf2 } => () =>
+            {
+                if (ComplexPropertyValueConverterContainer.GetOne(propertyInfo.PropertyType.Name) is ComplexPropertyValueConverter valueConverter)
+                {
+                    entityTypeBuilder
+                        .Property(propertyInfo.Name)
+                        .HasConversion(valueConverter.ValueConverterType);
+                }
 
-        if (propertyInfo.PropertyType.IsEnum)
-        {
-            entityTypeBuilder.Property(propertyInfo.Name).HasConversion<string>();
-
-            return;
-        }
-
-        if (propertyInfo.Name.EndsWith("DateTime"))
-        {
-            entityTypeBuilder.Property(propertyInfo.Name).HasDefaultValueSql("getutcdate()");
-
-            return;
-        }
+                // note: no registered valueConverter, throw
+                return null!;
+            }
+            ,
+            { PropertyType.Name: CreatedDateTime or ModifiedDateTime } => () =>
+            {
+                return entityTypeBuilder
+                        .Property(propertyInfo.Name)
+                        .HasDefaultValueSql("getutcdate()");
+            }
+            ,
+            _ => default!
+        };
     }
 }

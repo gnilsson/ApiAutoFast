@@ -1,4 +1,5 @@
-﻿
+﻿//HintName: AutoFastSampleDbContext.g.cs
+
 using ApiAutoFast;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;

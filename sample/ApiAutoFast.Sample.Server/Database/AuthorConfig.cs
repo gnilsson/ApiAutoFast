@@ -10,35 +10,45 @@ namespace ApiAutoFast.Sample.Server.Database;
 //       this can help with defining types that have different types across request - entity - response, aswell as aid in mapping.
 //       in the best of worlds it can also be used to define validation.
 
-[AutoFastContext]
+[AutoFastEndpoints]
+public class PostConfig
+{
+    public Title Title { get; set; } = default!;
+    public PublicationDateTime ComplexDate { get; set; } = default!;
+    public DefaultString Description { get; set; } = default!;
+}
+
+
+//[AutoFastContext]
 public partial class AutoFastSampleDbContext : DbContext
 {
+
 }
 
-[AutoFastEndpoints(includeEndpointTarget: EndpointTargetType.Get)]
-public class AuthorConfig
-{
-    internal class Properties
-    {
-        public string? FirstName { get; set; }
-        public string? LastName { get; set; }
-        public ProfessionCategory? Profession { get; set; }
-        [ExcludeRequestModel]
-        public ICollection<BlogConfig>? Blogs { get; set; }
-    }
-}
+//[AutoFastEndpoints(includeEndpointTarget: EndpointTargetType.Get)]
+//public class AuthorConfig
+//{
+//    internal class Properties
+//    {
+//        public string? FirstName { get; set; }
+//        public string? LastName { get; set; }
+//        public ProfessionCategory? Profession { get; set; }
+//        [ExcludeRequestModel]
+//        public ICollection<BlogConfig>? Blogs { get; set; }
+//    }
+//}
 
-[AutoFastEndpoints]
-public class BlogConfig
-{
-    internal class Properties
-    {
-        public string? Title { get; set; }
-        [ExcludeRequestModel]
-        public AuthorConfig? Author { get; set; }
-        public Identifier AuthorId { get; set; }
-    }
-}
+//[AutoFastEndpoints]
+//public class BlogConfig
+//{
+//    internal class Properties
+//    {
+//        public string? Title { get; set; }
+//        [ExcludeRequestModel]
+//        public AuthorConfig? Author { get; set; }
+//        public Identifier AuthorId { get; set; }
+//    }
+//}
 
 
 //public partial class BlogMappingProfile

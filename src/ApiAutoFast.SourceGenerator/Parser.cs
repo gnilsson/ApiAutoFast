@@ -115,20 +115,24 @@ internal static class Parser
         {
             ct.ThrowIfCancellationRequested();
 
-            var entitySubClassDeclarations = entityConfigSetup.ClassDeclarationSyntax
-                .ChildNodes()
-                .Where(x => x.Kind() is SyntaxKind.ClassDeclaration)
-                .Select(x => x as ClassDeclarationSyntax)
-                .ToImmutableArray();
+            //var entitySubClassDeclarations = entityConfigSetup.ClassDeclarationSyntax
+            //    .ChildNodes()
+            //    .Where(x => x.Kind() is SyntaxKind.ClassDeclaration)
+            //    .Select(x => x as ClassDeclarationSyntax)
+            //    .ToImmutableArray();
 
-            // note: this configuration system should basically be reworked
-            if (entitySubClassDeclarations.Length <= 0
-                || entitySubClassDeclarations.SingleOrDefault(x => x!.Identifier.Text is "Properties") is not ClassDeclarationSyntax propertiesClass)
-            {
-                continue;
-            }
+            //// note: this configuration system should basically be reworked
+            //if (entitySubClassDeclarations.Length <= 0
+            //    || entitySubClassDeclarations.SingleOrDefault(x => x!.Identifier.Text is "Properties") is not ClassDeclarationSyntax propertiesClass)
+            //{
+            //    continue;
+            //}
 
-            var members = entityConfigSetup.SemanticModel.GetDeclaredSymbol(propertiesClass)!.GetMembers();
+            //var members = entityConfigSetup.SemanticModel.GetDeclaredSymbol(propertiesClass)!.GetMembers();
+
+            var members = entityConfigSetup.SemanticModel
+                .GetDeclaredSymbol(entityConfigSetup.ClassDeclarationSyntax)!
+                .GetMembers();
 
             var foreignEntityNames = entityConfigSetups
                 .Where(x => x.EndpointsAttributeArguments.EntityName != entityConfigSetup.EndpointsAttributeArguments.EntityName)

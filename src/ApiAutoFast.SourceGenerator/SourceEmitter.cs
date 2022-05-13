@@ -220,7 +220,7 @@ public static class AdaptAttributeBuilderExtensions
                         sb.Append(@"
                 cfg.Map(poco => poco.").Append(property.Relational.Value.ForeigEntityProperty).Append(@", typeof(string));");
                     }
-                    else if (property.IsEnum)
+                    else if (property.IsEnum || true)
                     {
                         sb.Append(@"
                 cfg.Map(poco => poco.").Append(property.Name).Append(@", typeof(string));");
