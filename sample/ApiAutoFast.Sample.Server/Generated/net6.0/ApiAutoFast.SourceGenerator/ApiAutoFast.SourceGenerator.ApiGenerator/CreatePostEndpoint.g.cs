@@ -33,7 +33,9 @@ public partial class CreatePostEndpoint : Endpoint<PostCreateCommand, PostRespon
 
     public override async Task HandleAsync(PostCreateCommand req, CancellationToken ct)
     {
-        var entity = Map.ToEntity(req);
+        var entity = Map.ToDomainEntity(
+            req,
+            (paramName, message) => ValidationFailures.Add(new FluentValidation.Results.ValidationFailure(paramName, message)));
 
         await _dbContext.AddAsync(entity, ct);
 

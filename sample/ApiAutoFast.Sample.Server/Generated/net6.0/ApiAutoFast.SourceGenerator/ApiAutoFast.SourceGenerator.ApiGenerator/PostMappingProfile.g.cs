@@ -24,4 +24,14 @@ public partial class PostMappingProfile : Mapper<PostCreateCommand, PostResponse
 
         return originalEntity;
     }
+
+    public Post ToDomainEntity(PostCreateCommand e, Action<string, string> addError)
+    {
+        return new Post
+        {
+            Title = Title.ConvertFromRequest(e.Title, addError),
+            PublicationDateTime = PublicationDateTime.ConvertFromRequest(e.PublicationDateTime, addError),
+            Description = Description.ConvertFromRequest(e.Description, addError)
+        };
+    }
 }

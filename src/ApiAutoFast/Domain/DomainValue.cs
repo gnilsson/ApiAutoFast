@@ -1,152 +1,107 @@
-﻿using FastEndpoints;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using System.Linq.Expressions;
-using System.Numerics;
+﻿using System.Linq.Expressions;
 using System.Reflection;
 
 namespace ApiAutoFast;
 
-//public interface IEntityConverter<TEntityValue, TThis>
-//{
-//    public TEntityValue? EntityValue { get; protected set; }
-//    public TThis ConvertFromEntity(TEntityValue entityValue);
-//}
-
-//public static class DomainConverter<TEntityRequestValue, TThis> where TThis : DomainValue<TEntityRequestValue, TEntityRequestValue, TThis>, new()
-//{
-//    static DomainConverter()
-//    {
-//        FactoryContainer = new();
-//    }
-
-//    public static Dictionary<string, Func<TThis>> FactoryContainer { get; }
-
-//    public static TThis ConvertFromEntity(TEntityRequestValue entityValue)
-//    {
-//        var complex = FactoryContainer[nameof(TEntityRequestValue)]();
-//        complex.EntityValue = entityValue;
-//        return complex;
-//    }
-//}
-
-public class DateTimeValueConverter<TDomain> : ValueConverter<TDomain, DateTime> where TDomain : DomainValue<string, DateTime, TDomain>, new()
-{
-    public DateTimeValueConverter() : base(
-    s => s.EntityValue,
-    t => DomainConverter<string, DateTime, TDomain>.ConvertFromEntity(t))
-    { }
-}
-
-public class StringValueConverter<TDomain> : ValueConverter<TDomain, string> where TDomain : DomainValue<string, string, TDomain>, new()
-{
-    public StringValueConverter() : base(
-    s => s.EntityValue!,
-    t => DomainConverter<string, string, TDomain>.ConvertFromEntity(t))
-    { }
-}
-
-internal static class DomainValueConverterContainer
-{
-    internal static Dictionary<string, Type> Values { get; } = new()
-    {
-        [nameof(DateTime)] = typeof(DateTimeValueConverter<>),
-        [nameof(String)] = typeof(StringValueConverter<>),
-    };
-}
-
-public static class DomainConverter<TRequestValue, TEntityValue, TThis> where TThis : DomainValue<TRequestValue, TEntityValue, TThis>, new()
-{
-    static DomainConverter()
-    {
-        FactoryContainer = new();
-    }
-
-    public static Dictionary<string, Func<TThis>> FactoryContainer { get; }
-
-    public static TThis ConvertFromEntity(TEntityValue entityValue)
-    {
-        var complex = FactoryContainer[nameof(TEntityValue)]();
-        complex.EntityValue = entityValue;
-        return complex;
-    }
-}
-
-public class DomainValue<TRequestValue, TEntityValue, TThis> where TThis : DomainValue<TRequestValue, TEntityValue, TThis>, new()
+public class DomainValue<TRequestValue, TEntityValue, TDomain>
+    where TDomain : DomainValue<TRequestValue, TEntityValue, TDomain>, new()
 {
     static DomainValue()
     {
-        var ctor = typeof(TThis)
+        var ctor = typeof(TDomain)
             .GetTypeInfo()
             .DeclaredConstructors
             .First();
 
         var argsExp = Array.Empty<Expression>();
         var newExp = Expression.New(ctor, argsExp);
-        var lambda = Expression.Lambda(typeof(Func<TThis>), newExp);
+        var lambda = Expression.Lambda(typeof(Func<TDomain>), newExp);
 
-        _factory = (Func<TThis>)lambda.Compile();
+        _factory = (Func<TDomain>)lambda.Compile();
 
-        DomainConverter<TRequestValue, TEntityValue, TThis>.FactoryContainer.Add(nameof(TEntityValue), _factory);
+        // if is enum add to container
     }
 
-    protected static readonly Func<TThis> _factory;
+    public static void Init()
+    {
+        // note: invoked dynamically to trigger static ctor
+    }
 
-    public TRequestValue? RequestValue { get; protected set; }
-    public TEntityValue? EntityValue { get; internal set; }
+    private static readonly Func<TDomain> _factory;
+
+    public TEntityValue EntityValue { get; internal set; } = default!;
+
     protected virtual string? MessageOnFailedValidation { get; }
 
-    protected virtual bool TryValidateRequestConvertion(TRequestValue requestValue, out TEntityValue entityValue)
+    protected virtual bool TryValidateRequestConversion(TRequestValue? requestValue, out TEntityValue entityValue)
     {
-        throw new NotImplementedException($"DomainValue`3 needs an overriden {nameof(TryValidateRequestConvertion)} method.");
+        throw new NotImplementedException($"DomainValue`3 needs an overriden {nameof(TryValidateRequestConversion)} method.");
     }
 
-    //protected void AddEntityFrameworkConverter<TConverter>()
-    //{
-    //    DomainValueConverterContainer.Values.Add(typeof(TConverter));
-    //}
-
-    protected virtual void Configure()
+    public static TDomain ConvertFromRequest(TRequestValue? request, Action<string, string> addError)
     {
+        var domain = _factory();
 
-    }
-
-    public static TThis ConvertFromRequest(TRequestValue request, Action<string, string> addError)
-    {
-        var complex = _factory();
-        complex.RequestValue = request;
-
-        if (complex.TryValidateRequestConvertion(request, out var entityValue))
+        if (domain.TryValidateRequestConversion(request, out var entityValue))
         {
-            complex.EntityValue = entityValue;
-            return complex;
+            domain.EntityValue = entityValue;
+            return domain;
         }
 
-        addError(nameof(TThis), complex.MessageOnFailedValidation ?? "Error when converting request.");
+        addError(nameof(TDomain), domain.MessageOnFailedValidation ?? "Error when converting request.");
         return default!;
     }
 
-    //public TThis ConvertFromEntity(TEntityValue entityValue)
-    //{
-    //    var complex = _factory();
-    //    complex.EntityValue = entityValue;
-    //    return complex;
-    //}
+    public static implicit operator DomainValue<TRequestValue, TEntityValue, TDomain>(TEntityValue entityValue)
+    {
+        var domain = _factory();
+        domain.EntityValue = entityValue;
+        return domain;
+    }
+
+    protected virtual bool Equals(DomainValue<TRequestValue, TEntityValue, TDomain> other)
+    {
+        return EqualityComparer<TEntityValue>.Default.Equals(EntityValue, other.EntityValue);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is null) return false;
+
+        if (ReferenceEquals(this, obj)) return true;
+
+        return obj.GetType() == GetType() && Equals((DomainValue<TRequestValue, TEntityValue, TDomain>)obj);
+    }
+
+    public override int GetHashCode()
+    {
+        return EqualityComparer<TEntityValue>.Default.GetHashCode(EntityValue!);
+    }
+
+    public static bool operator ==(DomainValue<TRequestValue, TEntityValue, TDomain> a, DomainValue<TRequestValue, TEntityValue, TDomain> b)
+    {
+        if (a is null && b is null) return true;
+
+        if (a is null || b is null) return false;
+
+        return a.Equals(b);
+    }
+
+    public static bool operator !=(DomainValue<TRequestValue, TEntityValue, TDomain> a, DomainValue<TRequestValue, TEntityValue, TDomain> b)
+    {
+        return !(a == b);
+    }
+
+    public override string ToString() => EntityValue!.ToString()!;
 }
 
 public class DomainValue<TEntityRequestValue, TThis> : DomainValue<TEntityRequestValue, TEntityRequestValue, TThis>
     where TThis : DomainValue<TEntityRequestValue, TEntityRequestValue, TThis>, new()
 {
-    //static DomainValue()
-    //{
-    //    DomainConverter<TEntityRequestValue, TThis>.FactoryContainer.Add(nameof(TEntityRequestValue), _factory);
-    //}
-
-    protected override bool TryValidateRequestConvertion(TEntityRequestValue requestValue, out TEntityRequestValue entityValue)
+    // note: can something be done here?
+    protected override bool TryValidateRequestConversion(TEntityRequestValue? requestValue, out TEntityRequestValue entityValue)
     {
-        var success = requestValue is not null;
-        entityValue = success ? requestValue : default!;
-        return success;
+        entityValue = requestValue!;
+        return requestValue is not null;
     }
-
-    public override string ToString() => EntityValue!.ToString()!;
 }

@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using ApiAutoFast.Descriptive;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace ApiAutoFast;
 
@@ -27,6 +29,15 @@ public static class WebApplicationBuilderExtensions
 
         //    configuration.Configure();
         //}
+
+        var definedTypes = typeof(TContext).Assembly.DefinedTypes; //.SingleOrDefault(x => x.BaseType == typeof(DomainValue<,> ).MakeGenericType(typeof(string)).MakeGenericType(typeof(object)));
+
+        foreach (var domainValueType in definedTypes.Where(x => x.BaseType?.Name is TypeText.DomainValue3 or TypeText.DomainValue2))
+        {
+            var type = domainValueType.BaseType!.Name is TypeText.DomainValue3 ? domainValueType.BaseType : domainValueType.BaseType.BaseType;
+
+            type!.GetMethod("Init", BindingFlags.Public | BindingFlags.Static)!.Invoke(null, null);
+        }
 
         builder.Services.AddDbContext<TContext>(options => options
             .UseSqlServer(builder.Configuration.GetConnectionString(connectionStringConfigurationName))

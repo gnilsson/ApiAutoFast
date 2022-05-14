@@ -1,4 +1,5 @@
 ﻿using FastEndpoints;
+using FluentValidation.Results;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
@@ -16,14 +17,46 @@ public class PostConfig
     public Title Title { get; set; } = default!;
     public PublicationDateTime PublicationDateTime { get; set; } = default!;
     public Description Description { get; set; } = default!;
-   // public PostType PostType { get; set; } = default!;
+    // public PostType PostType { get; set; } = default!;
 }
 
 
 [AutoFastContext]
 public partial class AutoFastSampleDbContext : DbContext
 {
+    //public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    //{
+    //    return Task.FromResult(0);
+    //}
+}
 
+public partial class PostMappingProfile
+{
+    //public override Post ToEntity(PostCreateCommand postCreateCommand)
+    //{
+
+    //}
+    //public List<ValidationFailure> Test { get; set; } = new();
+    //public PostMappingProfile()
+    //{
+    //    Action<string, string> hmm = (a, b) => Test.Add(new ValidationFailure(a, b));
+    //    Aha(hmm);
+    //}
+
+    //public void Aha(Action<string, string> hej)
+    //{
+    //    return;
+    //}
+
+    //public Post ToDomainEntity(PostCreateCommand e, Action<string, string> addError)
+    //{
+    //    return new Post
+    //    {
+    //        Title = Title.ConvertFromRequest(e.Title, addError),
+    //        PublicationDateTime = PublicationDateTime.ConvertFromRequest(e.PublicationDateTime, addError),
+    //        Description = Description.ConvertFromRequest(e.Description, addError)
+    //    };
+    //}
 }
 
 //[AutoFastEndpoints(includeEndpointTarget: EndpointTargetType.Get)]
@@ -48,34 +81,5 @@ public partial class AutoFastSampleDbContext : DbContext
 //        [ExcludeRequestModel]
 //        public AuthorConfig? Author { get; set; }
 //        public Identifier AuthorId { get; set; }
-//    }
-//}
-
-
-//public partial class BlogMappingProfile
-//{
-//    public override Blog ToEntity(BlogCreateCommand r)
-//    {
-//        return new Blog
-//        {
-//            AuthorId = (Identifier)r.AuthorId!,
-//            Title = r.Title,
-//        };
-//    }
-//}
-
-//public partial class MappingRegister
-//{
-//    public MappingRegister()
-//    {
-//        _extendRegisterResponses = true;
-//    }
-
-//    static partial void OnExtendRegisterResponses(AdaptAttributeBuilder aab)
-//    {
-//        aab.ForType<Author>(cfg =>
-//        {
-//            cfg.Map(poco => poco.Profession, typeof(string));
-//        });
 //    }
 //}

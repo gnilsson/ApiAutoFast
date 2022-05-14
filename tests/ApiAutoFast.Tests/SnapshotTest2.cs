@@ -35,6 +35,37 @@ public partial class AutoFastSampleDbContext : DbContext
 
 }
 
+public class PublicationDateTime : DomainValue<string, DateTime, PublicationDateTime>
+{
+    protected override bool TryValidateRequestConversion(string requestValue, out DateTime entityValue)
+    {
+        return DateTime.TryParse(requestValue, out entityValue);
+    }
+
+    // note: figure this one out
+    public override string ToString() => EntityValue.ToLongDateString();
+}
+
+
+public class Title : DomainValue<string, Title>
+{
+    private const string RegexPattern = "";
+
+    protected override bool TryValidateRequestConversion(string requestValue, out string entityValue)
+    {
+        var success = base.TryValidateRequestConversion(requestValue, out _) && Regex.IsMatch(requestValue, RegexPattern);
+        entityValue = requestValue;
+        return success;
+    }
+
+    protected override string? MessageOnFailedValidation => ""Incorrect format on Title."";
+}
+
+    public class Description : DomainValue<string, Description>
+    {
+
+    }
+
 
 ";
 

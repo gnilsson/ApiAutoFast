@@ -4,7 +4,7 @@ namespace ApiAutoFast.SourceGenerator.Configuration;
 
 internal readonly struct EntityConfig
 {
-    internal EntityConfig(EndpointsAttributeArguments endpointsAttributeArguments, ImmutableArray<PropertyMetadata>? propertyMetadatas = null)
+    internal EntityConfig(AutoFastEndpointsAttributeArguments endpointsAttributeArguments, ImmutableArray<PropertyMetadata>? propertyMetadatas = null)
     {
         BaseName = endpointsAttributeArguments.EntityName;
         Response = $"{endpointsAttributeArguments.EntityName}Response";
@@ -16,6 +16,6 @@ internal readonly struct EntityConfig
     internal readonly string BaseName { get; }
     internal readonly string Response { get; }
     internal readonly string MappingProfile { get; }
-    internal readonly EndpointsAttributeArguments EndpointsAttributeArguments { get; }
+    internal readonly AutoFastEndpointsAttributeArguments EndpointsAttributeArguments { get; }
     internal readonly ImmutableArray<PropertyMetadata>? PropertyMetadatas { get; }
 }

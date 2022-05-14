@@ -85,13 +85,13 @@ internal static class Parser
 
             if (semanticModel.GetDeclaredSymbol(entityClassDeclaration) is not INamedTypeSymbol namedTypeSymbol) continue;
 
-            var endpointsAttributeArguments = GetEndpointsAttributeArguments(namedTypeSymbol);
+            var endpointsAttributeArguments = GetAutoFastEndpointsAttributeArguments(namedTypeSymbol);
 
             yield return new EntityConfigSetup(entityClassDeclaration, semanticModel, endpointsAttributeArguments);
         }
     }
 
-    private static EndpointsAttributeArguments GetEndpointsAttributeArguments(INamedTypeSymbol namedTypeSymbol)
+    private static AutoFastEndpointsAttributeArguments GetAutoFastEndpointsAttributeArguments(INamedTypeSymbol namedTypeSymbol)
     {
         var endpointsAttribute = namedTypeSymbol.GetAttributes()[0];
 
@@ -101,7 +101,7 @@ internal static class Parser
 
         var endpointTarget = (EndpointTargetType)endpointsAttribute.ConstructorArguments[1].Value!;
 
-        return new EndpointsAttributeArguments(entityName!, endpointTarget);
+        return new AutoFastEndpointsAttributeArguments(entityName!, endpointTarget);
     }
 
     private static IEnumerable<EntityConfig> YieldEntityConfig(
@@ -156,17 +156,18 @@ internal static class Parser
                 propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
                 memberOptions: SymbolDisplayMemberOptions.IncludeAccessibility));
 
-            var typeKind = GetTypeKind(property);
+            var isEnum = GetTypeKind(property) == nameof(Enum);
 
             var relational = GetRelationalEntity(foreignEntityNames, property);
 
-            var source = GetPropertySource(property, propertyString, relational);
+            var entitySource = GetEntityPropertySource(property, propertyString, relational);
+            var requestSource = GetRequestPropertySource(property, propertyString, relational, isEnum);
 
             var attributes = YieldAttributeMetadata(property).ToImmutableArray();
 
             var requestModelTarget = GetRequestModelTarget(attributes);
 
-            yield return new PropertyMetadata(source, property.Name, typeKind == "Enum", requestModelTarget, attributes, relational);
+            yield return new PropertyMetadata(entitySource, requestSource, property.Name, isEnum, requestModelTarget, attributes, relational);
         }
     }
 
@@ -198,7 +199,36 @@ internal static class Parser
         return property.Type.TypeKind.ToString();
     }
 
-    private static PropertySource GetPropertySource(IPropertySymbol property, string propertyString, PropertyRelational? relational)
+    private static string GetRequestPropertySource(IPropertySymbol property, string propertyString, PropertyRelational? relational, bool isEnum)
+    {
+        // note: define type seperately across requests and entity
+        var type = relational switch
+        {
+            null or
+            { RelationalType: RelationalType.ShadowToMany or RelationalType.ShadowToOne } => isEnum ? property.Type.ToDisplayString() : "string?",
+            { RelationalType: RelationalType.ToMany } => $"ICollection<{relational.Value.ForeignEntityName}>",
+            { RelationalType: RelationalType.ToOne } => relational.Value.ForeignEntityName,
+            _ => "object"
+        };
+
+        var source = propertyString.Insert(propertyString.IndexOf(' '), $" {type}");
+
+        // note: temporary way of checking types
+        //       nullable?
+        if (type.Contains("Identifier"))
+        {
+            if (type.Contains("ICollection"))
+            {
+                return propertyString.Insert(propertyString.IndexOf(' '), " IEnumerable<string>?");
+            }
+
+            return propertyString.Insert(propertyString.IndexOf(' '), " string?");
+        }
+
+        return source;
+    }
+
+    private static string GetEntityPropertySource(IPropertySymbol property, string propertyString, PropertyRelational? relational)
     {
         // note: define type seperately across requests and entity
         var type = relational switch
@@ -212,20 +242,9 @@ internal static class Parser
 
         var entitySource = propertyString.Insert(propertyString.IndexOf(' '), $" {type}");
 
-        // note: temporary way of checking types
-        //       nullable?
-        if (type.Contains("Identifier"))
-        {
-            if (type.Contains("ICollection"))
-            {
-                return new PropertySource(entitySource, propertyString.Insert(propertyString.IndexOf(' '), $" IEnumerable<string>?"));
-            }
-
-            return new PropertySource(entitySource, propertyString.Insert(propertyString.IndexOf(' '), $" string?"));
-        }
-
-        return new PropertySource(entitySource);
+        return entitySource;
     }
+
 
     // note: this method is based on some conventions, i.e that an entity with a one-to-many relation will declare that
     //       with a property of type ICollection<Foo> and with name Foos.

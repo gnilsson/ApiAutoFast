@@ -1,19 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using ApiAutoFast.Descriptive;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System;
 using System.Reflection;
 
 namespace ApiAutoFast;
 
 public static class AutoFastDbContextHelper
 {
-    private const string Identifier = nameof(ApiAutoFast.Identifier);
-    private const string CreatedDateTime = nameof(IEntity.CreatedDateTime);
-    private const string ModifiedDateTime = nameof(IEntity.ModifiedDateTime);
-    private const string DomainValue2 = "DomainValue`2";
-    private const string DomainValue3 = "DomainValue`3";
-
     public static Type[] GetEntityTypes<T>()
     {
         return typeof(T)
@@ -54,44 +48,41 @@ public static class AutoFastDbContextHelper
     {
         _ = propertyInfo switch
         {
-            //{ PropertyType.BaseType.Name: DomainValue2 } or { PropertyType.IsEnum: true } =>
-            //    entityTypeBuilder
-            //        .Property(propertyInfo.Name)
-            //        .HasConversion<string>(),
-
-            { PropertyType.Name: Identifier } =>
+            { PropertyType.Name: TypeText.Identifier } =>
                  entityTypeBuilder
                     .Property(propertyInfo.Name)
                     .HasConversion<IdentifierValueConverter>()
                     .HasValueGenerator<IdentifierValueGenerator>(),
 
-            { PropertyType.BaseType.Name: DomainValue2 } => AttemptAddValueConverter(entityTypeBuilder, propertyInfo, 0),
-
-            { PropertyType.BaseType.Name: DomainValue3 } => AttemptAddValueConverter(entityTypeBuilder, propertyInfo, 1),
-
-            { Name: CreatedDateTime or ModifiedDateTime } =>
+            { Name: TypeText.CreatedDateTime or TypeText.ModifiedDateTime } =>
                 entityTypeBuilder
                     .Property(propertyInfo.Name)
                     .HasDefaultValueSql("getutcdate()"),
 
+            { PropertyType.BaseType.Name: TypeText.DomainValue2 or TypeText.DomainValue3 } =>
+                entityTypeBuilder
+                    .Property(propertyInfo.Name)
+                    .HasDomainValueConversion(propertyInfo),
+
             _ => null!
         };
     }
+}
 
-    private static PropertyBuilder AttemptAddValueConverter(EntityTypeBuilder entityTypeBuilder, PropertyInfo propertyInfo, int entityTypeGenericTypeParamPosition)
+public static class PropertyBuilderExtensions
+{
+    public static PropertyBuilder HasDomainValueConversion(this PropertyBuilder propertyBuilder, PropertyInfo propertyInfo)
     {
-        var entityTypeArgument = propertyInfo.PropertyType.BaseType?.GenericTypeArguments[entityTypeGenericTypeParamPosition].Name;
+        var requestTypeArgument = propertyInfo.PropertyType.BaseType?.GenericTypeArguments[0];
 
-        if (entityTypeArgument is not null && DomainValueConverterContainer.Values.TryGetValue(entityTypeArgument, out var converterType))
-        {
-            var valueConverter = converterType.MakeGenericType(propertyInfo.PropertyType);
+        var entityTypeArgument = propertyInfo.PropertyType.BaseType!.Name is TypeText.DomainValue2
+            ? requestTypeArgument
+            : propertyInfo.PropertyType.BaseType?.GenericTypeArguments[1];
 
-            entityTypeBuilder
-                .Property(propertyInfo.Name)
-                .HasConversion(valueConverter);
-        }
+        var valueConverter = typeof(DomainValueConverter<,,>).MakeGenericType(requestTypeArgument!, entityTypeArgument!, propertyInfo.PropertyType);
 
-        // note: no registered valueConverter, throw
+        propertyBuilder.HasConversion(valueConverter);
+
         return null!;
     }
 }

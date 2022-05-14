@@ -7,14 +7,16 @@ namespace ApiAutoFast.SourceGenerator.Configuration;
 internal readonly struct PropertyMetadata
 {
     internal PropertyMetadata(
-        PropertySource source,
+        string entitySource,
+        string requestSource,
         string name,
         bool isEnum,
         RequestModelTarget requestModelTarget,
         ImmutableArray<PropertyAttributeMetadata>? attributeMetadatas = null,
         PropertyRelational? relational = null)
     {
-        Source = source;
+        EntitySource = entitySource;
+        RequestSource = requestSource;
         Name = name;
         AttributeMetadatas = attributeMetadatas;
         IsEnum = isEnum;
@@ -22,7 +24,8 @@ internal readonly struct PropertyMetadata
         Relational = relational;
     }
 
-    internal readonly PropertySource Source { get; }
+    internal readonly string RequestSource { get; }
+    internal readonly string EntitySource { get; }
     internal readonly string Name { get; }
     internal readonly ImmutableArray<PropertyAttributeMetadata>? AttributeMetadatas { get; }
     internal readonly RequestModelTarget RequestModelTarget { get; }

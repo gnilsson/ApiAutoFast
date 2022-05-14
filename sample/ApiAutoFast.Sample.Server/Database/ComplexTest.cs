@@ -7,15 +7,11 @@ namespace ApiAutoFast.Sample.Server.Database;
 
 public class PublicationDateTime : DomainValue<string, DateTime, PublicationDateTime>
 {
-    protected override bool TryValidateRequestConvertion(string requestValue, out DateTime entityValue)
+    protected override bool TryValidateRequestConversion(string? requestValue, out DateTime entityValue)
     {
-        return DateTime.TryParse(requestValue, out entityValue);
+        entityValue = default!;
+        return requestValue is not null && DateTime.TryParse(requestValue, out entityValue);
     }
-
-    //protected override void Configure()
-    //{
-    //    AddEntityFrameworkConverter<DateValueConverter<PublicationDateTime>>();
-    //}
 
     // note: figure this one out
     public override string ToString() => EntityValue.ToLongDateString();
@@ -26,11 +22,10 @@ public class Title : DomainValue<string, Title>
 {
     private const string RegexPattern = "";
 
-    protected override bool TryValidateRequestConvertion(string requestValue, out string entityValue)
+    protected override bool TryValidateRequestConversion(string? requestValue, out string entityValue)
     {
-        var success = base.TryValidateRequestConvertion(requestValue, out _) && Regex.IsMatch(requestValue, RegexPattern);
-        entityValue = requestValue;
-        return success;
+        entityValue = requestValue!;
+        return requestValue is not null && Regex.IsMatch(requestValue, RegexPattern);
     }
 
     protected override string? MessageOnFailedValidation => "Incorrect format on Title.";

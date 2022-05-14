@@ -41,7 +41,9 @@ internal static class SourceEmitter
         EndpointTargetType.Create => static (sb, endpointConfig) =>
         {
             sb.Append(@"
-        var entity = Map.ToEntity(req);
+        var entity = Map.ToDomainEntity(
+            req,
+            (paramName, message) => ValidationFailures.Add(new FluentValidation.Results.ValidationFailure(paramName, message)));
 
         await _dbContext.AddAsync(entity, ct);
 
@@ -219,12 +221,14 @@ public static class AdaptAttributeBuilderExtensions
                     {
                         sb.Append(@"
                 cfg.Map(poco => poco.").Append(property.Relational.Value.ForeigEntityProperty).Append(@", typeof(string));");
+                        continue;
                     }
-                    else if (property.IsEnum || true)
-                    {
+                    //else if (property.IsEnum || true)
+                    //{
+                    // note: need to figure out how to get correct types.
                         sb.Append(@"
                 cfg.Map(poco => poco.").Append(property.Name).Append(@", typeof(string));");
-                    }
+                    //}
                 }
             }
 
@@ -291,7 +295,7 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity
                 }
 
                 sb.Append(@"
-    ").Append(propertyMetadata.Source.EntityModel);
+    ").Append(propertyMetadata.EntitySource);
             }
         }
 
@@ -501,6 +505,16 @@ public partial class ")
         sb.Append(@"
         return originalEntity;
     }
+
+    public Post ToDomainEntity(PostCreateCommand e, Action<string, string> addError)
+    {
+        return new Post
+        {
+            Title = Title.ConvertFromRequest(e.Title, addError),
+            PublicationDateTime = PublicationDateTime.ConvertFromRequest(e.PublicationDateTime, addError),
+            Description = Description.ConvertFromRequest(e.Description, addError)
+        };
+    }
 }
 ");
         return sb.ToString();
@@ -529,7 +543,7 @@ public partial class ")
             {
                 if (propertyMetadata.RequestModelTarget.HasFlag(modelTarget))
                 {
-                    yield return propertyMetadata.Source.RequestModel;
+                    yield return propertyMetadata.RequestSource;
                 }
             }
         }
