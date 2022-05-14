@@ -58,7 +58,7 @@ public static class AdaptAttributeBuilderExtensions
                 cfg.Map(poco => poco.CreatedDateTime, typeof(string));
                 cfg.Map(poco => poco.ModifiedDateTime, typeof(string));
                 cfg.Map(poco => poco.Title, typeof(string));
-                cfg.Map(poco => poco.ComplexDate, typeof(string));
+                cfg.Map(poco => poco.PublicationDateTime, typeof(string));
                 cfg.Map(poco => poco.Description, typeof(string));
             });
     }

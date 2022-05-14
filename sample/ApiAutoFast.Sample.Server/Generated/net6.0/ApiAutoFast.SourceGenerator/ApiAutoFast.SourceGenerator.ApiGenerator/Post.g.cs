@@ -15,8 +15,8 @@ public class Post : IEntity
     public DateTime CreatedDateTime { get; set; }
     public DateTime ModifiedDateTime { get; set; }
     public ApiAutoFast.Sample.Server.Database.Title Title { get; set; }
-    public ApiAutoFast.Sample.Server.Database.ComplexDate ComplexDate { get; set; }
-    public ApiAutoFast.ComplexString Description { get; set; }
+    public ApiAutoFast.Sample.Server.Database.PublicationDateTime PublicationDateTime { get; set; }
+    public ApiAutoFast.Sample.Server.Database.Description Description { get; set; }
 }
 
 public partial class PostResponse { }

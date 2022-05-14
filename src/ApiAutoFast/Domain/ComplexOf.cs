@@ -6,41 +6,6 @@ using System.Reflection;
 
 namespace ApiAutoFast;
 
-//public class ComplexStringValueConverter<T> : ValueConverter<string, T> where T : DefaultString
-//{
-//    public ComplexStringValueConverter() : base(
-//        s => (T)DefaultString.ConvertFrom(s),
-//        t => t.EntityValue!)
-//    { }
-//}
-
-//public interface IComplexOf<TRequest, TEntity, TThis> where TThis : IComplexOf<TRequest, TEntity, TThis>
-//{
-//    public string? RequestValue { get; protected set; }
-//    public string? EntityValue { get; protected set; }
-
-//    bool TryConvertValidate(TRequest item, out TEntity entityValue);
-
-//    bool TryConvertFrom(TRequest item, out TThis thisValue);
-//}
-
-
-public class DefaultString : ComplexOf<DefaultString>
-{
-    protected override bool TryConvertValidate(string requestValue, out string entityValue)
-    {
-        if (string.IsNullOrEmpty(requestValue))
-        {
-            entityValue = default!;
-            return false;
-        }
-
-        entityValue = requestValue;
-        return true;
-    }
-}
-
-
 public class ComplexOf<TThis> where TThis : ComplexOf<TThis>, new()
 {
     static ComplexOf()

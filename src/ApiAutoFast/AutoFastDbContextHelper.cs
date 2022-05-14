@@ -8,12 +8,11 @@ namespace ApiAutoFast;
 
 public static class AutoFastDbContextHelper
 {
-    private const string ComplexString = nameof(ApiAutoFast.DefaultString);
     private const string Identifier = nameof(ApiAutoFast.Identifier);
-    private const string ComplexOf2 = "ComplexOf`2";
     private const string CreatedDateTime = nameof(IEntity.CreatedDateTime);
     private const string ModifiedDateTime = nameof(IEntity.ModifiedDateTime);
-
+    private const string DomainValue2 = "DomainValue`2";
+    private const string DomainValue3 = "DomainValue`3";
 
     public static Type[] GetEntityTypes<T>()
     {
@@ -53,45 +52,46 @@ public static class AutoFastDbContextHelper
 
     private static void SetPropertyFactories(EntityTypeBuilder entityTypeBuilder, PropertyInfo propertyInfo)
     {
-        Func<PropertyBuilder> _ = propertyInfo switch
+        _ = propertyInfo switch
         {
-            { PropertyType.BaseType.Name: ComplexString } or { PropertyType.IsEnum: true } => () =>
-            {
-                return entityTypeBuilder
-                        .Property(propertyInfo.Name)
-                        .HasConversion<string>();
-            }
-            ,
-            { PropertyType.Name: Identifier } => () =>
-            {
-                return entityTypeBuilder
-                        .Property(propertyInfo.Name)
-                        .HasConversion<IdentifierValueConverter>()
-                        .HasValueGenerator<IdentifierValueGenerator>();
-            }
-            ,
+            //{ PropertyType.BaseType.Name: DomainValue2 } or { PropertyType.IsEnum: true } =>
+            //    entityTypeBuilder
+            //        .Property(propertyInfo.Name)
+            //        .HasConversion<string>(),
 
-            { PropertyType.BaseType.Name: ComplexOf2 } => () =>
-            {
-                if (ComplexPropertyValueConverterContainer.GetOne(propertyInfo.PropertyType.Name) is ComplexPropertyValueConverter valueConverter)
-                {
-                    entityTypeBuilder
-                        .Property(propertyInfo.Name)
-                        .HasConversion(valueConverter.ValueConverterType);
-                }
+            { PropertyType.Name: Identifier } =>
+                 entityTypeBuilder
+                    .Property(propertyInfo.Name)
+                    .HasConversion<IdentifierValueConverter>()
+                    .HasValueGenerator<IdentifierValueGenerator>(),
 
-                // note: no registered valueConverter, throw
-                return null!;
-            }
-            ,
-            { PropertyType.Name: CreatedDateTime or ModifiedDateTime } => () =>
-            {
-                return entityTypeBuilder
-                        .Property(propertyInfo.Name)
-                        .HasDefaultValueSql("getutcdate()");
-            }
-            ,
-            _ => default!
+            { PropertyType.BaseType.Name: DomainValue2 } => AttemptAddValueConverter(entityTypeBuilder, propertyInfo, 0),
+
+            { PropertyType.BaseType.Name: DomainValue3 } => AttemptAddValueConverter(entityTypeBuilder, propertyInfo, 1),
+
+            { Name: CreatedDateTime or ModifiedDateTime } =>
+                entityTypeBuilder
+                    .Property(propertyInfo.Name)
+                    .HasDefaultValueSql("getutcdate()"),
+
+            _ => null!
         };
+    }
+
+    private static PropertyBuilder AttemptAddValueConverter(EntityTypeBuilder entityTypeBuilder, PropertyInfo propertyInfo, int entityTypeGenericTypeParamPosition)
+    {
+        var entityTypeArgument = propertyInfo.PropertyType.BaseType?.GenericTypeArguments[entityTypeGenericTypeParamPosition].Name;
+
+        if (entityTypeArgument is not null && DomainValueConverterContainer.Values.TryGetValue(entityTypeArgument, out var converterType))
+        {
+            var valueConverter = converterType.MakeGenericType(propertyInfo.PropertyType);
+
+            entityTypeBuilder
+                .Property(propertyInfo.Name)
+                .HasConversion(valueConverter);
+        }
+
+        // note: no registered valueConverter, throw
+        return null!;
     }
 }

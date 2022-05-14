@@ -14,12 +14,13 @@ namespace ApiAutoFast.Sample.Server.Database;
 public class PostConfig
 {
     public Title Title { get; set; } = default!;
-    public PublicationDateTime ComplexDate { get; set; } = default!;
-    public DefaultString Description { get; set; } = default!;
+    public PublicationDateTime PublicationDateTime { get; set; } = default!;
+    public Description Description { get; set; } = default!;
+   // public PostType PostType { get; set; } = default!;
 }
 
 
-//[AutoFastContext]
+[AutoFastContext]
 public partial class AutoFastSampleDbContext : DbContext
 {
 

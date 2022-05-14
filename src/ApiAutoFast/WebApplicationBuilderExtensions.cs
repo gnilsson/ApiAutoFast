@@ -19,14 +19,14 @@ public static class WebApplicationBuilderExtensions
 
     public static async Task<WebApplication> BuildAutoFastAsync<TContext>(this WebApplicationBuilder builder, string connectionStringConfigurationName) where TContext : DbContext
     {
-        var configurationBase = typeof(TContext).Assembly.DefinedTypes.SingleOrDefault(x => x.BaseType == typeof(AutoFastConfiguration));
+        //var configurationBase = typeof(TContext).Assembly.DefinedTypes.SingleOrDefault(x => x.BaseType == typeof(AutoFastConfiguration));
 
-        if (configurationBase is not null)
-        {
-            var configuration = (AutoFastConfiguration)CreateEmptyConstructor(configurationBase.UnderlyingSystemType)();
+        //if (configurationBase is not null)
+        //{
+        //    var configuration = (AutoFastConfiguration)CreateEmptyConstructor(configurationBase.UnderlyingSystemType)();
 
-            configuration.Configure();
-        }
+        //    configuration.Configure();
+        //}
 
         builder.Services.AddDbContext<TContext>(options => options
             .UseSqlServer(builder.Configuration.GetConnectionString(connectionStringConfigurationName))
