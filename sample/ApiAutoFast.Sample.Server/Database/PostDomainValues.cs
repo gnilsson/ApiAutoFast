@@ -12,9 +12,8 @@ public class PublicationDateTime : DomainValue<string, DateTime, PublicationDate
     }
 
     // note: figure this one out
-    public override string ToString() => EntityValue.ToLongDateString();
+    public override string ToString() => EntityValue.ToShortDateString();
 }
-
 
 public class Title : DomainValue<string, Title>
 {

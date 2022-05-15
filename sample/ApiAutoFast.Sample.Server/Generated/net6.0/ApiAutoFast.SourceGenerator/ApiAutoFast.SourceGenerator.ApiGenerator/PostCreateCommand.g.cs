@@ -8,5 +8,5 @@ public class PostCreateCommand
     public string? Title { get; set; }
     public string? PublicationDateTime { get; set; }
     public string? Description { get; set; }
-    public string? PostType { get; set; }
+    public ApiAutoFast.Sample.Server.Database.PostType PostType { get; set; }
 }

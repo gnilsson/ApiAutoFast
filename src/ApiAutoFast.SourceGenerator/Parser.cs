@@ -11,6 +11,7 @@ internal static class Parser
 {
     private const string AutoFastEndpointsAttribute = "ApiAutoFast.AutoFastEndpointsAttribute";
     private const string AutoFastContextAttribute = "ApiAutoFast.AutoFastContextAttribute";
+    private const string DomainValueAttribute = "ApiAutoFast.DomainValueAttribute";
 
     internal static SemanticTargetInformation? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
     {
@@ -29,7 +30,7 @@ internal static class Parser
 
                 var fullName = attributeContainingTypeSymbol.ToDisplayString();
 
-                if (fullName is AutoFastEndpointsAttribute or AutoFastContextAttribute)
+                if (fullName is AutoFastEndpointsAttribute or AutoFastContextAttribute or DomainValueAttribute)
                 {
                     return new(classDeclarationSyntax, fullName);
                 }
@@ -41,15 +42,61 @@ internal static class Parser
 
     internal static bool IsSyntaxTargetForGeneration(SyntaxNode node) => node is ClassDeclarationSyntax m && m.AttributeLists.Count > 0;
 
-    internal static GenerationConfig? GetGenerationConfig(Compilation compilation, IEnumerable<SemanticTargetInformation> semanticTargetInformations, CancellationToken ct)
+    internal readonly struct DomainValueDefinition
     {
-        var endpointAttribute = compilation.GetTypeByMetadataName(AutoFastEndpointsAttribute);
-        var contextAttribute = compilation.GetTypeByMetadataName(AutoFastContextAttribute);
-
-        if (endpointAttribute is null || contextAttribute is null || semanticTargetInformations.Where(x => x.Target is AutoFastEndpointsAttribute) is null)
+        public DomainValueDefinition(ITypeSymbol requestType, ITypeSymbol entityType, string domainValueName)
         {
-            return GenerationConfig.Empty;
+            RequestType = requestType;
+            EntityType = entityType;
+            DomainValueName = domainValueName;
         }
+
+        public ITypeSymbol RequestType { get; }
+        public ITypeSymbol EntityType { get; }
+        public string DomainValueName { get; }
+    }
+
+    //private static IEnumerable<DomainValueDefinitionMetadata> YieldDomainValueDefinitionMetadata(Compilation compilation, ImmutableArray<SemanticTargetInformation> semanticTargetInformations)
+    //{
+    //    foreach (var semanticTargetInformation in semanticTargetInformations)
+    //    {
+    //        if (semanticTargetInformation.Target is DomainValueAttribute)
+    //        {
+    //            var semanticModel = compilation.GetSemanticModel(semanticTargetInformation.ClassDeclarationSyntax.SyntaxTree);
+
+    //            if (semanticModel.GetDeclaredSymbol(semanticTargetInformation.ClassDeclarationSyntax) is not INamedTypeSymbol namedTypeSymbol) continue;
+
+    //            if (namedTypeSymbol.BaseType?.TypeArguments.Length > 0)
+    //            {
+    //                var domainValueTypes = namedTypeSymbol.BaseType.TypeArguments;
+    //                var requestTypeSymbol = domainValueTypes[0];
+    //                var entityTypeSymbol = domainValueTypes.Length == 1 ? requestTypeSymbol : domainValueTypes[1];
+
+    //                yield return new DomainValueDefinitionMetadata(requestTypeSymbol, entityTypeSymbol, namedTypeSymbol.Name);
+    //            }
+
+
+    //            //var symbol = entityConfigSetup.SemanticModel.GetDeclaredSymbol(domainValueDefinition);
+
+    //            //if (symbol?.BaseType?.TypeArguments.Length > 0)
+    //            //{
+    //            //    // get name of class and save types
+
+    //            //}
+    //        }
+    //    }
+    //}
+
+    internal static GenerationConfig? GetGenerationConfig(Compilation compilation, ImmutableArray<SemanticTargetInformation> semanticTargetInformations, CancellationToken ct)
+    {
+        //var endpointAttribute = compilation.GetTypeByMetadataName(AutoFastEndpointsAttribute);
+        //var contextAttribute = compilation.GetTypeByMetadataName(AutoFastContextAttribute);
+        //var domainValueAttribute = compilation.GetTypeByMetadataName(DomainValueAttribute);
+
+        if (semanticTargetInformations.Where(x => x.Target is AutoFastEndpointsAttribute) is null) return GenerationConfig.Empty;
+
+        //var domainValueDefinitionMetadatas = YieldDomainValueDefinitionMetadata(compilation, semanticTargetInformations).ToImmutableArray();
+
 
         var entityClassDeclarations = semanticTargetInformations
             .Where(x => x.Target is AutoFastEndpointsAttribute && x.ClassDeclarationSyntax is not null)
@@ -58,9 +105,9 @@ internal static class Parser
 
         if (entityClassDeclarations.Length == 0) return GenerationConfig.Empty;
 
-        var entityConfigs = YieldEntityConfig(entityClassDeclarations, compilation, ct).ToImmutableArray();
+        var entityConfigs = YieldEntityConfig(compilation, entityClassDeclarations, ct).ToImmutableArray();
 
-        var semanticTarget = semanticTargetInformations?.FirstOrDefault(x => x.Target == AutoFastContextAttribute);
+        var semanticTarget = semanticTargetInformations.FirstOrDefault(x => x.Target == AutoFastContextAttribute);
 
         if (semanticTarget is null || compilation
             .GetSemanticModel(semanticTarget.ClassDeclarationSyntax!.SyntaxTree)
@@ -76,8 +123,8 @@ internal static class Parser
     }
 
     private static IEnumerable<EntityConfigSetup> YieldEntityConfigSetup(
-        ImmutableArray<ClassDeclarationSyntax> entityClassDeclarations,
-        Compilation compilation)
+        Compilation compilation,
+        ImmutableArray<ClassDeclarationSyntax> entityClassDeclarations)
     {
         foreach (var entityClassDeclaration in entityClassDeclarations)
         {
@@ -105,11 +152,11 @@ internal static class Parser
     }
 
     private static IEnumerable<EntityConfig> YieldEntityConfig(
-        ImmutableArray<ClassDeclarationSyntax> entityClassDeclarations,
         Compilation compilation,
+        ImmutableArray<ClassDeclarationSyntax> entityClassDeclarations,
         CancellationToken ct)
     {
-        var entityConfigSetups = YieldEntityConfigSetup(entityClassDeclarations, compilation).ToImmutableArray();
+        var entityConfigSetups = YieldEntityConfigSetup(compilation, entityClassDeclarations).ToImmutableArray();
 
         foreach (var entityConfigSetup in entityConfigSetups)
         {
@@ -150,6 +197,7 @@ internal static class Parser
 
             //var propertiesMembers = entityConfigSetup.SemanticModel.GetDeclaredSymbol(propertiesClass)!.GetMembers();
 
+            //domainValueAttribute.
 
             var members = entityConfigSetup.SemanticModel
                 .GetDeclaredSymbol(entityConfigSetup.ClassDeclarationSyntax)!
@@ -160,27 +208,34 @@ internal static class Parser
                 .Select(x => x.EndpointsAttributeArguments.EntityName)
                 .ToImmutableArray();
 
-            var propertyMetadatas = YieldPropertyMetadata(members, foreignEntityNames).ToImmutableArray();
+            var propertyMetadatas = YieldPropertyMetadata(compilation, members, foreignEntityNames).ToImmutableArray();
 
             yield return new EntityConfig(entityConfigSetup.EndpointsAttributeArguments, propertyMetadatas);
         }
     }
 
-    private static IEnumerable<PropertyMetadata> YieldPropertyMetadata(ImmutableArray<ISymbol> members, ImmutableArray<string> foreignEntityNames)
+    private static IEnumerable<PropertyMetadata> YieldPropertyMetadata(Compilation compilation, ImmutableArray<ISymbol> members, ImmutableArray<string> foreignEntityNames)
     {
-        // note: stop generation if any property is property.type.typekind error?
         foreach (var member in members)
         {
             if (member is not IPropertySymbol property) continue;
+
+            if (TryGetDomainValueDefinition(compilation, property, out var domainValueDefinition) is false) continue;
 
             var propertyString = property.ToDisplayString(new SymbolDisplayFormat(
                 propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
                 memberOptions: SymbolDisplayMemberOptions.IncludeAccessibility));
 
-            var isEnum = GetTypeKind(property) == nameof(Enum);
+            var isEnum = domainValueDefinition.EntityType.TypeKind.ToString() == nameof(Enum);
+
+            var aha = (property as INamedTypeSymbol)?.EnumUnderlyingType;
+
+            if (aha != null)
+            {
+
+            }
 
             var relational = GetRelationalEntity(foreignEntityNames, property);
-
             var entitySource = GetEntityPropertySource(property, propertyString, relational);
             var requestSource = GetRequestPropertySource(property, propertyString, relational, isEnum);
 
@@ -190,6 +245,28 @@ internal static class Parser
 
             yield return new PropertyMetadata(entitySource, requestSource, property.Name, isEnum, requestModelTarget, attributes, relational);
         }
+    }
+
+    private static bool TryGetDomainValueDefinition(Compilation compilation, IPropertySymbol property, out DomainValueDefinition domainValueDefinition)
+    {
+        domainValueDefinition = default;
+
+        var domainValueType = compilation.GetTypeByMetadataName($"{property.ContainingNamespace}.{property.Name}");
+
+        var success = domainValueType?.BaseType?.TypeArguments.Length > 0;
+
+        if (success)
+        {
+            var requestType = domainValueType!.BaseType!.TypeArguments[0];
+
+            var entityType = domainValueType.BaseType.TypeArguments.Length == 2
+                ? requestType
+                : domainValueType.BaseType.TypeArguments[1];
+
+            domainValueDefinition = new DomainValueDefinition(requestType, entityType, property.Name);
+        }
+
+        return success;
     }
 
     private static RequestModelTarget GetRequestModelTarget(ImmutableArray<PropertyAttributeMetadata> attributes)
@@ -207,18 +284,20 @@ internal static class Parser
         return RequestModelTarget.CreateCommand | RequestModelTarget.ModifyCommand | RequestModelTarget.QueryRequest;
     }
 
-    private static string GetTypeKind(IPropertySymbol property)
-    {
-        if (property.NullableAnnotation is NullableAnnotation.Annotated)
-        {
-            if (property.Type is INamedTypeSymbol { TypeArguments.Length: > 0 } namedTypeSymbol)
-            {
-                return namedTypeSymbol.TypeArguments[0].TypeKind.ToString();
-            }
-        }
+    // note: domainvalue does not support nullable generic params
 
-        return property.Type.TypeKind.ToString();
-    }
+    //private static string GetTypeKind(IPropertySymbol property)
+    //{
+    //    if (property.NullableAnnotation is NullableAnnotation.Annotated)
+    //    {
+    //        if (property.Type is INamedTypeSymbol { TypeArguments.Length: > 0 } namedTypeSymbol)
+    //        {
+    //            return namedTypeSymbol.TypeArguments[0].TypeKind.ToString();
+    //        }
+    //    }
+
+    //    return property.Type.TypeKind.ToString();
+    //}
 
     private static string GetRequestPropertySource(IPropertySymbol property, string propertyString, PropertyRelational? relational, bool isEnum)
     {
@@ -305,16 +384,6 @@ internal static class Parser
 
         return null;
     }
-
-    //private static string GetEntityName(string defaultName, AttributeData nameAttribute)
-    //{
-    //    if (endpointsAttribute.ConstructorArguments.Length > 0 && endpointsAttribute.ConstructorArguments[0].IsNull is false)
-    //    {
-    //        return (endpointsAttribute.ConstructorArguments[0].Value as string)!;
-    //    }
-
-    //    return GetLastPart(defaultName).Replace("Config", "");
-    //}
 
     private static string GetLastPart(string valueToSubstring, char seperator = '.')
     {

@@ -68,30 +68,9 @@ public class TestPost
     {
         return null!;
     }
-}
-// note: how to generate partial keyword on mapster files..?
-public static partial class TestPostMapper
-{
-    public static partial object AdaptToResponse(this TestPost p1)
-    {
-        return p1;
-    }
-}
 
-public static partial class TestPostMapper
-{
-    public static partial object AdaptToResponse(this TestPost p1);
-}
 
-public class Lull
-{
-    public Lull()
-    {
-        var test = new TestPost();
-        test.AdaptToResponse();
-    }
 }
-
 
 
 [AutoFastContext]
@@ -103,34 +82,34 @@ public partial class AutoFastSampleDbContext : DbContext
     //}
 }
 
-public partial class PostMappingProfile
-{
-    //public override Post ToEntity(PostCreateCommand postCreateCommand)
-    //{
+//public partial class PostMappingProfile
+//{
+//    //public override Post ToEntity(PostCreateCommand postCreateCommand)
+//    //{
 
-    //}
-    //public List<ValidationFailure> Test { get; set; } = new();
-    //public PostMappingProfile()
-    //{
-    //    Action<string, string> hmm = (a, b) => Test.Add(new ValidationFailure(a, b));
-    //    Aha(hmm);
-    //}
+//    //}
+//    //public List<ValidationFailure> Test { get; set; } = new();
+//    //public PostMappingProfile()
+//    //{
+//    //    Action<string, string> hmm = (a, b) => Test.Add(new ValidationFailure(a, b));
+//    //    Aha(hmm);
+//    //}
 
-    //public void Aha(Action<string, string> hej)
-    //{
-    //    return;
-    //}
+//    //public void Aha(Action<string, string> hej)
+//    //{
+//    //    return;
+//    //}
 
-    //public Post ToDomainEntity(PostCreateCommand e, Action<string, string> addError)
-    //{
-    //    return new Post
-    //    {
-    //        Title = Title.ConvertFromRequest(e.Title, addError),
-    //        PublicationDateTime = PublicationDateTime.ConvertFromRequest(e.PublicationDateTime, addError),
-    //        Description = Description.ConvertFromRequest(e.Description, addError)
-    //    };
-    //}
-}
+//    //public Post ToDomainEntity(PostCreateCommand e, Action<string, string> addError)
+//    //{
+//    //    return new Post
+//    //    {
+//    //        Title = Title.ConvertFromRequest(e.Title, addError),
+//    //        PublicationDateTime = PublicationDateTime.ConvertFromRequest(e.PublicationDateTime, addError),
+//    //        Description = Description.ConvertFromRequest(e.Description, addError)
+//    //    };
+//    //}
+//}
 
 //[AutoFastEndpoints(includeEndpointTarget: EndpointTargetType.Get)]
 //public class AuthorConfig

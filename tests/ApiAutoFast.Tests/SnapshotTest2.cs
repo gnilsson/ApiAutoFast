@@ -19,42 +19,49 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ApiAutoFast.Sample.Server.Database;
 
+public static partial class PostMapper
+{
+}
+
+public class PublicationDateTime : DomainValue<string, DateTime, PublicationDateTime>
+{
+    protected override bool TryValidateRequestConversion(string? requestValue, out DateTime entityValue)
+    {
+        entityValue = default!;
+        return requestValue is not null && DateTime.TryParse(requestValue, out entityValue);
+    }
+
+    // note: figure this one out
+    public override string ToString() => EntityValue.ToShortDateString();
+}
+
+public class Title : DomainValue<string, Title>
+{
+    private const string RegexPattern = "";
+
+    protected override bool TryValidateRequestConversion(string? requestValue, out string entityValue)
+    {
+        entityValue = requestValue!;
+        return requestValue is not null && Regex.IsMatch(requestValue, RegexPattern);
+    }
+
+    protected override string? MessageOnFailedValidation => ""Incorrect format on Title."";
+}
+
+public class Description : DomainValue<string, Description>
+{ }
+
+
+public class PostType : DomainValue<EPostType, PostType>
+{ }
+
 [AutoFastEndpoints]
 public class PostConfig
 {
     public class Properties
     {
-        public class PublicationDateTime : DomainValue<string, DateTime, PublicationDateTime>
-        {
-            protected override bool TryValidateRequestConversion(string? requestValue, out DateTime entityValue)
-            {
-                entityValue = default!;
-                return requestValue is not null && DateTime.TryParse(requestValue, out entityValue);
-            }
-
-            // note: figure this one out
-            public override string ToString() => EntityValue.ToLongDateString();
-        }
 
 
-        public class Title : DomainValue<string, Title>
-        {
-            private const string RegexPattern = "";
-
-            protected override bool TryValidateRequestConversion(string? requestValue, out string entityValue)
-            {
-                entityValue = requestValue!;
-                return requestValue is not null && Regex.IsMatch(requestValue, RegexPattern);
-            }
-
-            protected override string? MessageOnFailedValidation => ""Incorrect format on Title."";
-        }
-
-        public class Description : DomainValue<string, Description>
-        { }
-
-        public class PostType : DomainValue<EPostType, PostType>
-        { }
     }
 
         public Title Title { get; set; } = default!;

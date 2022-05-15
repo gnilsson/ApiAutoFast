@@ -51,9 +51,7 @@ public class ApiGenerator : IIncrementalGenerator
     {
         if (semanticTargets.IsDefaultOrEmpty) return;
 
-        var distinctSemanticTargets = semanticTargets.Distinct();
-
-        var generationConfig = Parser.GetGenerationConfig(compilation, distinctSemanticTargets, context.CancellationToken);
+        var generationConfig = Parser.GetGenerationConfig(compilation, semanticTargets, context.CancellationToken);
 
         if (generationConfig is null or { EntityGeneration.EntityConfigs.Length: <= 0 }) return;
 
@@ -70,8 +68,6 @@ public class ApiGenerator : IIncrementalGenerator
         var mappingRegisterResult = SourceEmitter.EmitMappingRegister(sb, entityGenerationConfig);
         context.AddSource("MappingRegister.g.cs", SourceText.From(mappingRegisterResult, Encoding.UTF8));
 
-        // note: it would be great if we could make the check on what files the compiler has generated
-        //       maybe check should be made on mapster files?
         if (generationConfig!.Value.ContextGeneration.HasValue is false) return;
 
         var contextConfig = generationConfig!.Value.ContextGeneration.Value;
@@ -87,20 +83,36 @@ public class ApiGenerator : IIncrementalGenerator
                 context.AddSource($"{entityConfig.BaseName}{requestEndpointPair.RequestModel}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
             }
 
-            // note: with empty partial responses pre mapster & context attribute existing, error begins here.
-            //       if filepath.exists models?
-            var mappingProfileResult = SourceEmitter.EmitMappingProfile(sb, entityGenerationConfig.Namespace, entityConfig);
-            context.AddSource($"{entityConfig.MappingProfile}.g.cs", SourceText.From(mappingProfileResult, Encoding.UTF8));
-
-            foreach (var requestEndpointPair in _requestEndpointPairs)
+            if (CheckIfMapsterIsGenerated(compilation, entityConfig.BaseName, entityGenerationConfig.Namespace))
             {
-                if (entityConfig.EndpointsAttributeArguments.EndpointTargetType.HasFlag(requestEndpointPair.EndpointTarget))
+                var mappingProfileResult = SourceEmitter.EmitMappingProfile(sb, entityGenerationConfig.Namespace, entityConfig);
+                context.AddSource($"{entityConfig.MappingProfile}.g.cs", SourceText.From(mappingProfileResult, Encoding.UTF8));
+
+                foreach (var requestEndpointPair in _requestEndpointPairs)
                 {
-                    var endpointConfig = new EndpointConfig(entityConfig, requestEndpointPair);
-                    var requestModelsResult = SourceEmitter.EmitEndpoint(sb, entityGenerationConfig.Namespace, endpointConfig, contextConfig.Name);
-                    context.AddSource($"{endpointConfig.Name}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
+                    if (entityConfig.EndpointsAttributeArguments.EndpointTargetType.HasFlag(requestEndpointPair.EndpointTarget))
+                    {
+                        var endpointConfig = new EndpointConfig(entityConfig, requestEndpointPair);
+                        var requestModelsResult = SourceEmitter.EmitEndpoint(sb, entityGenerationConfig.Namespace, endpointConfig, contextConfig.Name);
+                        context.AddSource($"{endpointConfig.Name}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
+                    }
                 }
             }
         }
+    }
+
+    private static bool CheckIfMapsterIsGenerated(Compilation compilation, string entityName, string @namespace)
+    {
+        var mapsterMapperName = $"{entityName}Mapper";
+
+        if (compilation.Assembly.TypeNames.Contains(mapsterMapperName) is false) return false;
+
+        var mapsterMapper = compilation.Assembly.TypeNames.Single(x => x == mapsterMapperName);
+
+        var namedTypeSymbol = compilation.GetTypeByMetadataName($"{@namespace}.{mapsterMapper}")!;
+
+        var syntaxReference = namedTypeSymbol.DeclaringSyntaxReferences.First();
+
+        return syntaxReference.GetSyntax().ChildNodes().Count() > 0;
     }
 }

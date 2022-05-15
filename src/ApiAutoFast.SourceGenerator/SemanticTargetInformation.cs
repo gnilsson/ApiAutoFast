@@ -11,6 +11,6 @@ internal sealed record SemanticTargetInformation
         Target = target;
     }
 
-    internal ClassDeclarationSyntax? ClassDeclarationSyntax { get; } = default!;
+    internal ClassDeclarationSyntax ClassDeclarationSyntax { get; } = default!;
     internal string? Target { get; } = default!;
 }

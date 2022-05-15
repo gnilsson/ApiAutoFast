@@ -58,6 +58,19 @@ public class ExcludeRequestModelAttribute : Attribute
 }
 ";
 
+    public const string DomainValueAttribute = @"
+using System;
+
+namespace ApiAutoFast;
+
+[AttributeUsage(AttributeTargets.Class)]
+public class DomainValueAttribute : Attribute
+{
+    public DomainValueAttribute()
+    { }
+}
+";
+
     public const string RequestModelTargetEnum = @"
 using System;
 

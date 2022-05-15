@@ -18,19 +18,4 @@ public class Post : IEntity
     public ApiAutoFast.Sample.Server.Database.PublicationDateTime PublicationDateTime { get; set; }
     public ApiAutoFast.Sample.Server.Database.Description Description { get; set; }
     public ApiAutoFast.Sample.Server.Database.PostType PostType { get; set; }
-    // note: how to solve this problem?
-    //public PostResponse AdaptToResponse(string? nothing = null)
-    //{
-    //    return null!;
-    //}
 }
-
-public partial class PostResponse { }
-
-//public static partial class PostMapper
-//{
-//    public static PostResponse AdaptToResponse(this Post p1)
-//    {
-//        return null!;
-//    }
-//}
