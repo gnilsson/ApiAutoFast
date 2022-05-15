@@ -217,18 +217,22 @@ public static class AdaptAttributeBuilderExtensions
             {
                 foreach (var property in entity.PropertyMetadatas.Value)
                 {
-                    if (property.Relational?.RelationalType is RelationalType.ShadowToOne)
-                    {
-                        sb.Append(@"
-                cfg.Map(poco => poco.").Append(property.Relational.Value.ForeigEntityProperty).Append(@", typeof(string));");
-                        continue;
-                    }
-                    //else if (property.IsEnum || true)
-                    //{
-                    // note: need to figure out how to get correct types.
-                        sb.Append(@"
-                cfg.Map(poco => poco.").Append(property.Name).Append(@", typeof(string));");
-                    //}
+
+                    sb.Append(@"
+                cfg.Map(poco => poco.").Append(property.Name).Append(@", typeof(").Append(property.DomainValueDefiniton.RequestType).Append(@"));");
+
+                    //    if (property.Relational?.RelationalType is RelationalType.ShadowToOne)
+                    //    {
+                    //        sb.Append(@"
+                    //cfg.Map(poco => poco.").Append(property.Relational.Value.ForeigEntityProperty).Append(@", typeof(string));");
+                    //        continue;
+                    //    }
+                    //    //else if (property.IsEnum || true)
+                    //    //{
+                    //    // note: need to figure out how to get correct types.
+                    //        sb.Append(@"
+                    //cfg.Map(poco => poco.").Append(property.Name).Append(@", typeof(string));");
+                    //    //}
                 }
             }
 
@@ -298,28 +302,6 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity
     ").Append(propertyMetadata.EntitySource);
             }
         }
-
-        //        sb.Append(@"
-        //    // note: how to solve this problem?
-        //    //public PostResponse AdaptToResponse(string? nothing = null)
-        //    //{
-        //    //    return null!;
-        //    //}
-        //}
-        //");
-        //        sb.Append(@"
-        //public partial class ").Append(entityConfig.Response).Append(@" { }
-        //");
-
-        //        sb.Append(@"
-        ////public static partial class PostMapper
-        ////{
-        ////    public static PostResponse AdaptToResponse(this Post p1)
-        ////    {
-        ////        return null!;
-        ////    }
-        ////}
-        //");
 
         sb.Append(@"
 }

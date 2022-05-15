@@ -10,7 +10,7 @@ internal readonly struct PropertyMetadata
         string entitySource,
         string requestSource,
         string name,
-        bool isEnum,
+        DomainValueDefinition domainValueDefiniton,
         RequestModelTarget requestModelTarget,
         ImmutableArray<PropertyAttributeMetadata>? attributeMetadatas = null,
         PropertyRelational? relational = null)
@@ -18,8 +18,8 @@ internal readonly struct PropertyMetadata
         EntitySource = entitySource;
         RequestSource = requestSource;
         Name = name;
+        DomainValueDefiniton = domainValueDefiniton;
         AttributeMetadatas = attributeMetadatas;
-        IsEnum = isEnum;
         RequestModelTarget = requestModelTarget;
         Relational = relational;
     }
@@ -27,8 +27,8 @@ internal readonly struct PropertyMetadata
     internal readonly string RequestSource { get; }
     internal readonly string EntitySource { get; }
     internal readonly string Name { get; }
+    internal readonly DomainValueDefinition DomainValueDefiniton { get; }
     internal readonly ImmutableArray<PropertyAttributeMetadata>? AttributeMetadatas { get; }
     internal readonly RequestModelTarget RequestModelTarget { get; }
-    internal readonly bool IsEnum { get; }
     internal readonly PropertyRelational? Relational { get; }
 }

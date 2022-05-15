@@ -1,4 +1,4 @@
-﻿namespace ApiAutoFast.Domain;
+﻿namespace ApiAutoFast;
 
 public class DomainValue<TEntityRequestValue, TThis> : DomainValue<TEntityRequestValue, TEntityRequestValue, TThis>
     where TThis : DomainValue<TEntityRequestValue, TEntityRequestValue, TThis>, new()

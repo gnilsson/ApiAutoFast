@@ -19,10 +19,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ApiAutoFast.Sample.Server.Database;
 
-public static partial class PostMapper
-{
-}
-
 public class PublicationDateTime : DomainValue<string, DateTime, PublicationDateTime>
 {
     protected override bool TryValidateRequestConversion(string? requestValue, out DateTime entityValue)
@@ -58,16 +54,11 @@ public class PostType : DomainValue<EPostType, PostType>
 [AutoFastEndpoints]
 public class PostConfig
 {
-    public class Properties
-    {
 
-
-    }
-
-        public Title Title { get; set; } = default!;
-        public PublicationDateTime PublicationDateTime { get; set; } = default!;
-        public Description Description { get; set; } = default!;
-        public PostType PostType { get; set; } = default!;
+    public Title Title { get; set; } = default!;
+    public PublicationDateTime PublicationDateTime { get; set; } = default!;
+    public Description Description { get; set; } = default!;
+    public PostType PostType { get; set; } = default!;
 }
 
 
@@ -77,15 +68,12 @@ public partial class AutoFastSampleDbContext : DbContext
 
 }
 
-    public enum EPostType
-    {
-        Text = 0,
-        Lyric,
-        Haiku,
-    }
-
-
-
+public enum EPostType
+{
+    Text = 0,
+    Lyric,
+    Haiku,
+}
 ";
 
         return TestHelper.Verify(source);

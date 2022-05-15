@@ -43,7 +43,8 @@ public partial class MappingRegister : ICodeGenerationRegister
         ExtendRegister(config);
 
         config.GenerateMapper("[name]Mapper")
-            .ForType<Post>();
+            .ForType<Post>()
+            .ForType<Test>();
     }
 }
 
@@ -60,7 +61,14 @@ public static class AdaptAttributeBuilderExtensions
                 cfg.Map(poco => poco.Title, typeof(string));
                 cfg.Map(poco => poco.PublicationDateTime, typeof(string));
                 cfg.Map(poco => poco.Description, typeof(string));
-                cfg.Map(poco => poco.PostType, typeof(string));
+                cfg.Map(poco => poco.PostType, typeof(ApiAutoFast.Sample.Server.Database.EPostType));
+            })
+            .ForType<Test>(cfg =>
+            {
+                cfg.Map(poco => poco.Id, typeof(string));
+                cfg.Map(poco => poco.CreatedDateTime, typeof(string));
+                cfg.Map(poco => poco.ModifiedDateTime, typeof(string));
+                cfg.Map(poco => poco.Title, typeof(string));
             });
     }
 }

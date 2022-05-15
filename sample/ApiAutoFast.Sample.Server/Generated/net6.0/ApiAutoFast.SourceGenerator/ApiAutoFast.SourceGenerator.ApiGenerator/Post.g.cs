@@ -14,8 +14,8 @@ public class Post : IEntity
     public Identifier Id { get; set; }
     public DateTime CreatedDateTime { get; set; }
     public DateTime ModifiedDateTime { get; set; }
-    public ApiAutoFast.Sample.Server.Database.Title Title { get; set; }
-    public ApiAutoFast.Sample.Server.Database.PublicationDateTime PublicationDateTime { get; set; }
-    public ApiAutoFast.Sample.Server.Database.Description Description { get; set; }
-    public ApiAutoFast.Sample.Server.Database.PostType PostType { get; set; }
+    public Title Title { get; set; }
+    public PublicationDateTime PublicationDateTime { get; set; }
+    public Description Description { get; set; }
+    public PostType PostType { get; set; }
 }

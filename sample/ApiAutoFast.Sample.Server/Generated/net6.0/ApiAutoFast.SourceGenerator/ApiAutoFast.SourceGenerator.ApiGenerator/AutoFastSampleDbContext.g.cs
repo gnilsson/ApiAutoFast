@@ -36,4 +36,5 @@ public partial class AutoFastSampleDbContext : DbContext
     }
 
     public DbSet<Post> Posts { get; init; } = default!;
+    public DbSet<Test> Tests { get; init; } = default!;
 }

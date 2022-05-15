@@ -1,5 +1,4 @@
-﻿using ApiAutoFast.Domain;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace ApiAutoFast.Sample.Server.Database;
 

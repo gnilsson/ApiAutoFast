@@ -83,25 +83,25 @@ public class ApiGenerator : IIncrementalGenerator
                 context.AddSource($"{entityConfig.BaseName}{requestEndpointPair.RequestModel}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
             }
 
-            if (CheckIfMapsterIsGenerated(compilation, entityConfig.BaseName, entityGenerationConfig.Namespace))
-            {
-                var mappingProfileResult = SourceEmitter.EmitMappingProfile(sb, entityGenerationConfig.Namespace, entityConfig);
-                context.AddSource($"{entityConfig.MappingProfile}.g.cs", SourceText.From(mappingProfileResult, Encoding.UTF8));
+            if (MapsterMapperIsGenerated(compilation, entityConfig.BaseName, entityGenerationConfig.Namespace) is false) continue;
 
-                foreach (var requestEndpointPair in _requestEndpointPairs)
+            var mappingProfileResult = SourceEmitter.EmitMappingProfile(sb, entityGenerationConfig.Namespace, entityConfig);
+            context.AddSource($"{entityConfig.MappingProfile}.g.cs", SourceText.From(mappingProfileResult, Encoding.UTF8));
+
+            foreach (var requestEndpointPair in _requestEndpointPairs)
+            {
+                if (entityConfig.EndpointsAttributeArguments.EndpointTargetType.HasFlag(requestEndpointPair.EndpointTarget))
                 {
-                    if (entityConfig.EndpointsAttributeArguments.EndpointTargetType.HasFlag(requestEndpointPair.EndpointTarget))
-                    {
-                        var endpointConfig = new EndpointConfig(entityConfig, requestEndpointPair);
-                        var requestModelsResult = SourceEmitter.EmitEndpoint(sb, entityGenerationConfig.Namespace, endpointConfig, contextConfig.Name);
-                        context.AddSource($"{endpointConfig.Name}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
-                    }
+                    var endpointConfig = new EndpointConfig(entityConfig, requestEndpointPair);
+                    var requestModelsResult = SourceEmitter.EmitEndpoint(sb, entityGenerationConfig.Namespace, endpointConfig, contextConfig.Name);
+                    context.AddSource($"{endpointConfig.Name}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
                 }
             }
         }
     }
 
-    private static bool CheckIfMapsterIsGenerated(Compilation compilation, string entityName, string @namespace)
+    // note: mapster needs two build steps, after the first one it generates an empty mapper.
+    private static bool MapsterMapperIsGenerated(Compilation compilation, string entityName, string @namespace)
     {
         var mapsterMapperName = $"{entityName}Mapper";
 
