@@ -128,7 +128,28 @@ internal static class Parser
             //    continue;
             //}
 
-            //var members = entityConfigSetup.SemanticModel.GetDeclaredSymbol(propertiesClass)!.GetMembers();
+            //foreach (var item in propertiesClass.ChildNodes())
+            //{
+            //    if (item is not ClassDeclarationSyntax domainValueDefinition) continue;
+
+            //    //var ah = domainValueDefinition.BaseList!.Types.ToArray();
+
+            //    //var b = ah[0].ToFullString();
+
+            //    var symbol = entityConfigSetup.SemanticModel.GetDeclaredSymbol(domainValueDefinition);
+
+            //    if (symbol?.BaseType?.TypeArguments.Length > 0)
+            //    {
+            //        // get name of class and save types
+            //        var domainValueTypes = symbol.BaseType.TypeArguments;
+            //    }
+
+            //}
+
+            //var types = (propertiesClass.ChildNodes().ToArray()[0] as ClassDeclarationSyntax)!.BaseList.Types.ToArray();
+
+            //var propertiesMembers = entityConfigSetup.SemanticModel.GetDeclaredSymbol(propertiesClass)!.GetMembers();
+
 
             var members = entityConfigSetup.SemanticModel
                 .GetDeclaredSymbol(entityConfigSetup.ClassDeclarationSyntax)!

@@ -1,4 +1,4 @@
-﻿namespace ApiAutoFast.Sample.Server.Database.Enums;
+﻿namespace ApiAutoFast.Sample.Server.Database;
 
 public enum EPostType
 {

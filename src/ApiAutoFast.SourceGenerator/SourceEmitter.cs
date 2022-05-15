@@ -51,7 +51,7 @@ internal static class SourceEmitter
 
         var response = Map.FromEntity(entity);
 
-        await SendCreatedAtAsync<GetById").Append(endpointConfig.EntityName).Append(@"Endpoint>(new { Id = response.Id }, response, generateAbsoluteUrl: true, cancellation: ct);");
+        await SendCreatedAtAsync<GetById").Append(endpointConfig.EntityName).Append(@"Endpoint>(new { Id = entity.Id }, response, generateAbsoluteUrl: true, cancellation: ct);");
             return sb;
         }
         ,
@@ -300,10 +300,25 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity
         }
 
         sb.Append(@"
+    // note: how to solve this problem?
+    //public PostResponse AdaptToResponse(string? nothing = null)
+    //{
+    //    return null!;
+    //}
 }
 ");
         sb.Append(@"
 public partial class ").Append(entityConfig.Response).Append(@" { }
+");
+
+        sb.Append(@"
+//public static partial class PostMapper
+//{
+//    public static PostResponse AdaptToResponse(this Post p1)
+//    {
+//        return null!;
+//    }
+//}
 ");
         return sb.ToString();
     }

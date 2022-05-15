@@ -2,23 +2,96 @@
 using FluentValidation.Results;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection.Metadata;
+using System.Text.RegularExpressions;
 
 namespace ApiAutoFast.Sample.Server.Database;
 
-// note: the next version of aaf will define properties with complex types instead of primitves, with help from a ValueOf pattern.
-//       this can help with defining types that have different types across request - entity - response, aswell as aid in mapping.
-//       in the best of worlds it can also be used to define validation.
 
 [AutoFastEndpoints]
 public class PostConfig
 {
+    // note: will have a seperate implementation model with marker attributes
+    //       this is nessescary to find data types in source generator
+    //public class Properties
+    //{
+    //    public class PublicationDateTime : DomainValue<string, DateTime, PublicationDateTime>
+    //    {
+    //        protected override bool TryValidateRequestConversion(string? requestValue, out DateTime entityValue)
+    //        {
+    //            entityValue = default!;
+    //            return requestValue is not null && DateTime.TryParse(requestValue, out entityValue);
+    //        }
+
+    //        // note: figure this one out
+    //        public override string ToString() => EntityValue.ToLongDateString();
+    //    }
+
+
+    //    public class Title : DomainValue<string, Title>
+    //    {
+    //        private const string RegexPattern = "";
+
+    //        protected override bool TryValidateRequestConversion(string? requestValue, out string entityValue)
+    //        {
+    //            entityValue = requestValue!;
+    //            return requestValue is not null && Regex.IsMatch(requestValue, RegexPattern);
+    //        }
+
+    //        protected override string? MessageOnFailedValidation => "Incorrect format on Title.";
+    //    }
+
+    //    public class Description : DomainValue<string, Description>
+    //    { }
+
+    //    public class PostType : DomainValue<EPostType, PostType>
+    //    { }
+    //}
+
+
     public Title Title { get; set; } = default!;
     public PublicationDateTime PublicationDateTime { get; set; } = default!;
     public Description Description { get; set; } = default!;
-    // public PostType PostType { get; set; } = default!;
+    public PostType PostType { get; set; } = default!;
+
+    //public class APostType : DomainValue<EPostType, PostType>
+    //{
+
+    //}
 }
+
+public class TestPost
+{
+    public object AdaptToResponse()
+    {
+        return null!;
+    }
+}
+// note: how to generate partial keyword on mapster files..?
+public static partial class TestPostMapper
+{
+    public static partial object AdaptToResponse(this TestPost p1)
+    {
+        return p1;
+    }
+}
+
+public static partial class TestPostMapper
+{
+    public static partial object AdaptToResponse(this TestPost p1);
+}
+
+public class Lull
+{
+    public Lull()
+    {
+        var test = new TestPost();
+        test.AdaptToResponse();
+    }
+}
+
 
 
 [AutoFastContext]

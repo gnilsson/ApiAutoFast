@@ -22,10 +22,45 @@ namespace ApiAutoFast.Sample.Server.Database;
 [AutoFastEndpoints]
 public class PostConfig
 {
-    public Title Title { get; set; } = default!;
-    public PublicationDateTime PublicationDateTime { get; set; } = default!;
-    public Description Description { get; set; } = default!;
-   // public PostType PostType { get; set; } = default!;
+    public class Properties
+    {
+        public class PublicationDateTime : DomainValue<string, DateTime, PublicationDateTime>
+        {
+            protected override bool TryValidateRequestConversion(string? requestValue, out DateTime entityValue)
+            {
+                entityValue = default!;
+                return requestValue is not null && DateTime.TryParse(requestValue, out entityValue);
+            }
+
+            // note: figure this one out
+            public override string ToString() => EntityValue.ToLongDateString();
+        }
+
+
+        public class Title : DomainValue<string, Title>
+        {
+            private const string RegexPattern = "";
+
+            protected override bool TryValidateRequestConversion(string? requestValue, out string entityValue)
+            {
+                entityValue = requestValue!;
+                return requestValue is not null && Regex.IsMatch(requestValue, RegexPattern);
+            }
+
+            protected override string? MessageOnFailedValidation => ""Incorrect format on Title."";
+        }
+
+        public class Description : DomainValue<string, Description>
+        { }
+
+        public class PostType : DomainValue<EPostType, PostType>
+        { }
+    }
+
+        public Title Title { get; set; } = default!;
+        public PublicationDateTime PublicationDateTime { get; set; } = default!;
+        public Description Description { get; set; } = default!;
+        public PostType PostType { get; set; } = default!;
 }
 
 
@@ -35,36 +70,13 @@ public partial class AutoFastSampleDbContext : DbContext
 
 }
 
-public class PublicationDateTime : DomainValue<string, DateTime, PublicationDateTime>
-{
-    protected override bool TryValidateRequestConversion(string requestValue, out DateTime entityValue)
+    public enum EPostType
     {
-        return DateTime.TryParse(requestValue, out entityValue);
+        Text = 0,
+        Lyric,
+        Haiku,
     }
 
-    // note: figure this one out
-    public override string ToString() => EntityValue.ToLongDateString();
-}
-
-
-public class Title : DomainValue<string, Title>
-{
-    private const string RegexPattern = "";
-
-    protected override bool TryValidateRequestConversion(string requestValue, out string entityValue)
-    {
-        var success = base.TryValidateRequestConversion(requestValue, out _) && Regex.IsMatch(requestValue, RegexPattern);
-        entityValue = requestValue;
-        return success;
-    }
-
-    protected override string? MessageOnFailedValidation => ""Incorrect format on Title."";
-}
-
-    public class Description : DomainValue<string, Description>
-    {
-
-    }
 
 
 ";

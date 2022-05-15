@@ -30,6 +30,7 @@ public static class WebApplicationBuilderExtensions
         //    configuration.Configure();
         //}
 
+
         var definedTypes = typeof(TContext).Assembly.DefinedTypes; //.SingleOrDefault(x => x.BaseType == typeof(DomainValue<,> ).MakeGenericType(typeof(string)).MakeGenericType(typeof(object)));
 
         foreach (var domainValueType in definedTypes.Where(x => x.BaseType?.Name is TypeText.DomainValue3 or TypeText.DomainValue2))

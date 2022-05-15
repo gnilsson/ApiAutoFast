@@ -1,16 +1,24 @@
-﻿//using Mapster;
-//using Microsoft.EntityFrameworkCore;
-//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Text;
-//using System.Threading.Tasks;
-//using YamlDotNet.Core.Tokens;
+﻿using FastEndpoints;
+using Mapster;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using YamlDotNet.Core.Tokens;
 
-//namespace ApiAutoFast.Sample.Server.Database;
+namespace ApiAutoFast.Sample.Server.Database;
 
 
 
+//public partial class CreatePostEndpoint //: Endpoint<PostCreateCommand, PostResponse, PostMappingProfile>
+//{
+//    private void Aha()
+//    {
+//        Map.ToDomainEntity()
+//    }
+//}
 
 //public partial class AuthorMappingProfile //: Mapper<AuthorCreateCommand, AuthorEntityResponse, AuthorEntity>
 //{

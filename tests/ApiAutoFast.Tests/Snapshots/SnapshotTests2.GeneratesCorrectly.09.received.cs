@@ -1,4 +1,5 @@
-﻿
+﻿//HintName: MappingRegister.g.cs
+
 using Mapster;
 using ApiAutoFast;
 

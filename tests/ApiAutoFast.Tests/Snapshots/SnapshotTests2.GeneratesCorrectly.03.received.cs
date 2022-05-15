@@ -1,4 +1,5 @@
-﻿
+﻿//HintName: CreatePostEndpoint.g.cs
+
 using ApiAutoFast;
 using FastEndpoints;
 using System.Threading;
@@ -43,6 +44,6 @@ public partial class CreatePostEndpoint : Endpoint<PostCreateCommand, PostRespon
 
         var response = Map.FromEntity(entity);
 
-        await SendCreatedAtAsync<GetByIdPostEndpoint>(new { Id = entity.Id }, response, generateAbsoluteUrl: true, cancellation: ct);
+        await SendCreatedAtAsync<GetByIdPostEndpoint>(new { Id = response.Id }, response, generateAbsoluteUrl: true, cancellation: ct);
     }
 }

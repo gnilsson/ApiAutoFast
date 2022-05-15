@@ -1,4 +1,5 @@
-﻿
+﻿//HintName: PostQueryRequest.g.cs
+
 using ApiAutoFast;
 
 namespace ApiAutoFast.Sample.Server.Database;
