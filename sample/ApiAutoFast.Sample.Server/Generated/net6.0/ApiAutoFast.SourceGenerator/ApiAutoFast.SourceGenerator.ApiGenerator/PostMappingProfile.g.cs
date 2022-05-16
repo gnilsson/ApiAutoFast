@@ -32,8 +32,8 @@ public partial class PostMappingProfile : Mapper<PostCreateCommand, PostResponse
             Title = Title.ConvertFromRequest(command.Title, addValidationError),
             PublicationDateTime = PublicationDateTime.ConvertFromRequest(command.PublicationDateTime, addValidationError),
             Description = Description.ConvertFromRequest(command.Description, addValidationError),
-            PostType = PostType.ConvertFromRequest(command.PostType ?? 0, addValidationError),
-            LikeCount = LikeCount.ConvertFromRequest(command.LikeCount ?? 0, addValidationError),
+            PostType = PostType.ConvertFromRequest(command.PostType, addValidationError),
+            LikeCount = LikeCount.ConvertFromRequest(command.LikeCount, addValidationError),
         };
     }
 }

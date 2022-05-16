@@ -204,10 +204,13 @@ public class ").Append(entityConfig.BaseName).Append(modelTarget).Append(@"
 {");
         sb.Append(_getModelTargetSource(modelTarget));
 
-        foreach (var propertySource in YieldRequestModelTargetPropertySource(entityConfig, modelTarget))
+        foreach (var propertyMetadata in entityConfig.PropertyMetadatas)
         {
-            sb.Append(@"
-    ").Append(propertySource);
+            if (propertyMetadata.RequestModelTarget.HasFlag(modelTarget))
+            {
+                sb.Append(@"
+    ").Append(propertyMetadata.RequestSource);
+            }
         }
         sb.Append(@"
 }
@@ -303,10 +306,13 @@ public partial class ")
             return originalEntity;
         }
 ");
-        foreach (var propertyName in YieldModifyCommandProperty(entityConfig))
+        foreach (var propertyMetadata in entityConfig.PropertyMetadatas)
         {
-            sb.Append(@"
-        originalEntity.").Append(propertyName).Append(@" = e.").Append(propertyName).Append(';');
+            if (propertyMetadata.AttributeMetadatas.Any(x => x.Name is nameof(RequestModelTarget.ModifyCommand)))
+            {
+                sb.Append(@"
+        originalEntity.").Append(propertyMetadata.Name).Append(@" = e.").Append(propertyMetadata.Name).Append(';');
+            }
         }
         sb.Append(@"
         return originalEntity;
@@ -319,7 +325,7 @@ public partial class ")
 ");
         foreach (var property in entityConfig.PropertyMetadatas)
         {
-            var valueTypeDefault = property.DomainValueDefiniton.RequestIsValueType ? @" ?? 0" : string.Empty;
+         //   var valueTypeDefault = property.DomainValueDefiniton.RequestIsValueType ? @" ?? 0" : string.Empty;
 
             sb.Append(@"            ")
                 .Append(property.Name)
@@ -327,7 +333,6 @@ public partial class ")
                 .Append(property.DomainValueDefiniton.Name)
                 .Append(@".ConvertFromRequest(command.")
                 .Append(property.Name)
-                .Append(valueTypeDefault)
                 .Append(@", addValidationError),
 ");
         }
@@ -336,27 +341,5 @@ public partial class ")
 }
 ");
         return sb.ToString();
-    }
-
-    private static IEnumerable<string> YieldModifyCommandProperty(EntityConfig entityConfig)
-    {
-        foreach (var propertyMetadata in entityConfig.PropertyMetadatas)
-        {
-            if (propertyMetadata.AttributeMetadatas.Any(x => x.Name is nameof(RequestModelTarget.ModifyCommand)))
-            {
-                yield return propertyMetadata.Name;
-            }
-        }
-    }
-
-    private static IEnumerable<string> YieldRequestModelTargetPropertySource(EntityConfig entityConfig, RequestModelTarget modelTarget)
-    {
-        foreach (var propertyMetadata in entityConfig.PropertyMetadatas)
-        {
-            if (propertyMetadata.RequestModelTarget.HasFlag(modelTarget))
-            {
-                yield return propertyMetadata.RequestSource;
-            }
-        }
     }
 }

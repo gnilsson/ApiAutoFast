@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using FluentValidation.Results;
+using Microsoft.EntityFrameworkCore;
 
 namespace ApiAutoFast.Sample.Server.Database;
 
@@ -37,19 +38,6 @@ public partial class AutoFastSampleDbContext : DbContext
 
 //public partial class PostMappingProfile
 //{
-
-//    public List<ValidationFailure> Test { get; set; } = new();
-//    public PostMappingProfile()
-//    {
-//        Action<string, string> hmm = (a, b) => Test.Add(new ValidationFailure(a, b));
-//        Aha(hmm);
-//    }
-
-//    public void Aha(Action<string, string> hej)
-//    {
-//        return;
-//    }
-
 //    public Post ToDomainEntity2(PostCreateCommand command, Action<string, string> addValidationError)
 //    {
 //        return new Post
@@ -57,8 +45,8 @@ public partial class AutoFastSampleDbContext : DbContext
 //            Title = Title.ConvertFromRequest(command.Title, addValidationError),
 //            PublicationDateTime = PublicationDateTime.ConvertFromRequest(command.PublicationDateTime, addValidationError),
 //            Description = Description.ConvertFromRequest(command.Description, addValidationError),
-//            PostType = PostType.ConvertFromRequest(command.PostType ?? 0, addValidationError),
-//            LikeCount = LikeCount.ConvertFromRequest(command.LikeCount ?? 0, addValidationError),
+//            PostType = PostType.ConvertFromRequest(command.PostType, addValidationError),
+//            LikeCount = LikeCount.ConvertFromRequest(command.LikeCount, addValidationError),
 //        };
 //    }
 //}

@@ -22,6 +22,7 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
 
     private static readonly Func<TDomain> _factory;
 
+    // todo: add this message to some static dictionary that is setup via config
     protected virtual string? MessageOnFailedValidation { get; }
 
     public TEntity EntityValue { get; private set; } = default!;
@@ -49,6 +50,7 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
     //    // note: invoked dynamically to trigger static ctor
     //}
 
+    // note: would like to send in nullable values types here..
     public static TDomain ConvertFromRequest(TRequest? request, Action<string, string> addError)
     {
         var domain = _factory();
@@ -64,11 +66,17 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
     }
 
     // note: is this performant for get requests? :D
+    //       :S w/e
     public static implicit operator DomainValue<TRequest, TEntity, TResponse, TDomain>(TEntity entityValue)
     {
         var domain = _factory();
         domain.EntityValue = entityValue;
         return domain;
+    }
+
+    public static implicit operator TEntity(DomainValue<TRequest, TEntity, TResponse, TDomain> domain)
+    {
+        return domain.EntityValue;
     }
 
     public override string ToString() => EntityValue!.ToString()!;

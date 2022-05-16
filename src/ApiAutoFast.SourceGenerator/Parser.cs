@@ -162,14 +162,6 @@ internal static class Parser
         {
             var requestType = domainValueType!.BaseType!.TypeArguments[0];
 
-            // note: unsure if this approach is needed
-            //if (requestType.IsValueType)
-            //{
-            //    var domainValueContent = domainValueType!.DeclaringSyntaxReferences.First().GetSyntax().ChildNodes();
-
-            //    domainValueContent.Where(x => x.Kind() == SyntaxKind.PropertyDeclaration);
-            //}
-
             var entityType = domainValueType.BaseType.TypeArguments.Length == 2
                 ? requestType
                 : domainValueType.BaseType.TypeArguments[1];
@@ -179,7 +171,7 @@ internal static class Parser
                 : requestType;
 
             domainValueDefinition = new DomainValueDefinition(
-                requestType.ToString(),
+                requestType.IsValueType ? requestType.ToString() : $"{requestType}?", // note: should be configurable with required
                 entityType.ToString(),
                 responseType.ToString(),
                 property.Name,
@@ -209,7 +201,7 @@ internal static class Parser
         var type = relational switch
         {
             null or
-            { RelationalType: RelationalType.ShadowToMany or RelationalType.ShadowToOne } => $"{requestType}?", // note: should be able to set required on specific models through config
+            { RelationalType: RelationalType.ShadowToMany or RelationalType.ShadowToOne } => requestType,
             { RelationalType: RelationalType.ToMany } => $"ICollection<{relational.Value.ForeignEntityName}>",
             { RelationalType: RelationalType.ToOne } => relational.Value.ForeignEntityName,
             _ => "object"
