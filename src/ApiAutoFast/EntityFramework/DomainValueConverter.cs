@@ -2,8 +2,18 @@
 
 namespace ApiAutoFast;
 
-public class DomainValueConverter<TRequest, TEntity, TDomain> : ValueConverter<TDomain, TEntity>
-    where TDomain : DomainValue<TRequest, TEntity, TDomain>, new()
+//public class DomainValueConverter<TRequest, TEntity, TDomain> : ValueConverter<TDomain, TEntity>
+//    where TDomain : DomainValue<TRequest, TEntity, TDomain>, new()
+//{
+//    public DomainValueConverter() : base(
+//        s => s.EntityValue,
+//        t => (TDomain)t)
+//    { }
+//}
+
+
+public class DomainValueConverter<TRequest, TEntity, TResponse, TDomain> : ValueConverter<TDomain, TEntity>
+    where TDomain : DomainValue<TRequest, TEntity, TResponse, TDomain>, new()
 {
     public DomainValueConverter() : base(
         s => s.EntityValue,

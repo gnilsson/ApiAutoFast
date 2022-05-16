@@ -13,9 +13,10 @@ namespace ApiAutoFast.Sample.Server.Database
                 CreatedDateTime = ((IEntity)p1).CreatedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"),
                 ModifiedDateTime = ((IEntity)p1).ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"),
                 Title = p1.Title == null ? null : p1.Title.ToString(),
-                PublicationDateTime = p1.PublicationDateTime == null ? null : p1.PublicationDateTime.ToString(),
+                PublicationDateTime = p1.PublicationDateTime.EntityValue.ToString(),
                 Description = p1.Description == null ? null : p1.Description.ToString(),
-                PostType = p1.PostType == null ? null : p1.PostType.ToString()
+                PostType = p1.PostType.EntityValue.ToString(),
+                LikeCount = p1.LikeCount.EntityValue
             };
         }
         public static PostResponse AdaptTo(this Post p2, PostResponse p3)
@@ -30,9 +31,10 @@ namespace ApiAutoFast.Sample.Server.Database
             result.CreatedDateTime = ((IEntity)p2).CreatedDateTime.ToString("dddd, dd MMMM yyyy HH:mm");
             result.ModifiedDateTime = ((IEntity)p2).ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm");
             result.Title = p2.Title == null ? null : p2.Title.ToString();
-            result.PublicationDateTime = p2.PublicationDateTime == null ? null : p2.PublicationDateTime.ToString();
+            result.PublicationDateTime = p2.PublicationDateTime.EntityValue.ToString();
             result.Description = p2.Description == null ? null : p2.Description.ToString();
-            result.PostType = p2.PostType == null ? null : p2.PostType.ToString();
+            result.PostType = p2.PostType.EntityValue.ToString();
+            result.LikeCount = p2.LikeCount.EntityValue;
             return result;
             
         }

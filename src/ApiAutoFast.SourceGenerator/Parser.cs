@@ -138,6 +138,9 @@ internal static class Parser
                 memberOptions: SymbolDisplayMemberOptions.IncludeAccessibility));
 
             //var isEnum = domainValueDefinition.EntityType.TypeKind.ToString() == nameof(Enum);
+            //var isStruct = domainValueDefinition.EntityType.TypeKind.ToString() == "Structure";
+            // hmm
+            var hasStringConversion = domainValueDefinition.EntityType.Name == "DateTime";//!= "Int32";
 
             var relational = GetRelationalEntity(foreignEntityNames, property);
             var entitySource = propertyString.Insert(propertyString.IndexOf(' '), $" {domainValueDefinition.DomainValueName}");
@@ -153,6 +156,7 @@ internal static class Parser
 
     private static bool TryGetDomainValueDefinition(Compilation compilation, IPropertySymbol property, out DomainValueDefinition domainValueDefinition)
     {
+        // note: check if ToResponse is implemented for response mapping?
         domainValueDefinition = default;
 
         var domainValueType = compilation.GetTypeByMetadataName($"{property.ContainingNamespace}.{property.Name}");
@@ -167,7 +171,11 @@ internal static class Parser
                 ? requestType
                 : domainValueType.BaseType.TypeArguments[1];
 
-            domainValueDefinition = new DomainValueDefinition(requestType, entityType, property.Name);
+            var responseType = domainValueType.BaseType.TypeArguments.Length == 4
+                ? domainValueType.BaseType.TypeArguments[2]
+                : requestType;
+
+            domainValueDefinition = new DomainValueDefinition(requestType, entityType, responseType, property.Name);
         }
 
         return success;

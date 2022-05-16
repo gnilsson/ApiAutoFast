@@ -9,5 +9,6 @@ namespace ApiAutoFast.Sample.Server.Database
         public string PublicationDateTime { get; set; }
         public string Description { get; set; }
         public string PostType { get; set; }
+        public int LikeCount { get; set; }
     }
 }

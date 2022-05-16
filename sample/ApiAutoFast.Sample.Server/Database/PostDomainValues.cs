@@ -30,5 +30,5 @@ public class Title : DomainValue<string, Title>
 public class Description : DomainValue<string, Description>
 { }
 
-public class PostType : DomainValue<EPostType, PostType>
+public class PostType : DomainValue<EPostType, EPostType, string, PostType>
 { }

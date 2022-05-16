@@ -187,6 +187,45 @@ public partial class MappingRegister : ICodeGenerationRegister
             .When((src, dest, map) => src.GetInterface(nameof(IEntity)) is not null)
             .Map(nameof(IEntity.CreatedDateTime), (IEntity e) => e.CreatedDateTime.ToString(""dddd, dd MMMM yyyy HH:mm""))
             .Map(nameof(IEntity.ModifiedDateTime), (IEntity e) => e.ModifiedDateTime.ToString(""dddd, dd MMMM yyyy HH:mm""));
+");
+        foreach (var entity in generationConfig.EntityConfigs)
+        {
+            if (entity.PropertyMetadatas?.Length > 0)
+            {
+                foreach (var property in entity.PropertyMetadatas.Value)
+                {
+                    if (property.DomainValueDefiniton.ResponseType.Name == property.DomainValueDefiniton.EntityType.Name
+                        && property.DomainValueDefiniton.ResponseType.Name == property.DomainValueDefiniton.RequestType.Name
+                        && property.DomainValueDefiniton.ResponseType.Name == nameof(String))
+                    {
+                        continue;
+                    }
+
+                    if (property.DomainValueDefiniton.ResponseType.Name == property.DomainValueDefiniton.EntityType.Name
+                        && property.DomainValueDefiniton.ResponseType.Name != nameof(String))
+                    {
+                        sb.Append(@"
+        TypeAdapterConfig<")
+                            .Append(property.DomainValueDefiniton.DomainValueName)
+                            .Append(@", ")
+                            .Append(property.DomainValueDefiniton.ResponseType.Name)
+                            .Append(@">.NewConfig().MapWith(x => x.EntityValue);");
+
+                        continue;
+                    }
+
+                    sb.Append(@"
+        TypeAdapterConfig<")
+                        .Append(property.DomainValueDefiniton.DomainValueName)
+                        .Append(@", ")
+                        .Append(property.DomainValueDefiniton.ResponseType.Name)
+                        .Append(@">.NewConfig().MapWith(x => x.EntityValue.ToString());");
+
+                }
+            }
+        }
+
+        sb.Append(@"
 
         ExtendRegister(config);
 
@@ -217,22 +256,8 @@ public static class AdaptAttributeBuilderExtensions
             {
                 foreach (var property in entity.PropertyMetadatas.Value)
                 {
-
                     sb.Append(@"
-                cfg.Map(poco => poco.").Append(property.Name).Append(@", typeof(").Append(property.DomainValueDefiniton.RequestType).Append(@"));");
-
-                    //    if (property.Relational?.RelationalType is RelationalType.ShadowToOne)
-                    //    {
-                    //        sb.Append(@"
-                    //cfg.Map(poco => poco.").Append(property.Relational.Value.ForeigEntityProperty).Append(@", typeof(string));");
-                    //        continue;
-                    //    }
-                    //    //else if (property.IsEnum || true)
-                    //    //{
-                    //    // note: need to figure out how to get correct types.
-                    //        sb.Append(@"
-                    //cfg.Map(poco => poco.").Append(property.Name).Append(@", typeof(string));");
-                    //    //}
+                cfg.Map(poco => poco.").Append(property.Name).Append(@", typeof(").Append(property.DomainValueDefiniton.ResponseType).Append(@"));");
                 }
             }
 

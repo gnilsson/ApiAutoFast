@@ -59,7 +59,7 @@ public static class AutoFastDbContextHelper
                     .Property(propertyInfo.Name)
                     .HasDefaultValueSql("getutcdate()"),
 
-            { PropertyType.BaseType.Name: TypeText.DomainValue2 or TypeText.DomainValue3 } =>
+            { PropertyType.BaseType.Name: TypeText.DomainValue2 or TypeText.DomainValue3 or TypeText.DomainValue4 } =>
                 entityTypeBuilder
                     .Property(propertyInfo.Name)
                     .HasDomainValueConversion(propertyInfo),

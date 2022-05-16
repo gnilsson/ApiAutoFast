@@ -1,12 +1,23 @@
 ﻿namespace ApiAutoFast;
 
-public class DomainValue<TEntityRequestValue, TThis> : DomainValue<TEntityRequestValue, TEntityRequestValue, TThis>
-    where TThis : DomainValue<TEntityRequestValue, TEntityRequestValue, TThis>, new()
+public class DomainValue<TRequestEntityResponse, TDomain>
+    : DomainValue<TRequestEntityResponse, TRequestEntityResponse, TDomain>
+    where TDomain : DomainValue<TRequestEntityResponse, TRequestEntityResponse, TDomain>, new()
 {
     // note: can something be done here?
-    protected override bool TryValidateRequestConversion(TEntityRequestValue? requestValue, out TEntityRequestValue entityValue)
+    protected override bool TryValidateRequestConversion(TRequestEntityResponse? requestValue, out TRequestEntityResponse entityValue)
     {
         entityValue = requestValue!;
         return requestValue is not null;
+    }
+
+    //public static implicit operator TEntityRequestValue(DomainValue<TEntityRequestValue, TEntityRequestValue, TDomain> domain)
+    //{
+    //    return domain.EntityValue;
+    //}
+
+    protected override TRequestEntityResponse ToResponse()
+    {
+        return EntityValue;
     }
 }

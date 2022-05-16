@@ -1,4 +1,5 @@
-﻿
+﻿//HintName: MappingRegister.g.cs
+
 using Mapster;
 using ApiAutoFast;
 
@@ -40,9 +41,11 @@ public partial class MappingRegister : ICodeGenerationRegister
             .Map(nameof(IEntity.CreatedDateTime), (IEntity e) => e.CreatedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"))
             .Map(nameof(IEntity.ModifiedDateTime), (IEntity e) => e.ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"));
 
-        TypeAdapterConfig<PublicationDateTime, String>.NewConfig().MapWith(x => x.EntityValue.ToString());
-        TypeAdapterConfig<PostType, String>.NewConfig().MapWith(x => x.EntityValue.ToString());
-        TypeAdapterConfig<LikeCount, Int32>.NewConfig().MapWith(x => x.EntityValue);
+                        TypeAdapterConfig<LikeCount, Int32>.NewConfig().MapWith(x => x.EntityValue);
+                        TypeAdapterConfig<Title, String>.NewConfig().MapWith(x => x.EntityValue);
+                        TypeAdapterConfig<PublicationDateTime, String>.NewConfig().MapWith(x => x.EntityValue.ToString());
+                        TypeAdapterConfig<Description, String>.NewConfig().MapWith(x => x.EntityValue);
+                        TypeAdapterConfig<PostType, EPostType>.NewConfig().MapWith(x => x.EntityValue);
      //   TypeAdapterConfig<LikeCount, int>.NewConfig().MapWith(x => x.EntityValue);
 
 ExtendRegister(config);
@@ -62,11 +65,11 @@ public static class AdaptAttributeBuilderExtensions
                 cfg.Map(poco => poco.Id, typeof(string));
                 cfg.Map(poco => poco.CreatedDateTime, typeof(string));
                 cfg.Map(poco => poco.ModifiedDateTime, typeof(string));
+                cfg.Map(poco => poco.LikeCount, typeof(int));
                 cfg.Map(poco => poco.Title, typeof(string));
                 cfg.Map(poco => poco.PublicationDateTime, typeof(string));
                 cfg.Map(poco => poco.Description, typeof(string));
-                cfg.Map(poco => poco.PostType, typeof(string));
-                cfg.Map(poco => poco.LikeCount, typeof(int));
+                cfg.Map(poco => poco.PostType, typeof(ApiAutoFast.Sample.Server.Database.EPostType));
             });
     }
 }

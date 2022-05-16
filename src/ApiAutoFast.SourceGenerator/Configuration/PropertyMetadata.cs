@@ -18,6 +18,7 @@ internal readonly struct PropertyMetadata
         EntitySource = entitySource;
         RequestSource = requestSource;
         Name = name;
+     //   ResponseType = responseType;
         DomainValueDefiniton = domainValueDefiniton;
         AttributeMetadatas = attributeMetadatas;
         RequestModelTarget = requestModelTarget;
@@ -27,6 +28,7 @@ internal readonly struct PropertyMetadata
     internal readonly string RequestSource { get; }
     internal readonly string EntitySource { get; }
     internal readonly string Name { get; }
+   // internal readonly string ResponseType { get; } // should this be on domainvaluedefinition?
     internal readonly DomainValueDefinition DomainValueDefiniton { get; }
     internal readonly ImmutableArray<PropertyAttributeMetadata>? AttributeMetadatas { get; }
     internal readonly RequestModelTarget RequestModelTarget { get; }

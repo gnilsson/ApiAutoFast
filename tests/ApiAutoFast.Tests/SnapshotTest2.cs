@@ -51,14 +51,19 @@ public class Description : DomainValue<string, Description>
 public class PostType : DomainValue<EPostType, PostType>
 { }
 
+public class LikeCount : DomainValue<int, LikeCount>
+{
+
+}
+
 [AutoFastEndpoints]
 public class PostConfig
 {
-
     public Title Title { get; set; } = default!;
-    public PublicationDateTime PublicationDateTime { get; set; } = default!;
-    public Description Description { get; set; } = default!;
-    public PostType PostType { get; set; } = default!;
+    //public PublicationDateTime PublicationDateTime { get; set; } = default!;
+    //public Description Description { get; set; } = default!;
+    //public PostType PostType { get; set; } = default!;
+    public LikeCount LikeCount { get; set; } = default!;
 }
 
 
