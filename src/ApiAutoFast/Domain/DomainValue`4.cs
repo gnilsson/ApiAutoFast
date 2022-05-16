@@ -26,8 +26,16 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
 
     public TEntity EntityValue { get; private set; } = default!;
 
+    public virtual TRequest ValueTypeDefault { get; } = default!;
+
     protected virtual bool TryValidateRequestConversion(TRequest? requestValue, out TEntity entityValue)
     {
+        if (requestValue is TEntity entityRequestValue)
+        {
+            entityValue = entityRequestValue;
+            return requestValue is not null;
+        }
+
         throw new NotImplementedException($"{TypeText.DomainValue4} needs an overriden {nameof(TryValidateRequestConversion)} method.");
     }
 
@@ -55,6 +63,7 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
         return default!;
     }
 
+    // note: is this performant for get requests? :D
     public static implicit operator DomainValue<TRequest, TEntity, TResponse, TDomain>(TEntity entityValue)
     {
         var domain = _factory();

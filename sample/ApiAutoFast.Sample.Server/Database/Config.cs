@@ -1,11 +1,4 @@
-﻿using FastEndpoints;
-using FluentValidation.Results;
-using Mapster;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
-using System.ComponentModel.DataAnnotations;
-using System.Reflection.Metadata;
-using System.Text.RegularExpressions;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace ApiAutoFast.Sample.Server.Database;
 
@@ -57,13 +50,15 @@ public partial class AutoFastSampleDbContext : DbContext
 //        return;
 //    }
 
-//    public Post ToDomainEntity2(PostCreateCommand e, Action<string, string> addError)
+//    public Post ToDomainEntity2(PostCreateCommand command, Action<string, string> addValidationError)
 //    {
 //        return new Post
 //        {
-//            Title = Title.ConvertFromRequest(e.Title, addError),
-//            PublicationDateTime = PublicationDateTime.ConvertFromRequest(e.PublicationDateTime, addError),
-//            Description = Description.ConvertFromRequest(e.Description, addError)
+//            Title = Title.ConvertFromRequest(command.Title, addValidationError),
+//            PublicationDateTime = PublicationDateTime.ConvertFromRequest(command.PublicationDateTime, addValidationError),
+//            Description = Description.ConvertFromRequest(command.Description, addValidationError),
+//            PostType = PostType.ConvertFromRequest(command.PostType ?? 0, addValidationError),
+//            LikeCount = LikeCount.ConvertFromRequest(command.LikeCount ?? 0, addValidationError),
 //        };
 //    }
 //}

@@ -10,7 +10,7 @@ public class PublicationDateTime : DomainValue<string, DateTime, PublicationDate
         return requestValue is not null && DateTime.TryParse(requestValue, out entityValue);
     }
 
-    public override string ToString() => EntityValue.ToShortDateString();
+    public override string ToString() => EntityValue.ToLongDateString();
 }
 
 public class Title : DomainValue<string, Title>
@@ -30,7 +30,9 @@ public class Description : DomainValue<string, Description>
 { }
 
 public class PostType : DomainValue<EPostType, EPostType, string, PostType>
-{ }
+{
+    //   public override EPostType ValueTypeDefault => EPostType.Text;
+}
 
 public class LikeCount : DomainValue<int, LikeCount>
 { }

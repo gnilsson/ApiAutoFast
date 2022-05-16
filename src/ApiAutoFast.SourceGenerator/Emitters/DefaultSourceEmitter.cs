@@ -315,13 +315,23 @@ public partial class ")
     public ").Append(entityConfig.BaseName).Append(@" ToDomainEntity(").Append(entityConfig.CreateCommand).Append(@" command, Action<string, string> addValidationError)
     {
         return new ").Append(entityConfig.BaseName).Append(@"
-        {");
+        {
+");
         foreach (var property in entityConfig.PropertyMetadatas)
         {
-            sb.Append(property.Name).Append(@" = ").Append(property.DomainValueDefiniton.Name).Append(@".ConvertFromRequest(command.").Append(property.Name).Append(@", addValidationError),
+            var valueTypeDefault = property.DomainValueDefiniton.RequestIsValueType ? @" ?? 0" : string.Empty;
+
+            sb.Append(@"            ")
+                .Append(property.Name)
+                .Append(@" = ")
+                .Append(property.DomainValueDefiniton.Name)
+                .Append(@".ConvertFromRequest(command.")
+                .Append(property.Name)
+                .Append(valueTypeDefault)
+                .Append(@", addValidationError),
 ");
         }
-        sb.Append(@"    };
+        sb.Append(@"        };
     }
 }
 ");
