@@ -41,9 +41,9 @@ public partial class MappingRegister : ICodeGenerationRegister
             .Map(nameof(IEntity.ModifiedDateTime), (IEntity e) => e.ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"));
 
         TypeAdapterConfig<Title, string>.NewConfig().MapWith(x => x.EntityValue);
-        TypeAdapterConfig<PublicationDateTime, string>.NewConfig().MapWith(x => x.EntityValue.ToString());
+        TypeAdapterConfig<PublicationDateTime, string>.NewConfig().MapWith(x => x.ToString());
         TypeAdapterConfig<Description, string>.NewConfig().MapWith(x => x.EntityValue);
-        TypeAdapterConfig<PostType, string>.NewConfig().MapWith(x => x.EntityValue.ToString());
+        TypeAdapterConfig<PostType, string>.NewConfig().MapWith(x => x.ToString());
         TypeAdapterConfig<LikeCount, int>.NewConfig().MapWith(x => x.EntityValue);
 
         ExtendRegister(config);

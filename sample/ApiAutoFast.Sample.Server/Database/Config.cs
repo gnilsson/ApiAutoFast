@@ -21,11 +21,6 @@ public class PostConfig
 }
 
 
-public class LikeCount : DomainValue<int, LikeCount>
-{
-
-}
-
 //public class ForeignTest : DomainValue<string, Test, ForeignTest>
 //{
 
@@ -49,32 +44,55 @@ public partial class AutoFastSampleDbContext : DbContext
 
 //public partial class PostMappingProfile
 //{
-//    //public override Post ToEntity(PostCreateCommand postCreateCommand)
-//    //{
 
-//    //}
-//    //public List<ValidationFailure> Test { get; set; } = new();
-//    //public PostMappingProfile()
-//    //{
-//    //    Action<string, string> hmm = (a, b) => Test.Add(new ValidationFailure(a, b));
-//    //    Aha(hmm);
-//    //}
+//    public List<ValidationFailure> Test { get; set; } = new();
+//    public PostMappingProfile()
+//    {
+//        Action<string, string> hmm = (a, b) => Test.Add(new ValidationFailure(a, b));
+//        Aha(hmm);
+//    }
 
-//    //public void Aha(Action<string, string> hej)
-//    //{
-//    //    return;
-//    //}
+//    public void Aha(Action<string, string> hej)
+//    {
+//        return;
+//    }
 
-//    //public Post ToDomainEntity(PostCreateCommand e, Action<string, string> addError)
-//    //{
-//    //    return new Post
-//    //    {
-//    //        Title = Title.ConvertFromRequest(e.Title, addError),
-//    //        PublicationDateTime = PublicationDateTime.ConvertFromRequest(e.PublicationDateTime, addError),
-//    //        Description = Description.ConvertFromRequest(e.Description, addError)
-//    //    };
-//    //}
+//    public Post ToDomainEntity2(PostCreateCommand e, Action<string, string> addError)
+//    {
+//        return new Post
+//        {
+//            Title = Title.ConvertFromRequest(e.Title, addError),
+//            PublicationDateTime = PublicationDateTime.ConvertFromRequest(e.PublicationDateTime, addError),
+//            Description = Description.ConvertFromRequest(e.Description, addError)
+//        };
+//    }
 //}
+
+//public partial class CreatePostEndpoint
+//{
+
+//    public override async Task HandleAsync(PostCreateCommand req, CancellationToken ct)
+//    {
+//        var entity = Map.ToDomainEntity2(
+//            req,
+//            (paramName, message) => ValidationFailures.Add(new ValidationFailure(paramName, message)));
+
+//        if (ValidationFailures.Count > 0)
+//        {
+//            await SendErrorsAsync(400, ct);
+//            return;
+//        }
+
+//        await _dbContext.AddAsync(entity, ct);
+
+//        await _dbContext.SaveChangesAsync(ct);
+
+//        var response = Map.FromEntity(entity);
+
+//        await SendCreatedAtAsync<GetByIdPostEndpoint>(new { Id = entity.Id }, response, generateAbsoluteUrl: true, cancellation: ct);
+//    }
+//}
+
 
 //[AutoFastEndpoints(includeEndpointTarget: EndpointTargetType.Get)]
 //public class AuthorConfig

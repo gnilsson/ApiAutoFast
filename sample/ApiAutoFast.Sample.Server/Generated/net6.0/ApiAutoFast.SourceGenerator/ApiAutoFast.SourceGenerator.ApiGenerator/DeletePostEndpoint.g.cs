@@ -1,9 +1,10 @@
 ﻿
 using ApiAutoFast;
 using FastEndpoints;
+using FluentValidation.Results;
+using Microsoft.EntityFrameworkCore;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 
 namespace ApiAutoFast.Sample.Server.Database;
 
@@ -35,8 +36,7 @@ public partial class DeletePostEndpoint : Endpoint<PostDeleteCommand, PostRespon
     {
         if (Identifier.TryParse(req.Id, out var identifier) is false)
         {
-            // todo: think out a good way to do validation. this does not include foreign ids.
-            ValidationFailures.Add(new FluentValidation.Results.ValidationFailure(nameof(req.Id), "Incorrect format."));
+            ValidationFailures.Add(new ValidationFailure(nameof(req.Id), "Incorrect format on identifier."));
             await SendErrorsAsync(400, ct);
             return;
         }

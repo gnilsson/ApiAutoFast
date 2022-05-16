@@ -1,4 +1,4 @@
-﻿namespace ApiAutoFast.SourceGenerator;
+﻿namespace ApiAutoFast.SourceGenerator.Emitters;
 
 internal static class EmbeddedSourceEmitter
 {

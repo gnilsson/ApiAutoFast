@@ -31,3 +31,6 @@ public class Description : DomainValue<string, Description>
 
 public class PostType : DomainValue<EPostType, EPostType, string, PostType>
 { }
+
+public class LikeCount : DomainValue<int, LikeCount>
+{ }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using ApiAutoFast.SourceGenerator.Configuration.Enums;
+using System.Collections.Immutable;
 
 namespace ApiAutoFast.SourceGenerator.Configuration;
 
@@ -9,6 +10,8 @@ internal readonly struct EntityConfig
         BaseName = endpointsAttributeArguments.EntityName;
         Response = $"{endpointsAttributeArguments.EntityName}Response";
         MappingProfile = $"{endpointsAttributeArguments.EntityName}MappingProfile";
+        CreateCommand = $"{endpointsAttributeArguments.EntityName}{nameof(RequestModelTarget.CreateCommand)}";
+        ModifyCommand = $"{endpointsAttributeArguments.EntityName}{nameof(RequestModelTarget.ModifyCommand)}";
         EndpointsAttributeArguments = endpointsAttributeArguments;
         PropertyMetadatas = propertyMetadatas;
     }
@@ -16,6 +19,8 @@ internal readonly struct EntityConfig
     internal readonly string BaseName { get; }
     internal readonly string Response { get; }
     internal readonly string MappingProfile { get; }
+    internal readonly string CreateCommand { get; }
+    internal readonly string ModifyCommand { get; }
     internal readonly AutoFastEndpointsAttributeArguments EndpointsAttributeArguments { get; }
     internal readonly ImmutableArray<PropertyMetadata> PropertyMetadatas { get; }
 }

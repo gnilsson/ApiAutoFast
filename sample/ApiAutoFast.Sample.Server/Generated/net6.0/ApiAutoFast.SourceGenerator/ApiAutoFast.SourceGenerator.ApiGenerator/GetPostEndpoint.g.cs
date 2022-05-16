@@ -1,9 +1,10 @@
 ﻿
 using ApiAutoFast;
 using FastEndpoints;
+using FluentValidation.Results;
+using Microsoft.EntityFrameworkCore;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 
 namespace ApiAutoFast.Sample.Server.Database;
 

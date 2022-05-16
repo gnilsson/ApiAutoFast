@@ -1,9 +1,10 @@
 ﻿
 using ApiAutoFast;
 using FastEndpoints;
+using FluentValidation.Results;
+using Microsoft.EntityFrameworkCore;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 
 namespace ApiAutoFast.Sample.Server.Database;
 
@@ -35,7 +36,13 @@ public partial class CreatePostEndpoint : Endpoint<PostCreateCommand, PostRespon
     {
         var entity = Map.ToDomainEntity(
             req,
-            (paramName, message) => ValidationFailures.Add(new FluentValidation.Results.ValidationFailure(paramName, message)));
+            (paramName, message) => ValidationFailures.Add(new ValidationFailure(paramName, message)));
+
+        if (ValidationFailures.Count > 0)
+        {
+            await SendErrorsAsync(400, ct);
+            return;
+        }
 
         await _dbContext.AddAsync(entity, ct);
 

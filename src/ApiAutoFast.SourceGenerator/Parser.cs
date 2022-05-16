@@ -138,8 +138,8 @@ internal static class Parser
                 memberOptions: SymbolDisplayMemberOptions.IncludeAccessibility));
 
             var relational = GetRelationalEntity(foreignEntityNames, property);
-            var entitySource = propertyString.Insert(propertyString.IndexOf(' '), $" {domainValueDefinition.DomainValueName}");
-            var requestSource = GetRequestPropertySource(property, propertyString, domainValueDefinition.RequestType.ToString(), relational);
+            var entitySource = propertyString.Insert(propertyString.IndexOf(' '), $" {domainValueDefinition.Name}");
+            var requestSource = GetRequestPropertySource(property, propertyString, domainValueDefinition.RequestType, relational);
 
             var attributes = YieldAttributeMetadata(property).ToImmutableArray();
 
