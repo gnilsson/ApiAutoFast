@@ -40,12 +40,13 @@ public partial class MappingRegister : ICodeGenerationRegister
             .Map(nameof(IEntity.CreatedDateTime), (IEntity e) => e.CreatedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"))
             .Map(nameof(IEntity.ModifiedDateTime), (IEntity e) => e.ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"));
 
-        TypeAdapterConfig<PublicationDateTime, String>.NewConfig().MapWith(x => x.EntityValue.ToString());
-        TypeAdapterConfig<PostType, String>.NewConfig().MapWith(x => x.EntityValue.ToString());
-        TypeAdapterConfig<LikeCount, Int32>.NewConfig().MapWith(x => x.EntityValue);
-     //   TypeAdapterConfig<LikeCount, int>.NewConfig().MapWith(x => x.EntityValue);
+        TypeAdapterConfig<Title, string>.NewConfig().MapWith(x => x.EntityValue);
+        TypeAdapterConfig<PublicationDateTime, string>.NewConfig().MapWith(x => x.EntityValue.ToString());
+        TypeAdapterConfig<Description, string>.NewConfig().MapWith(x => x.EntityValue);
+        TypeAdapterConfig<PostType, string>.NewConfig().MapWith(x => x.EntityValue.ToString());
+        TypeAdapterConfig<LikeCount, int>.NewConfig().MapWith(x => x.EntityValue);
 
-ExtendRegister(config);
+        ExtendRegister(config);
 
         config.GenerateMapper("[name]Mapper")
             .ForType<Post>();

@@ -188,42 +188,63 @@ public partial class MappingRegister : ICodeGenerationRegister
             .Map(nameof(IEntity.CreatedDateTime), (IEntity e) => e.CreatedDateTime.ToString(""dddd, dd MMMM yyyy HH:mm""))
             .Map(nameof(IEntity.ModifiedDateTime), (IEntity e) => e.ModifiedDateTime.ToString(""dddd, dd MMMM yyyy HH:mm""));
 ");
-        foreach (var entity in generationConfig.EntityConfigs)
+        // distinct props
+
+        var domainValueDefinitions = generationConfig.EntityConfigs
+            .SelectMany(x => x.PropertyMetadatas)
+            .Select(x => x.DomainValueDefiniton)
+            .Distinct();
+
+        foreach (var domainValueDefinition in domainValueDefinitions)
         {
-            if (entity.PropertyMetadatas?.Length > 0)
+            if (domainValueDefinition.ResponseType == domainValueDefinition.EntityType)
             {
-                foreach (var property in entity.PropertyMetadatas.Value)
-                {
-                    if (property.DomainValueDefiniton.ResponseType.Name == property.DomainValueDefiniton.EntityType.Name
-                        && property.DomainValueDefiniton.ResponseType.Name == property.DomainValueDefiniton.RequestType.Name
-                        && property.DomainValueDefiniton.ResponseType.Name == nameof(String))
-                    {
-                        continue;
-                    }
-
-                    if (property.DomainValueDefiniton.ResponseType.Name == property.DomainValueDefiniton.EntityType.Name
-                        && property.DomainValueDefiniton.ResponseType.Name != nameof(String))
-                    {
-                        sb.Append(@"
+                sb.Append(@"
         TypeAdapterConfig<")
-                            .Append(property.DomainValueDefiniton.DomainValueName)
-                            .Append(@", ")
-                            .Append(property.DomainValueDefiniton.ResponseType.Name)
-                            .Append(@">.NewConfig().MapWith(x => x.EntityValue);");
+                    .Append(domainValueDefinition.DomainValueName)
+                    .Append(@", ")
+                    .Append(domainValueDefinition.ResponseType)
+                    .Append(@">.NewConfig().MapWith(x => x.EntityValue);");
 
-                        continue;
-                    }
-
-                    sb.Append(@"
-        TypeAdapterConfig<")
-                        .Append(property.DomainValueDefiniton.DomainValueName)
-                        .Append(@", ")
-                        .Append(property.DomainValueDefiniton.ResponseType.Name)
-                        .Append(@">.NewConfig().MapWith(x => x.EntityValue.ToString());");
-
-                }
+                continue;
             }
+
+            sb.Append(@"
+        TypeAdapterConfig<")
+                .Append(domainValueDefinition.DomainValueName)
+                .Append(@", ")
+                .Append(domainValueDefinition.ResponseType)
+                .Append(@">.NewConfig().MapWith(x => x.EntityValue.ToString());");
+
         }
+
+        //foreach (var entity in generationConfig.EntityConfigs)
+        //{
+        //    if (entity.PropertyMetadatas?.Length > 0)
+        //    {
+        //        foreach (var property in entity.PropertyMetadatas.Value)
+        //        {
+        //            if (property.DomainValueDefiniton.ResponseType.Name == property.DomainValueDefiniton.EntityType.Name)
+        //            {
+        //                sb.Append(@"
+        //TypeAdapterConfig<")
+        //                    .Append(property.DomainValueDefiniton.DomainValueName)
+        //                    .Append(@", ")
+        //                    .Append(property.DomainValueDefiniton.ResponseType.Name)
+        //                    .Append(@">.NewConfig().MapWith(x => x.EntityValue);");
+
+        //                continue;
+        //            }
+
+        //            sb.Append(@"
+        //TypeAdapterConfig<")
+        //                .Append(property.DomainValueDefiniton.DomainValueName)
+        //                .Append(@", ")
+        //                .Append(property.DomainValueDefiniton.ResponseType.Name)
+        //                .Append(@">.NewConfig().MapWith(x => x.EntityValue.ToString());");
+        //        }
+        //    }
+        //}
 
         sb.Append(@"
 
@@ -252,9 +273,9 @@ public static class AdaptAttributeBuilderExtensions
                 cfg.Map(poco => poco.Id, typeof(string));
                 cfg.Map(poco => poco.CreatedDateTime, typeof(string));
                 cfg.Map(poco => poco.ModifiedDateTime, typeof(string));");
-            if (entity.PropertyMetadatas?.Length > 0)
+            if (entity.PropertyMetadatas.Length > 0)
             {
-                foreach (var property in entity.PropertyMetadatas.Value)
+                foreach (var property in entity.PropertyMetadatas)
                 {
                     sb.Append(@"
                 cfg.Map(poco => poco.").Append(property.Name).Append(@", typeof(").Append(property.DomainValueDefiniton.ResponseType).Append(@"));");
@@ -288,9 +309,9 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity
 {
     public ").Append(entityConfig.BaseName).Append(@"()
     {");
-        if (entityConfig.PropertyMetadatas?.Length > 0)
+        if (entityConfig.PropertyMetadatas.Length > 0)
         {
-            foreach (var propertyMetadata in entityConfig.PropertyMetadatas.Value)
+            foreach (var propertyMetadata in entityConfig.PropertyMetadatas)
             {
                 if (propertyMetadata.Relational?.RelationalType is RelationalType.ToMany)
                 {
@@ -307,9 +328,9 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity
     public DateTime CreatedDateTime { get; set; }
     public DateTime ModifiedDateTime { get; set; }");
 
-        if (entityConfig.PropertyMetadatas?.Length > 0)
+        if (entityConfig.PropertyMetadatas.Length > 0)
         {
-            foreach (var propertyMetadata in entityConfig.PropertyMetadatas.Value)
+            foreach (var propertyMetadata in entityConfig.PropertyMetadatas)
             {
                 if (propertyMetadata.AttributeMetadatas?.Length > 0)
                 {
@@ -548,9 +569,9 @@ public partial class ")
 
     private static IEnumerable<string> YieldModifyCommandProperties(EntityConfig entityConfig)
     {
-        if (entityConfig.PropertyMetadatas?.Length > 0)
+        if (entityConfig.PropertyMetadatas.Length > 0)
         {
-            foreach (var propertyMetadata in entityConfig.PropertyMetadatas.Value)
+            foreach (var propertyMetadata in entityConfig.PropertyMetadatas)
             {
                 if (propertyMetadata.AttributeMetadatas?.Length > 0
                     && propertyMetadata.AttributeMetadatas.Value.Any(x => x.Name is nameof(RequestModelTarget.ModifyCommand)))
@@ -563,9 +584,9 @@ public partial class ")
 
     private static IEnumerable<string> YieldRequestModelTargetPropertySource(EntityConfig entityConfig, RequestModelTarget modelTarget)
     {
-        if (entityConfig.PropertyMetadatas?.Length > 0)
+        if (entityConfig.PropertyMetadatas.Length > 0)
         {
-            foreach (var propertyMetadata in entityConfig.PropertyMetadatas.Value)
+            foreach (var propertyMetadata in entityConfig.PropertyMetadatas)
             {
                 if (propertyMetadata.RequestModelTarget.HasFlag(modelTarget))
                 {

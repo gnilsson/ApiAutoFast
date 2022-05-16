@@ -137,11 +137,6 @@ internal static class Parser
                 propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
                 memberOptions: SymbolDisplayMemberOptions.IncludeAccessibility));
 
-            //var isEnum = domainValueDefinition.EntityType.TypeKind.ToString() == nameof(Enum);
-            //var isStruct = domainValueDefinition.EntityType.TypeKind.ToString() == "Structure";
-            // hmm
-            var hasStringConversion = domainValueDefinition.EntityType.Name == "DateTime";//!= "Int32";
-
             var relational = GetRelationalEntity(foreignEntityNames, property);
             var entitySource = propertyString.Insert(propertyString.IndexOf(' '), $" {domainValueDefinition.DomainValueName}");
             var requestSource = GetRequestPropertySource(property, propertyString, domainValueDefinition.RequestType.ToString(), relational);
@@ -175,7 +170,11 @@ internal static class Parser
                 ? domainValueType.BaseType.TypeArguments[2]
                 : requestType;
 
-            domainValueDefinition = new DomainValueDefinition(requestType, entityType, responseType, property.Name);
+            domainValueDefinition = new DomainValueDefinition(
+                requestType.ToString(),
+                entityType.ToString(),
+                responseType.ToString(),
+                property.Name);
         }
 
         return success;

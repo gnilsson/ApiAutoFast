@@ -4,7 +4,7 @@ namespace ApiAutoFast.SourceGenerator.Configuration;
 
 internal readonly struct DomainValueDefinition
 {
-    public DomainValueDefinition(ITypeSymbol requestType, ITypeSymbol entityType, ITypeSymbol responseType, string domainValueName)
+    internal DomainValueDefinition(string requestType, string entityType, string responseType, string domainValueName)
     {
         RequestType = requestType;
         EntityType = entityType;
@@ -12,8 +12,8 @@ internal readonly struct DomainValueDefinition
         DomainValueName = domainValueName;
     }
 
-    internal readonly ITypeSymbol RequestType { get; }
-    internal readonly ITypeSymbol EntityType { get; }
-    internal readonly ITypeSymbol ResponseType { get; }
+    internal readonly string RequestType { get; }
+    internal readonly string EntityType { get; }
+    internal readonly string ResponseType { get; }
     internal readonly string DomainValueName { get; }
 }

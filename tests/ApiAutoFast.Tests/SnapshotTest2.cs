@@ -27,7 +27,6 @@ public class PublicationDateTime : DomainValue<string, DateTime, PublicationDate
         return requestValue is not null && DateTime.TryParse(requestValue, out entityValue);
     }
 
-    // note: figure this one out
     public override string ToString() => EntityValue.ToShortDateString();
 }
 
@@ -44,19 +43,14 @@ public class Title : DomainValue<string, Title>
     protected override string? MessageOnFailedValidation => ""Incorrect format on Title."";
 }
 
-public class Description : DomainValue<string, Description>
-{ }
+    public class Description : DomainValue<string, Description>
+    { }
+
+    public class PostType : DomainValue<EPostType, EPostType, string, PostType>
+    { }
 
 
-public class PostType : DomainValue<EPostType, PostType>
-{ }
-
-public class LikeCount : DomainValue<int, LikeCount>
-{
-
-}
-
-[AutoFastEndpoints]
+    [AutoFastEndpoints]
 public class PostConfig
 {
     public Title Title { get; set; } = default!;

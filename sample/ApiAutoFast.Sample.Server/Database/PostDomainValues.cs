@@ -10,7 +10,6 @@ public class PublicationDateTime : DomainValue<string, DateTime, PublicationDate
         return requestValue is not null && DateTime.TryParse(requestValue, out entityValue);
     }
 
-    // note: figure this one out
     public override string ToString() => EntityValue.ToShortDateString();
 }
 
