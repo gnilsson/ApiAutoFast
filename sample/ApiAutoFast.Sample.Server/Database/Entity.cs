@@ -5,7 +5,7 @@ namespace ApiAutoFast.Sample.Server.Database;
 
 
 [AutoFastEndpoints]
-public class PostConfig
+public class PostEntity
 {
     public Title Title { get; set; } = default!;
     public PublicationDateTime PublicationDateTime { get; set; } = default!;

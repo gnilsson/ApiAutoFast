@@ -76,6 +76,8 @@ public class ApiGenerator : IIncrementalGenerator
         var dbContextResult = DefaultSourceEmitter.EmitDbContext(sb, contextConfig, entityGenerationConfig);
         context.AddSource($"{contextConfig.Name}.g.cs", SourceText.From(dbContextResult, Encoding.UTF8));
 
+        var mapsterMapperIsGenerated = MapsterMapperIsGenerated(compilation, entityGenerationConfig.EntityConfigs.First().BaseName, entityGenerationConfig.Namespace);
+
         foreach (var entityConfig in entityGenerationConfig.EntityConfigs)
         {
             foreach (var requestEndpointPair in _requestEndpointPairs)
@@ -84,7 +86,7 @@ public class ApiGenerator : IIncrementalGenerator
                 context.AddSource($"{entityConfig.BaseName}{requestEndpointPair.RequestModel}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
             }
 
-            if (MapsterMapperIsGenerated(compilation, entityConfig.BaseName, entityGenerationConfig.Namespace) is false) continue;
+            if (mapsterMapperIsGenerated is false) continue;
 
             var mappingProfileResult = DefaultSourceEmitter.EmitMappingProfile(sb, entityGenerationConfig.Namespace, entityConfig);
             context.AddSource($"{entityConfig.MappingProfile}.g.cs", SourceText.From(mappingProfileResult, Encoding.UTF8));

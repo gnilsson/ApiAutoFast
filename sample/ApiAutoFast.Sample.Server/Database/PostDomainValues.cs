@@ -30,9 +30,7 @@ public class Description : DomainValue<string, Description>
 { }
 
 public class PostType : DomainValue<EPostType, EPostType, string, PostType>
-{
-    //   public override EPostType ValueTypeDefault => EPostType.Text;
-}
+{ }
 
 public class LikeCount : DomainValue<int, LikeCount>
 { }

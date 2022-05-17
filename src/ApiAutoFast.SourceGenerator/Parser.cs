@@ -91,7 +91,7 @@ internal static class Parser
 
         var entityName = endpointsAttribute.ConstructorArguments[0].IsNull is false
             ? endpointsAttribute.ConstructorArguments[0].Value as string
-            : GetLastPart(namedTypeSymbol.Name).Replace("Config", "");
+            : GetLastPart(namedTypeSymbol.Name).Replace("Entity", "");
 
         var endpointTarget = (EndpointTargetType)endpointsAttribute.ConstructorArguments[1].Value!;
 
@@ -137,15 +137,18 @@ internal static class Parser
                 propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
                 memberOptions: SymbolDisplayMemberOptions.IncludeAccessibility));
 
-            var relational = GetRelationalEntity(foreignEntityNames, property);
-            var entitySource = propertyString.Insert(propertyString.IndexOf(' '), $" {domainValueDefinition.Name}");
-            var requestSource = GetRequestPropertySource(property, propertyString, domainValueDefinition.RequestType, relational);
+            //var relational = GetRelationalEntity(foreignEntityNames, property);
+
+            var firstSpaceIndex = propertyString.IndexOf(' ');
+            var entitySource = propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.Name}");
+            var requestSource = propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}?");
+            var commandSource = propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}");
 
             var attributes = YieldAttributeMetadata(property).ToImmutableArray();
 
             var requestModelTarget = GetRequestModelTarget(attributes);
 
-            yield return new PropertyMetadata(entitySource, requestSource, property.Name, domainValueDefinition, requestModelTarget, attributes, relational);
+            yield return new PropertyMetadata(entitySource, requestSource, commandSource, property.Name, domainValueDefinition, requestModelTarget, attributes, null);
         }
     }
 
@@ -171,7 +174,7 @@ internal static class Parser
                 : requestType;
 
             domainValueDefinition = new DomainValueDefinition(
-                requestType.IsValueType ? requestType.ToString() : $"{requestType}?", // note: should be configurable with required
+                requestType.ToString(),
                 entityType.ToString(),
                 responseType.ToString(),
                 property.Name,
@@ -196,72 +199,72 @@ internal static class Parser
         return RequestModelTarget.CreateCommand | RequestModelTarget.ModifyCommand | RequestModelTarget.QueryRequest;
     }
 
-    private static string GetRequestPropertySource(IPropertySymbol property, string propertyString, string requestType, PropertyRelational? relational)
-    {
-        var type = relational switch
-        {
-            null or
-            { RelationalType: RelationalType.ShadowToMany or RelationalType.ShadowToOne } => requestType,
-            { RelationalType: RelationalType.ToMany } => $"ICollection<{relational.Value.ForeignEntityName}>",
-            { RelationalType: RelationalType.ToOne } => relational.Value.ForeignEntityName,
-            _ => "object"
-        };
+    //private static string GetRequestPropertySource(IPropertySymbol property, string propertyString, string requestType, PropertyRelational? relational)
+    //{
+    //    var type = relational switch
+    //    {
+    //        null or
+    //        { RelationalType: RelationalType.ShadowToMany or RelationalType.ShadowToOne } => requestType,
+    //        { RelationalType: RelationalType.ToMany } => $"ICollection<{relational.Value.ForeignEntityName}>",
+    //        { RelationalType: RelationalType.ToOne } => relational.Value.ForeignEntityName,
+    //        _ => "object"
+    //    };
 
-        var source = propertyString.Insert(propertyString.IndexOf(' '), $" {type}");
+    //    var source = propertyString.Insert(propertyString.IndexOf(' '), $" {type}");
 
-        // note: temporary way of checking types
-        //       nullable?
-        if (type.Contains("Identifier"))
-        {
-            if (type.Contains("ICollection"))
-            {
-                return propertyString.Insert(propertyString.IndexOf(' '), " IEnumerable<string>?");
-            }
+    //    // note: temporary way of checking types
+    //    //       nullable?
+    //    if (type.Contains("Identifier"))
+    //    {
+    //        if (type.Contains("ICollection"))
+    //        {
+    //            return propertyString.Insert(propertyString.IndexOf(' '), " IEnumerable<string>?");
+    //        }
 
-            return propertyString.Insert(propertyString.IndexOf(' '), " string?");
-        }
+    //        return propertyString.Insert(propertyString.IndexOf(' '), " string?");
+    //    }
 
-        return source;
-    }
+    //    return source;
+    //}
 
     // note: this method is based on some conventions, i.e that an entity with a one-to-many relation will declare that
     //       with a property of type ICollection<Foo> and with name Foos.
     //       alot of this is temporary.
-    private static PropertyRelational? GetRelationalEntity(ImmutableArray<string> foreignEntityNames, IPropertySymbol property)
-    {
-        foreach (var foreignEntityName in foreignEntityNames)
-        {
-            if (property.Name.Contains(foreignEntityName) is false) continue;
+    //private static PropertyRelational? GetRelationalEntity(ImmutableArray<string> foreignEntityNames, IPropertySymbol property)
+    //{
+    //    foreach (var foreignEntityName in foreignEntityNames)
+    //    {
+    //        if (property.Name.Contains(foreignEntityName) is false) continue;
 
-            if (property.Type.ToDisplayString().Contains("ICollection"))
-            {
-                if (property.Name == $"{foreignEntityName}s")
-                {
-                    return new PropertyRelational(foreignEntityName, property.Name, RelationalType.ToMany);
-                }
+    //        if (property.Type.ToDisplayString().Contains("ICollection"))
+    //        {
+    //            if (property.Name == $"{foreignEntityName}s")
+    //            {
+    //                return new PropertyRelational(foreignEntityName, property.Name, RelationalType.ToMany);
+    //            }
 
-                if (property.Name == $"{foreignEntityName}Ids")
-                {
-                    return new PropertyRelational(foreignEntityName, property.Name, RelationalType.ShadowToMany);
-                }
+    //            if (property.Name == $"{foreignEntityName}Ids")
+    //            {
+    //                return new PropertyRelational(foreignEntityName, property.Name, RelationalType.ShadowToMany);
+    //            }
 
-                // note: we need exact match to be certain, so just continue here.
-                continue;
-            }
+    //            // note: we need exact match to be certain, so just continue here.
+    //            continue;
+    //        }
 
-            if (property.Name == foreignEntityName)
-            {
-                return new PropertyRelational(foreignEntityName, property.Name, RelationalType.ToOne);
-            }
+    //        if (property.Name == foreignEntityName)
+    //        {
+    //            return new PropertyRelational(foreignEntityName, property.Name, RelationalType.ToOne);
+    //        }
 
-            if (property.Name == $"{foreignEntityName}Id")
-            {
-                return new PropertyRelational(foreignEntityName, property.Name, RelationalType.ShadowToOne);
-            }
-        }
+    //        if (property.Name == $"{foreignEntityName}Id")
+    //        {
+    //            return new PropertyRelational(foreignEntityName, property.Name, RelationalType.ShadowToOne);
+    //        }
+    //    }
 
-        return null;
-    }
+    //    return null;
+    //}
 
     private static string GetLastPart(string valueToSubstring, char seperator = '.')
     {

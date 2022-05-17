@@ -9,7 +9,7 @@ namespace ApiAutoFast;
 
 /// <summary>
 /// Marker attribute for source generator.
-/// <param name=""entityName"">Name of the entity to generate, will default to this class name and remove ""Config""</param>
+/// <param name=""entityName"">Name of the entity to generate, will default to current class name and remove ""Entity""</param>
 /// </summary>
 [AttributeUsage(AttributeTargets.Class)]
 internal class AutoFastEndpointsAttribute : Attribute

@@ -208,8 +208,14 @@ public class ").Append(entityConfig.BaseName).Append(modelTarget).Append(@"
         {
             if (propertyMetadata.RequestModelTarget.HasFlag(modelTarget))
             {
-                sb.Append(@"
+                if (modelTarget is RequestModelTarget.QueryRequest)
+                {
+                    sb.Append(@"
     ").Append(propertyMetadata.RequestSource);
+                    continue;
+                }
+                sb.Append(@"
+    ").Append(propertyMetadata.CommandSource);
             }
         }
         sb.Append(@"
@@ -325,7 +331,7 @@ public partial class ")
 ");
         foreach (var property in entityConfig.PropertyMetadatas)
         {
-         //   var valueTypeDefault = property.DomainValueDefiniton.RequestIsValueType ? @" ?? 0" : string.Empty;
+            //   var valueTypeDefault = property.DomainValueDefiniton.RequestIsValueType ? @" ?? 0" : string.Empty;
 
             sb.Append(@"            ")
                 .Append(property.Name)

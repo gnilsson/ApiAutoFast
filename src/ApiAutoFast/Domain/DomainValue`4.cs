@@ -27,8 +27,6 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
 
     public TEntity EntityValue { get; private set; } = default!;
 
-    public virtual TRequest ValueTypeDefault { get; } = default!;
-
     protected virtual bool TryValidateRequestConversion(TRequest? requestValue, out TEntity entityValue)
     {
         if (requestValue is TEntity entityRequestValue)
@@ -74,10 +72,10 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
         return domain;
     }
 
-    public static implicit operator TEntity(DomainValue<TRequest, TEntity, TResponse, TDomain> domain)
-    {
-        return domain.EntityValue;
-    }
+    //public static implicit operator TEntity(DomainValue<TRequest, TEntity, TResponse, TDomain> domain)
+    //{
+    //    return domain.EntityValue;
+    //}
 
     public override string ToString() => EntityValue!.ToString()!;
 }
