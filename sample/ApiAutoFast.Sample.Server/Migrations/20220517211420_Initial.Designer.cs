@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ApiAutoFast.Sample.Server.Migrations
 {
     [DbContext(typeof(AutoFastSampleDbContext))]
-    [Migration("20220514141340_AddDomainProperties2")]
-    partial class AddDomainProperties2
+    [Migration("20220517211420_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -24,9 +24,35 @@ namespace ApiAutoFast.Sample.Server.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
+            modelBuilder.Entity("ApiAutoFast.Sample.Server.Database.Blog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedDateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("getutcdate()");
+
+                    b.Property<DateTime>("ModifiedDateTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("getutcdate()");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Blogs");
+                });
+
             modelBuilder.Entity("ApiAutoFast.Sample.Server.Database.Post", b =>
                 {
                     b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BlogId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedDateTime")
@@ -37,10 +63,16 @@ namespace ApiAutoFast.Sample.Server.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("LikeCount")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("ModifiedDateTime")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("getutcdate()");
+
+                    b.Property<EPostType?>("PostType")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("PublicationDateTime")
                         .HasColumnType("datetime2");
@@ -50,7 +82,25 @@ namespace ApiAutoFast.Sample.Server.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("BlogId");
+
                     b.ToTable("Posts");
+                });
+
+            modelBuilder.Entity("ApiAutoFast.Sample.Server.Database.Post", b =>
+                {
+                    b.HasOne("ApiAutoFast.Sample.Server.Database.Blog", "Blog")
+                        .WithMany("Posts")
+                        .HasForeignKey("BlogId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Blog");
+                });
+
+            modelBuilder.Entity("ApiAutoFast.Sample.Server.Database.Blog", b =>
+                {
+                    b.Navigation("Posts");
                 });
 #pragma warning restore 612, 618
         }

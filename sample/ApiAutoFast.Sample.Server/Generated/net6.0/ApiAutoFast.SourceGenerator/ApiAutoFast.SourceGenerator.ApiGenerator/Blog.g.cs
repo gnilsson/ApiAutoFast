@@ -9,12 +9,12 @@ public class Blog : IEntity
 {
     public Blog()
     {
-        this.Posts = PostsRelation.From(new HashSet<Post>());
+            this.Posts = new HashSet<Post>();
     }
 
     public Identifier Id { get; set; }
     public DateTime CreatedDateTime { get; set; }
     public DateTime ModifiedDateTime { get; set; }
     public Title Title { get; set; }
-    public PostsRelation Posts { get; set; }
+    public System.Collections.Generic.ICollection<Post> Posts { get; set; }
 }

@@ -75,6 +75,7 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
     }
 
     public static implicit operator TDomain(DomainValue<TRequest, TEntity, TResponse, TDomain> domain) => domain;
+    public static implicit operator TEntity(DomainValue<TRequest, TEntity, TResponse, TDomain> domain) => domain.EntityValue;
 
     public override string ToString() => EntityValue!.ToString()!;
 }

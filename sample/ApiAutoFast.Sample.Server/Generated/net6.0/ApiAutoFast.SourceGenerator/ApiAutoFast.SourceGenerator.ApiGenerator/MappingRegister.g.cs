@@ -45,8 +45,6 @@ public partial class MappingRegister : ICodeGenerationRegister
         TypeAdapterConfig<Description, string>.NewConfig().MapWith(x => x.EntityValue);
         TypeAdapterConfig<PostType, string>.NewConfig().MapWith(x => x.ToString());
         TypeAdapterConfig<LikeCount, int>.NewConfig().MapWith(x => x.EntityValue);
-        TypeAdapterConfig<BlogRelation, string>.NewConfig().MapWith(x => x.ToString());
-        TypeAdapterConfig<PostsRelation, System.Collections.Generic.ICollection<Post>>.NewConfig().MapWith(x => x.EntityValue);
 
         ExtendRegister(config);
 

@@ -18,7 +18,7 @@ namespace ApiAutoFast.Sample.Server.Database
                 PostType = p1.PostType.ToString(),
                 LikeCount = p1.LikeCount.EntityValue,
                 BlogId = p1.BlogId,
-                Blog = p1.Blog.ToString()
+                Blog = p1.Blog == null ? null : p1.Blog.ToString()
             };
         }
         public static PostResponse AdaptTo(this Post p2, PostResponse p3)
@@ -38,7 +38,7 @@ namespace ApiAutoFast.Sample.Server.Database
             result.PostType = p2.PostType.ToString();
             result.LikeCount = p2.LikeCount.EntityValue;
             result.BlogId = p2.BlogId;
-            result.Blog = p2.Blog.ToString();
+            result.Blog = p2.Blog == null ? null : p2.Blog.ToString();
             return result;
             
         }

@@ -69,6 +69,10 @@ public partial class AutoFastSampleDbContext : DbContext
     //{
     //    return Task.FromResult(0);
     //}
+    //partial void ExtendOnModelCreating(ModelBuilder modelBuilder)
+    //{
+    //    modelBuilder.Entity<Blog>().HasMany<Post>("Posts").WithOne(x => (Blog)x.Blog);
+    //}
 }
 
 //public partial class PostMappingProfile

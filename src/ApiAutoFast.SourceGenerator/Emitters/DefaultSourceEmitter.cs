@@ -69,6 +69,8 @@ public partial class MappingRegister : ICodeGenerationRegister
 
         foreach (var domainValueDefinition in domainValueDefinitions)
         {
+            if (domainValueDefinition.PropertyRelation.RelationalType is not RelationalType.None) continue;
+
             if (domainValueDefinition.ResponseType == domainValueDefinition.EntityType)
             {
                 sb.Append(@"
@@ -154,12 +156,18 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity
             if (propertyMetadata.DomainValueDefiniton.PropertyRelation.RelationalType is RelationalType.ToMany)
             {
                 sb.Append(@"
-        this.").Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.ForeigEntityProperty)
-                .Append(@" = ")
-                .Append(propertyMetadata.DomainValueDefiniton.TypeName)
-                .Append(@".From(new HashSet<")
-                .Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.ForeignEntityName)
-                .Append(@">());");
+            this.").Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.ForeigEntityProperty)
+                    .Append(@" = new HashSet<")
+                    .Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.ForeignEntityName)
+                    .Append(@">();");
+
+                //        sb.Append(@"
+                //this.").Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.ForeigEntityProperty)
+                //        .Append(@" = ")
+                //        .Append(propertyMetadata.DomainValueDefiniton.TypeName)
+                //        .Append(@".From(new HashSet<")
+                //        .Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.ForeignEntityName)
+                //        .Append(@">());");
             }
         }
         sb.Append(@"

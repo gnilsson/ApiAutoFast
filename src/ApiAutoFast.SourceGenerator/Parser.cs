@@ -138,7 +138,9 @@ internal static class Parser
 
             var firstSpaceIndex = propertyString.IndexOf(' ');
             // note: might consider using domainvalue.entitytype here to skip the whole valueconversion shenanigans
-            var entitySource = propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.TypeName}");
+            var entitySource = domainValueDefinition.PropertyRelation.RelationalType is RelationalType.None
+                ? propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.TypeName}")
+                : propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.EntityType}");
 
             if (domainValueDefinition.PropertyRelation.RelationalType is RelationalType.ToOne)
             {
