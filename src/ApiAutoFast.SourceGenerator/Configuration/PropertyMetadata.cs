@@ -13,8 +13,7 @@ internal readonly struct PropertyMetadata
         string name,
         DomainValueDefinition domainValueDefiniton,
         RequestModelTarget requestModelTarget,
-        ImmutableArray<PropertyAttributeMetadata> attributeMetadatas,
-        PropertyRelational? relational = null)
+        ImmutableArray<PropertyAttributeMetadata> attributeMetadatas)
     {
         EntitySource = entitySource;
         RequestSource = requestSource;
@@ -23,7 +22,6 @@ internal readonly struct PropertyMetadata
         DomainValueDefiniton = domainValueDefiniton;
         AttributeMetadatas = attributeMetadatas;
         RequestModelTarget = requestModelTarget;
-        Relational = relational;
     }
 
     internal readonly string RequestSource { get; }
@@ -33,5 +31,4 @@ internal readonly struct PropertyMetadata
     internal readonly DomainValueDefinition DomainValueDefiniton { get; }
     internal readonly ImmutableArray<PropertyAttributeMetadata> AttributeMetadatas { get; }
     internal readonly RequestModelTarget RequestModelTarget { get; }
-    internal readonly PropertyRelational? Relational { get; }
 }

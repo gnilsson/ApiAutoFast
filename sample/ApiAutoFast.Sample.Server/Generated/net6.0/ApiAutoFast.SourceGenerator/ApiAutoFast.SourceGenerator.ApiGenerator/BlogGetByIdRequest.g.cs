@@ -1,5 +1,4 @@
-﻿//HintName: BlogGetByIdRequest.g.cs
-
+﻿
 using ApiAutoFast;
 
 namespace ApiAutoFast.Sample.Server.Database;

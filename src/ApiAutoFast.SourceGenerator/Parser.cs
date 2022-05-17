@@ -124,40 +124,54 @@ internal static class Parser
         }
     }
 
-    // note: think out a good way to do relational with domainvalue
     private static IEnumerable<PropertyMetadata> YieldPropertyMetadata(Compilation compilation, ImmutableArray<ISymbol> members, ImmutableArray<string> foreignEntityNames)
     {
         foreach (var member in members)
         {
             if (member is not IPropertySymbol property) continue;
 
-            if (TryGetDomainValueDefinition(compilation, property, out var domainValueDefinition) is false) continue;
+            if (TryGetDomainValueDefinition(compilation, property, foreignEntityNames, out var domainValueDefinition) is false) continue;
 
             var propertyString = property.ToDisplayString(new SymbolDisplayFormat(
                 propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
                 memberOptions: SymbolDisplayMemberOptions.IncludeAccessibility));
 
-            //var relational = GetRelationalEntity(foreignEntityNames, property);
-
             var firstSpaceIndex = propertyString.IndexOf(' ');
-            var entitySource = propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.Name}");
-            var requestSource = propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}?");
-            var commandSource = propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}");
+            // note: might consider using domainvalue.entitytype here to skip the whole valueconversion shenanigans
+            var entitySource = propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.TypeName}");
+
+            if (domainValueDefinition.PropertyRelation.RelationalType is RelationalType.ToOne)
+            {
+                var extendPropertyNameIndex = propertyString.IndexOf('{') - 1;
+                propertyString = propertyString.Insert(extendPropertyNameIndex, $"Id ");
+            }
+
+            var requestSource = domainValueDefinition.PropertyRelation.RelationalType is not RelationalType.ToMany
+                ? propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}?")
+                : string.Empty;
+
+            var commandSource = domainValueDefinition.PropertyRelation.RelationalType is not RelationalType.ToMany
+                ? propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}")
+                : string.Empty;
 
             var attributes = YieldAttributeMetadata(property).ToImmutableArray();
 
             var requestModelTarget = GetRequestModelTarget(attributes);
 
-            yield return new PropertyMetadata(entitySource, requestSource, commandSource, property.Name, domainValueDefinition, requestModelTarget, attributes, null);
+            yield return new PropertyMetadata(entitySource, requestSource, commandSource, property.Name, domainValueDefinition, requestModelTarget, attributes);
         }
     }
 
-    private static bool TryGetDomainValueDefinition(Compilation compilation, IPropertySymbol property, out DomainValueDefinition domainValueDefinition)
+    private static bool TryGetDomainValueDefinition(
+        Compilation compilation,
+        IPropertySymbol property,
+        ImmutableArray<string> foreignEntityNames,
+        out DomainValueDefinition domainValueDefinition)
     {
         // note: check if ToResponse is implemented for response mapping?
         domainValueDefinition = default;
 
-        var domainValueType = compilation.GetTypeByMetadataName($"{property.ContainingNamespace}.{property.Name}");
+        var domainValueType = compilation.GetTypeByMetadataName(property.Type.ToString());
 
         var success = domainValueType?.BaseType?.TypeArguments.Length > 0;
 
@@ -169,6 +183,8 @@ internal static class Parser
                 ? requestType
                 : domainValueType.BaseType.TypeArguments[1];
 
+            var propertyRelation = GetPropertyRelation(property, foreignEntityNames, entityType);
+
             var responseType = domainValueType.BaseType.TypeArguments.Length == 4
                 ? domainValueType.BaseType.TypeArguments[2]
                 : requestType;
@@ -178,11 +194,33 @@ internal static class Parser
                 entityType.ToString(),
                 responseType.ToString(),
                 property.Name,
-                requestType.IsValueType);
+                property.Type.Name,
+                propertyRelation);
         }
 
         return success;
     }
+
+    private static PropertyRelation GetPropertyRelation(IPropertySymbol property, ImmutableArray<string> foreignEntityNames, ITypeSymbol entityType)
+    {
+        if (entityType.Name.Contains("ICollection") && entityType is INamedTypeSymbol { TypeArguments.Length: > 0 } namedTypeSymbol)
+        {
+            var entityTypeName = namedTypeSymbol.TypeArguments[0].Name;
+
+            if (foreignEntityNames.Contains(entityTypeName))
+            {
+                return new PropertyRelation(entityTypeName, property.Name, RelationalType.ToMany);
+            }
+        }
+
+        if (foreignEntityNames.Contains(entityType.Name))
+        {
+            return new PropertyRelation(entityType.Name, property.Name, RelationalType.ToOne);
+        }
+
+        return PropertyRelation.None;
+    }
+
 
     private static RequestModelTarget GetRequestModelTarget(ImmutableArray<PropertyAttributeMetadata> attributes)
     {
@@ -198,73 +236,6 @@ internal static class Parser
 
         return RequestModelTarget.CreateCommand | RequestModelTarget.ModifyCommand | RequestModelTarget.QueryRequest;
     }
-
-    //private static string GetRequestPropertySource(IPropertySymbol property, string propertyString, string requestType, PropertyRelational? relational)
-    //{
-    //    var type = relational switch
-    //    {
-    //        null or
-    //        { RelationalType: RelationalType.ShadowToMany or RelationalType.ShadowToOne } => requestType,
-    //        { RelationalType: RelationalType.ToMany } => $"ICollection<{relational.Value.ForeignEntityName}>",
-    //        { RelationalType: RelationalType.ToOne } => relational.Value.ForeignEntityName,
-    //        _ => "object"
-    //    };
-
-    //    var source = propertyString.Insert(propertyString.IndexOf(' '), $" {type}");
-
-    //    // note: temporary way of checking types
-    //    //       nullable?
-    //    if (type.Contains("Identifier"))
-    //    {
-    //        if (type.Contains("ICollection"))
-    //        {
-    //            return propertyString.Insert(propertyString.IndexOf(' '), " IEnumerable<string>?");
-    //        }
-
-    //        return propertyString.Insert(propertyString.IndexOf(' '), " string?");
-    //    }
-
-    //    return source;
-    //}
-
-    // note: this method is based on some conventions, i.e that an entity with a one-to-many relation will declare that
-    //       with a property of type ICollection<Foo> and with name Foos.
-    //       alot of this is temporary.
-    //private static PropertyRelational? GetRelationalEntity(ImmutableArray<string> foreignEntityNames, IPropertySymbol property)
-    //{
-    //    foreach (var foreignEntityName in foreignEntityNames)
-    //    {
-    //        if (property.Name.Contains(foreignEntityName) is false) continue;
-
-    //        if (property.Type.ToDisplayString().Contains("ICollection"))
-    //        {
-    //            if (property.Name == $"{foreignEntityName}s")
-    //            {
-    //                return new PropertyRelational(foreignEntityName, property.Name, RelationalType.ToMany);
-    //            }
-
-    //            if (property.Name == $"{foreignEntityName}Ids")
-    //            {
-    //                return new PropertyRelational(foreignEntityName, property.Name, RelationalType.ShadowToMany);
-    //            }
-
-    //            // note: we need exact match to be certain, so just continue here.
-    //            continue;
-    //        }
-
-    //        if (property.Name == foreignEntityName)
-    //        {
-    //            return new PropertyRelational(foreignEntityName, property.Name, RelationalType.ToOne);
-    //        }
-
-    //        if (property.Name == $"{foreignEntityName}Id")
-    //        {
-    //            return new PropertyRelational(foreignEntityName, property.Name, RelationalType.ShadowToOne);
-    //        }
-    //    }
-
-    //    return null;
-    //}
 
     private static string GetLastPart(string valueToSubstring, char seperator = '.')
     {
@@ -334,18 +305,3 @@ internal static class Parser
         return nameSpace;
     }
 }
-
-// note: domainvalue does not support nullable generic params
-
-//private static string GetTypeKind(IPropertySymbol property)
-//{
-//    if (property.NullableAnnotation is NullableAnnotation.Annotated)
-//    {
-//        if (property.Type is INamedTypeSymbol { TypeArguments.Length: > 0 } namedTypeSymbol)
-//        {
-//            return namedTypeSymbol.TypeArguments[0].TypeKind.ToString();
-//        }
-//    }
-
-//    return property.Type.TypeKind.ToString();
-//}

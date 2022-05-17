@@ -151,13 +151,12 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity
     {");
         foreach (var propertyMetadata in entityConfig.PropertyMetadatas)
         {
-            if (propertyMetadata.Relational?.RelationalType is RelationalType.ToMany)
+            if (propertyMetadata.DomainValueDefiniton.PropertyRelation.RelationalType is RelationalType.ToMany)
             {
                 sb.Append(@"
-        this.").Append(propertyMetadata.Relational.Value.ForeigEntityProperty)
-                .Append(@" = new HashSet<").Append(propertyMetadata.Relational.Value.ForeignEntityName)
+        this.").Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.ForeigEntityProperty)
+                .Append(@" = new HashSet<").Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.ForeignEntityName)
                 .Append(@">();");
-
             }
         }
         sb.Append(@"
@@ -166,7 +165,6 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity
     public Identifier Id { get; set; }
     public DateTime CreatedDateTime { get; set; }
     public DateTime ModifiedDateTime { get; set; }");
-
         foreach (var propertyMetadata in entityConfig.PropertyMetadatas)
         {
             foreach (var attributeMetadata in propertyMetadata.AttributeMetadatas)
@@ -177,12 +175,14 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity
     [").Append(attributeMetadata.Name).Append(@"]");
                 }
             }
-
+            if (propertyMetadata.DomainValueDefiniton.PropertyRelation.RelationalType is RelationalType.ToOne)
+            {
+                sb.Append(@"
+    public Identifier ").Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.ForeignEntityName).Append(@"Id { get; set; }");
+            }
             sb.Append(@"
     ").Append(propertyMetadata.EntitySource);
         }
-
-
         sb.Append(@"
 }
 ");
@@ -198,7 +198,6 @@ using ApiAutoFast;
 
 namespace ").Append(@namespace).Append(@";
 ");
-
         sb.Append(@"
 public class ").Append(entityConfig.BaseName).Append(modelTarget).Append(@"
 {");

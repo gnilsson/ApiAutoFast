@@ -2,9 +2,18 @@
 
 namespace ApiAutoFast.SourceGenerator.Configuration;
 
-internal readonly struct PropertyRelational
+internal readonly struct PropertyRelation
 {
-    internal PropertyRelational(string foreignEntityName, string foreigEntityProperty, RelationalType relationalType)
+    public static PropertyRelation None = new(RelationalType.None);
+
+    private PropertyRelation(RelationalType relationalType)
+    {
+        RelationalType = relationalType;
+        ForeignEntityName = string.Empty;
+        ForeigEntityProperty = string.Empty;
+    }
+
+    internal PropertyRelation(string foreignEntityName, string foreigEntityProperty, RelationalType relationalType)
     {
         ForeignEntityName = foreignEntityName;
         ForeigEntityProperty = foreigEntityProperty;

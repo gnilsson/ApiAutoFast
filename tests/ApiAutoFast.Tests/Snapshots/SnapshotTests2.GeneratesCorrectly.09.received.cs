@@ -1,10 +1,17 @@
-﻿//HintName: PostGetByIdRequest.g.cs
+﻿//HintName: EndpointTargetEnum.g.cs
 
-using ApiAutoFast;
+using System;
 
-namespace ApiAutoFast.Sample.Server.Database;
+namespace ApiAutoFast;
 
-public class PostGetByIdRequest
+[Flags]
+internal enum EndpointTargetType
 {
-    public string Id { get; set; }
+    None = 0,
+    Get = 1,
+    GetById = 2,
+    Create = 4,
+    Update = 8,
+    Delete = 16,
+    All = Get | Create | Update | GetById | Delete
 }

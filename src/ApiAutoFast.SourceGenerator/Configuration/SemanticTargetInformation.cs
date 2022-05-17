@@ -1,7 +1,6 @@
-﻿using ApiAutoFast.SourceGenerator.Configuration.Enums;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace ApiAutoFast.SourceGenerator;
+namespace ApiAutoFast.SourceGenerator.Configuration;
 
 internal sealed record SemanticTargetInformation
 {

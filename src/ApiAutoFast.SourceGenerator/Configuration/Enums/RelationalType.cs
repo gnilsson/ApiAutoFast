@@ -2,7 +2,8 @@
 
 internal enum RelationalType
 {
-    ToOne = 0,
+    None = 0,
+    ToOne,
     ToMany,
     ShadowToOne,
     ShadowToMany,

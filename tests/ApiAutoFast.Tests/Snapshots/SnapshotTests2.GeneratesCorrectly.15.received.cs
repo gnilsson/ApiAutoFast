@@ -1,10 +1,10 @@
-﻿//HintName: BlogGetByIdRequest.g.cs
+﻿//HintName: PostGetByIdRequest.g.cs
 
 using ApiAutoFast;
 
 namespace ApiAutoFast.Sample.Server.Database;
 
-public class BlogGetByIdRequest
+public class PostGetByIdRequest
 {
     public string Id { get; set; }
 }

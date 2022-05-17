@@ -40,20 +40,28 @@ public readonly struct Identifier
 
     public static Identifier New() => new(Guid.NewGuid());
 
+    public static Identifier ConvertFromRequest(string request, Action<string, string> addError)
+    {
+        if (TryParse(request, out var identifier)) return identifier;
+
+        addError(typeof(Identifier).Name, "Error when parsing identifier.");
+
+        return Empty;
+    }
+
     public static bool TryParse(string valueToParse, out Identifier identifier)
     {
         identifier = Empty;
 
-        if (Regex.IsMatch(valueToParse, Base64RegexPattern, RegexOptions.Compiled))
+        var success = Regex.IsMatch(valueToParse, Base64RegexPattern, RegexOptions.Compiled);
+
+        if (success)
         {
             identifier = new Identifier(valueToParse);
-
-            return true;
         }
 
-        return false;
+        return success;
     }
-
     private static string ToIdentifierString(Guid id)
     {
         Span<byte> idBytes = stackalloc byte[16];

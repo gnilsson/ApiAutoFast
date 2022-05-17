@@ -45,11 +45,14 @@ public partial class MappingRegister : ICodeGenerationRegister
         TypeAdapterConfig<Description, string>.NewConfig().MapWith(x => x.EntityValue);
         TypeAdapterConfig<PostType, string>.NewConfig().MapWith(x => x.ToString());
         TypeAdapterConfig<LikeCount, int>.NewConfig().MapWith(x => x.EntityValue);
+        TypeAdapterConfig<BlogRelation, string>.NewConfig().MapWith(x => x.ToString());
+        TypeAdapterConfig<PostsRelation, System.Collections.Generic.ICollection<Post>>.NewConfig().MapWith(x => x.EntityValue);
 
         ExtendRegister(config);
 
         config.GenerateMapper("[name]Mapper")
-            .ForType<Post>();
+            .ForType<Post>()
+            .ForType<Blog>();
     }
 }
 
@@ -68,6 +71,15 @@ public static class AdaptAttributeBuilderExtensions
                 cfg.Map(poco => poco.Description, typeof(string));
                 cfg.Map(poco => poco.PostType, typeof(string));
                 cfg.Map(poco => poco.LikeCount, typeof(int));
+                cfg.Map(poco => poco.Blog, typeof(string));
+            })
+            .ForType<Blog>(cfg =>
+            {
+                cfg.Map(poco => poco.Id, typeof(string));
+                cfg.Map(poco => poco.CreatedDateTime, typeof(string));
+                cfg.Map(poco => poco.ModifiedDateTime, typeof(string));
+                cfg.Map(poco => poco.Title, typeof(string));
+                cfg.Map(poco => poco.Posts, typeof(System.Collections.Generic.ICollection<Post>));
             });
     }
 }
