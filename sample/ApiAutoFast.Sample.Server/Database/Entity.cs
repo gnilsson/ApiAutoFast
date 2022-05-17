@@ -35,6 +35,21 @@ public class PostsRelation : DomainValue<ICollection<Post>, PostsRelation>
 
 }
 
+//public class Blo2g : IEntity
+//{
+//    public Blo2g()
+//    {
+//        Posts = PostsRelation.From(new HashSet<Post>());
+//    }
+
+//    public Identifier Id { get; set; }
+//    public DateTime CreatedDateTime { get; set; }
+//    public DateTime ModifiedDateTime { get; set; }
+//    public Title Title { get; set; }
+//    public PostsRelation Posts { get; set; }
+//}
+
+
 //public class ForeignTest : DomainValue<string, Test, ForeignTest>
 //{
 
@@ -95,6 +110,7 @@ public partial class AutoFastSampleDbContext : DbContext
 //        await SendCreatedAtAsync<GetByIdPostEndpoint>(new { Id = entity.Id }, response, generateAbsoluteUrl: true, cancellation: ct);
 //    }
 //}
+
 
 
 //[AutoFastEndpoints(includeEndpointTarget: EndpointTargetType.Get)]

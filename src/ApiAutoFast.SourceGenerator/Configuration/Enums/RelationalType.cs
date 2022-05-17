@@ -5,6 +5,4 @@ internal enum RelationalType
     None = 0,
     ToOne,
     ToMany,
-    ShadowToOne,
-    ShadowToMany,
 }

@@ -65,17 +65,16 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
 
     // note: is this performant for get requests? :D
     //       :S w/e
-    public static implicit operator DomainValue<TRequest, TEntity, TResponse, TDomain>(TEntity entityValue)
+    public static implicit operator DomainValue<TRequest, TEntity, TResponse, TDomain>(TEntity entityValue) => From(entityValue);
+
+    public static DomainValue<TRequest, TEntity, TResponse, TDomain> From(TEntity entityValue)
     {
         var domain = _factory();
         domain.EntityValue = entityValue;
         return domain;
     }
 
-    //public static implicit operator TEntity(DomainValue<TRequest, TEntity, TResponse, TDomain> domain)
-    //{
-    //    return domain.EntityValue;
-    //}
+    public static implicit operator TDomain(DomainValue<TRequest, TEntity, TResponse, TDomain> domain) => domain;
 
     public override string ToString() => EntityValue!.ToString()!;
 }

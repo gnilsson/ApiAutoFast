@@ -73,7 +73,7 @@ public partial class MappingRegister : ICodeGenerationRegister
             {
                 sb.Append(@"
         TypeAdapterConfig<")
-                    .Append(domainValueDefinition.Name)
+                    .Append(domainValueDefinition.TypeName)
                     .Append(@", ")
                     .Append(domainValueDefinition.ResponseType)
                     .Append(@">.NewConfig().MapWith(x => x.EntityValue);");
@@ -83,7 +83,7 @@ public partial class MappingRegister : ICodeGenerationRegister
 
             sb.Append(@"
         TypeAdapterConfig<")
-                .Append(domainValueDefinition.Name)
+                .Append(domainValueDefinition.TypeName)
                 .Append(@", ")
                 .Append(domainValueDefinition.ResponseType)
                 .Append(@">.NewConfig().MapWith(x => x.ToString());");
@@ -155,8 +155,11 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity
             {
                 sb.Append(@"
         this.").Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.ForeigEntityProperty)
-                .Append(@" = new HashSet<").Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.ForeignEntityName)
-                .Append(@">();");
+                .Append(@" = ")
+                .Append(propertyMetadata.DomainValueDefiniton.TypeName)
+                .Append(@".From(new HashSet<")
+                .Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.ForeignEntityName)
+                .Append(@">());");
             }
         }
         sb.Append(@"
@@ -330,12 +333,12 @@ public partial class ")
 ");
         foreach (var property in entityConfig.PropertyMetadatas)
         {
-            //   var valueTypeDefault = property.DomainValueDefiniton.RequestIsValueType ? @" ?? 0" : string.Empty;
-
+            // note: temporary check
+            if (property.DomainValueDefiniton.PropertyRelation.RelationalType is not RelationalType.None) continue;
             sb.Append(@"            ")
                 .Append(property.Name)
                 .Append(@" = ")
-                .Append(property.DomainValueDefiniton.Name)
+                .Append(property.DomainValueDefiniton.TypeName)
                 .Append(@".ConvertFromRequest(command.")
                 .Append(property.Name)
                 .Append(@", addValidationError),

@@ -146,13 +146,13 @@ internal static class Parser
                 propertyString = propertyString.Insert(extendPropertyNameIndex, $"Id ");
             }
 
-            var requestSource = domainValueDefinition.PropertyRelation.RelationalType is not RelationalType.ToMany
-                ? propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}?")
-                : string.Empty;
+            var requestSource = domainValueDefinition.PropertyRelation.RelationalType is RelationalType.ToMany
+                ? string.Empty
+                : propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}?");
 
-            var commandSource = domainValueDefinition.PropertyRelation.RelationalType is not RelationalType.ToMany
-                ? propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}")
-                : string.Empty;
+            var commandSource = domainValueDefinition.PropertyRelation.RelationalType is RelationalType.ToMany
+                ? string.Empty
+                : propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}");
 
             var attributes = YieldAttributeMetadata(property).ToImmutableArray();
 
