@@ -57,6 +57,8 @@ public partial class MappingRegister : ICodeGenerationRegister
 
         TypeAdapterConfig.GlobalSettings.Default.EnumMappingStrategy(EnumMappingStrategy.ByName);
 
+        TypeAdapterConfig.GlobalSettings.Default.AddDestinationTransform(DestinationTransform.EmptyCollectionIfNull);
+
         TypeAdapterConfig.GlobalSettings
             .When((src, dest, map) => src.GetInterface(nameof(IEntity)) is not null)
             .Map(nameof(IEntity.CreatedDateTime), (IEntity e) => e.CreatedDateTime.ToString(""dddd, dd MMMM yyyy HH:mm""))
@@ -89,7 +91,6 @@ public partial class MappingRegister : ICodeGenerationRegister
                 .Append(@", ")
                 .Append(domainValueDefinition.ResponseType)
                 .Append(@">.NewConfig().MapWith(x => x.ToString());");
-
         }
 
         sb.Append(@"
@@ -121,8 +122,14 @@ public static class AdaptAttributeBuilderExtensions
                 cfg.Map(poco => poco.ModifiedDateTime, typeof(string));");
             foreach (var property in entity.PropertyMetadatas)
             {
+                if (property.DomainValueDefiniton.PropertyRelation.RelationalType is RelationalType.ToMany) continue;
+
+                var propertyName = property.DomainValueDefiniton.PropertyRelation.RelationalType is RelationalType.ToOne
+                    ? property.DomainValueDefiniton.PropertyRelation.IdPropertyName
+                    : property.DomainValueDefiniton.PropertyName;
+
                 sb.Append(@"
-                cfg.Map(poco => poco.").Append(property.Name).Append(@", typeof(").Append(property.DomainValueDefiniton.ResponseType).Append(@"));");
+                cfg.Map(poco => poco.").Append(propertyName).Append(@", typeof(").Append(property.DomainValueDefiniton.ResponseType).Append(@"));");
             }
             sb.Append(@"
             })");
@@ -156,18 +163,10 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity
             if (propertyMetadata.DomainValueDefiniton.PropertyRelation.RelationalType is RelationalType.ToMany)
             {
                 sb.Append(@"
-            this.").Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.ForeigEntityProperty)
-                    .Append(@" = new HashSet<")
-                    .Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.ForeignEntityName)
-                    .Append(@">();");
-
-                //        sb.Append(@"
-                //this.").Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.ForeigEntityProperty)
-                //        .Append(@" = ")
-                //        .Append(propertyMetadata.DomainValueDefiniton.TypeName)
-                //        .Append(@".From(new HashSet<")
-                //        .Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.ForeignEntityName)
-                //        .Append(@">());");
+        this.").Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.ForeigEntityProperty)
+                .Append(@" = new HashSet<")
+                .Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.ForeignEntityName)
+                .Append(@">();");
             }
         }
         sb.Append(@"
@@ -189,7 +188,7 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity
             if (propertyMetadata.DomainValueDefiniton.PropertyRelation.RelationalType is RelationalType.ToOne)
             {
                 sb.Append(@"
-    public Identifier ").Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.ForeignEntityName).Append(@"Id { get; set; }");
+    public Identifier ").Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.IdPropertyName).Append(@" { get; set; }");
             }
             sb.Append(@"
     ").Append(propertyMetadata.EntitySource);
@@ -327,7 +326,7 @@ public partial class ")
             if (propertyMetadata.AttributeMetadatas.Any(x => x.Name is nameof(RequestModelTarget.ModifyCommand)))
             {
                 sb.Append(@"
-        originalEntity.").Append(propertyMetadata.Name).Append(@" = e.").Append(propertyMetadata.Name).Append(';');
+        originalEntity.").Append(propertyMetadata.DomainValueDefiniton.PropertyName).Append(@" = e.").Append(propertyMetadata.DomainValueDefiniton.PropertyName).Append(';');
             }
         }
         sb.Append(@"
@@ -342,13 +341,18 @@ public partial class ")
         foreach (var property in entityConfig.PropertyMetadatas)
         {
             // note: temporary check
-            if (property.DomainValueDefiniton.PropertyRelation.RelationalType is not RelationalType.None) continue;
+            if (property.DomainValueDefiniton.PropertyRelation.RelationalType is RelationalType.ToMany) continue;
+
+            var propertyName = property.DomainValueDefiniton.PropertyRelation.RelationalType is RelationalType.ToOne
+                ? property.DomainValueDefiniton.PropertyRelation.IdPropertyName
+                : property.DomainValueDefiniton.PropertyName;
+
             sb.Append(@"            ")
-                .Append(property.Name)
+                .Append(propertyName)
                 .Append(@" = ")
                 .Append(property.DomainValueDefiniton.TypeName)
                 .Append(@".ConvertFromRequest(command.")
-                .Append(property.Name)
+                .Append(propertyName)
                 .Append(@", addValidationError),
 ");
         }

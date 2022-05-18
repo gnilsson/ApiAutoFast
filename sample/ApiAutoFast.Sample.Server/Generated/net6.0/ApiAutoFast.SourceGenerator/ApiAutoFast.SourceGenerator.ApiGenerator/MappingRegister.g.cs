@@ -35,6 +35,8 @@ public partial class MappingRegister : ICodeGenerationRegister
 
         TypeAdapterConfig.GlobalSettings.Default.EnumMappingStrategy(EnumMappingStrategy.ByName);
 
+        TypeAdapterConfig.GlobalSettings.Default.AddDestinationTransform(DestinationTransform.EmptyCollectionIfNull);
+
         TypeAdapterConfig.GlobalSettings
             .When((src, dest, map) => src.GetInterface(nameof(IEntity)) is not null)
             .Map(nameof(IEntity.CreatedDateTime), (IEntity e) => e.CreatedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"))
@@ -69,7 +71,7 @@ public static class AdaptAttributeBuilderExtensions
                 cfg.Map(poco => poco.Description, typeof(string));
                 cfg.Map(poco => poco.PostType, typeof(string));
                 cfg.Map(poco => poco.LikeCount, typeof(int));
-                cfg.Map(poco => poco.Blog, typeof(string));
+                cfg.Map(poco => poco.BlogId, typeof(string));
             })
             .ForType<Blog>(cfg =>
             {
@@ -77,7 +79,6 @@ public static class AdaptAttributeBuilderExtensions
                 cfg.Map(poco => poco.CreatedDateTime, typeof(string));
                 cfg.Map(poco => poco.ModifiedDateTime, typeof(string));
                 cfg.Map(poco => poco.Title, typeof(string));
-                cfg.Map(poco => poco.Posts, typeof(System.Collections.Generic.ICollection<Post>));
             });
     }
 }

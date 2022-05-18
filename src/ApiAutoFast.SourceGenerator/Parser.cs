@@ -144,8 +144,9 @@ internal static class Parser
 
             if (domainValueDefinition.PropertyRelation.RelationalType is RelationalType.ToOne)
             {
+                // note: this got way too messy when its no direct 1-1 mapping from real and generated properties..
                 var extendPropertyNameIndex = propertyString.IndexOf('{') - 1;
-                propertyString = propertyString.Insert(extendPropertyNameIndex, $"Id ");
+                propertyString = propertyString.Insert(extendPropertyNameIndex, $"Id");
             }
 
             var requestSource = domainValueDefinition.PropertyRelation.RelationalType is RelationalType.ToMany
@@ -153,14 +154,14 @@ internal static class Parser
                 : propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}?");
 
             var commandSource = domainValueDefinition.PropertyRelation.RelationalType is RelationalType.ToMany
-                ? string.Empty
+                ? string.Empty // note: as of now there is no support to adding multiple foreign entities in one command
                 : propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}");
 
             var attributes = YieldAttributeMetadata(property).ToImmutableArray();
 
             var requestModelTarget = GetRequestModelTarget(attributes);
 
-            yield return new PropertyMetadata(entitySource, requestSource, commandSource, property.Name, domainValueDefinition, requestModelTarget, attributes);
+            yield return new PropertyMetadata(entitySource, requestSource, commandSource, domainValueDefinition, requestModelTarget, attributes);
         }
     }
 
@@ -187,6 +188,8 @@ internal static class Parser
 
             var propertyRelation = GetPropertyRelation(property, foreignEntityNames, entityType);
 
+            var typeName = propertyRelation.RelationalType == RelationalType.ToOne ? "Identifier" : property.Type.Name;
+
             var responseType = domainValueType.BaseType.TypeArguments.Length == 4
                 ? domainValueType.BaseType.TypeArguments[2]
                 : requestType;
@@ -196,7 +199,7 @@ internal static class Parser
                 entityType.ToString(),
                 responseType.ToString(),
                 property.Name,
-                property.Type.Name,
+                typeName,
                 propertyRelation);
         }
 

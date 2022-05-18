@@ -1,4 +1,5 @@
 ﻿using FluentValidation.Results;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 
 namespace ApiAutoFast.Sample.Server.Database;
@@ -35,27 +36,6 @@ public class PostsRelation : DomainValue<ICollection<Post>, PostsRelation>
 
 }
 
-//public class Blo2g : IEntity
-//{
-//    public Blo2g()
-//    {
-//        Posts = PostsRelation.From(new HashSet<Post>());
-//    }
-
-//    public Identifier Id { get; set; }
-//    public DateTime CreatedDateTime { get; set; }
-//    public DateTime ModifiedDateTime { get; set; }
-//    public Title Title { get; set; }
-//    public PostsRelation Posts { get; set; }
-//}
-
-
-//public class ForeignTest : DomainValue<string, Test, ForeignTest>
-//{
-
-//}
-
-
 //[AutoFastEndpoints]
 //public class TestConfig
 //{
@@ -86,9 +66,53 @@ public partial class AutoFastSampleDbContext : DbContext
 //            Description = Description.ConvertFromRequest(command.Description, addValidationError),
 //            PostType = PostType.ConvertFromRequest(command.PostType, addValidationError),
 //            LikeCount = LikeCount.ConvertFromRequest(command.LikeCount, addValidationError),
+//            BlogId = Identifier.ConvertFromRequest(command.BlogId, addValidationError)
 //        };
 //    }
 //}
+
+// note: is it possible to have icollection of foreign keys and insert with those?
+//public partial class BlogMappingProfile
+//{
+//    List<string> ids = null;
+//    public Blog ToDomainEntity2(BlogCreateCommand command, Action<string, string> addValidationError)
+//    {
+//        return new Blog
+//        {
+//            Title = Title.ConvertFromRequest(command.Title, addValidationError),
+// //           Posts = ids.Select(x => Identifier.ConvertFromRequest(x, addValidationError))
+//        };
+//    }
+//}
+
+//public partial class MappingRegiste2r : ICodeGenerationRegister
+//{
+//    public void Register(CodeGenerationConfig config)
+//    {
+//        var aab = config.AdaptTo("[name]Response");
+
+//        TypeAdapterConfig.GlobalSettings.Default.EnumMappingStrategy(EnumMappingStrategy.ByName);
+
+//        TypeAdapterConfig.GlobalSettings.Default.AddDestinationTransform(DestinationTransform.EmptyCollectionIfNull);
+
+//        TypeAdapterConfig.GlobalSettings
+//            .When((src, dest, map) => src.GetInterface(nameof(IEntity)) is not null)
+//            .Map(nameof(IEntity.CreatedDateTime), (IEntity e) => e.CreatedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"))
+//            .Map(nameof(IEntity.ModifiedDateTime), (IEntity e) => e.ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"));
+
+//        TypeAdapterConfig<Title, string>.NewConfig().MapWith(x => x.EntityValue);
+//        TypeAdapterConfig<PublicationDateTime, string>.NewConfig().MapWith(x => x.ToString());
+//        TypeAdapterConfig<Description, string>.NewConfig().MapWith(x => x.EntityValue);
+//        TypeAdapterConfig<PostType, string>.NewConfig().MapWith(x => x.ToString());
+//        TypeAdapterConfig<LikeCount, int>.NewConfig().MapWith(x => x.EntityValue);
+
+
+//        config.GenerateMapper("[name]Mapper")
+//            .ForType<Post>()
+//            .ForType<Blog>();
+//    }
+//}
+
 
 //public partial class CreatePostEndpoint
 //{

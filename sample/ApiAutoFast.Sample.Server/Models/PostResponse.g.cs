@@ -1,4 +1,4 @@
-using ApiAutoFast;
+using ApiAutoFast.Sample.Server.Database;
 
 namespace ApiAutoFast.Sample.Server.Database
 {
@@ -12,7 +12,7 @@ namespace ApiAutoFast.Sample.Server.Database
         public string Description { get; set; }
         public string PostType { get; set; }
         public int LikeCount { get; set; }
-        public Identifier BlogId { get; set; }
-        public string Blog { get; set; }
+        public string BlogId { get; set; }
+        public BlogResponse Blog { get; set; }
     }
 }

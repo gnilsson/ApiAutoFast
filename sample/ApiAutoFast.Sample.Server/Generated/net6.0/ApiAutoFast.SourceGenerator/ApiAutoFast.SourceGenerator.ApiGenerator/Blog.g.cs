@@ -9,7 +9,7 @@ public class Blog : IEntity
 {
     public Blog()
     {
-            this.Posts = new HashSet<Post>();
+        this.Posts = new HashSet<Post>();
     }
 
     public Identifier Id { get; set; }

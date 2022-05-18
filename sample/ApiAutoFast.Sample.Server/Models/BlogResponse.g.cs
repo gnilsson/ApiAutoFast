@@ -9,6 +9,6 @@ namespace ApiAutoFast.Sample.Server.Database
         public string CreatedDateTime { get; set; }
         public string ModifiedDateTime { get; set; }
         public string Title { get; set; }
-        public ICollection<Post> Posts { get; set; }
+        public ICollection<PostResponse> Posts { get; set; }
     }
 }

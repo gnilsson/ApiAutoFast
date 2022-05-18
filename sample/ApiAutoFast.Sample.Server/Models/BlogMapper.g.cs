@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using ApiAutoFast;
 using ApiAutoFast.Sample.Server.Database;
@@ -9,7 +8,7 @@ namespace ApiAutoFast.Sample.Server.Database
     public static partial class BlogMapper
     {
         private static TypeAdapterConfig TypeAdapterConfig1;
-
+        
         public static BlogResponse AdaptToResponse(this Blog p1)
         {
             return p1 == null ? null : new BlogResponse()
@@ -18,140 +17,86 @@ namespace ApiAutoFast.Sample.Server.Database
                 CreatedDateTime = ((IEntity)p1).CreatedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"),
                 ModifiedDateTime = ((IEntity)p1).ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"),
                 Title = p1.Title.EntityValue,
-                Posts = funcMain1(p1.Posts)
+                Posts = funcMain1(p1.Posts) ?? new List<PostResponse>()
             };
         }
-        public static BlogResponse AdaptTo(this Blog p7, BlogResponse p8)
+        public static BlogResponse AdaptTo(this Blog p3, BlogResponse p4)
         {
-            if (p7 == null)
+            if (p3 == null)
             {
                 return null;
             }
-            BlogResponse result = p8 ?? new BlogResponse();
-
-            result.Id = p7.Id.ToString();
-            result.CreatedDateTime = ((IEntity)p7).CreatedDateTime.ToString("dddd, dd MMMM yyyy HH:mm");
-            result.ModifiedDateTime = ((IEntity)p7).ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm");
-            result.Title = p7.Title.EntityValue;
-            result.Posts = funcMain6(p7.Posts, result.Posts);
+            BlogResponse result = p4 ?? new BlogResponse();
+            
+            result.Id = p3.Id.ToString();
+            result.CreatedDateTime = ((IEntity)p3).CreatedDateTime.ToString("dddd, dd MMMM yyyy HH:mm");
+            result.ModifiedDateTime = ((IEntity)p3).ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm");
+            result.Title = p3.Title.EntityValue;
+            result.Posts = funcMain2(p3.Posts, result.Posts) ?? new List<PostResponse>();
             return result;
-
+            
         }
-
-        private static ICollection<Post> funcMain1(ICollection<Post> p2)
+        
+        private static ICollection<PostResponse> funcMain1(ICollection<Post> p2)
         {
             if (p2 == null)
             {
                 return null;
             }
-            ICollection<Post> result = new List<Post>(p2.Count);
-
+            ICollection<PostResponse> result = new List<PostResponse>(p2.Count);
+            
             IEnumerator<Post> enumerator = p2.GetEnumerator();
-
+            
             while (enumerator.MoveNext())
             {
                 Post item = enumerator.Current;
-                result.Add(item == null ? null : new Post()
+                result.Add(item == null ? null : new PostResponse()
                 {
-                    Id = item.Id,
-                    CreatedDateTime = funcMain2(((IEntity)item).CreatedDateTime.ToString("dddd, dd MMMM yyyy HH:mm")),
-                    ModifiedDateTime = funcMain3(((IEntity)item).ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm")),
-                    Title = item.Title,
-                    PublicationDateTime = item.PublicationDateTime,
-                    Description = item.Description,
-                    PostType = item.PostType,
-                    LikeCount = item.LikeCount,
-                    BlogId = item.BlogId,
-                    Blog = item.Blog == null ? null : new Blog()
-                    {
-                        Id = item.Blog.Id,
-                        CreatedDateTime = funcMain4(((IEntity)item.Blog).CreatedDateTime.ToString("dddd, dd MMMM yyyy HH:mm")),
-                        ModifiedDateTime = funcMain5(((IEntity)item.Blog).ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm")),
-                        Title = item.Blog.Title,
-                        Posts = TypeAdapterConfig1.GetMapFunction<ICollection<Post>, ICollection<Post>>().Invoke(item.Blog.Posts)
-                    }
+                    Id = item.Id.ToString(),
+                    CreatedDateTime = ((IEntity)item).CreatedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"),
+                    ModifiedDateTime = ((IEntity)item).ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"),
+                    Title = item.Title.EntityValue,
+                    PublicationDateTime = item.PublicationDateTime.ToString(),
+                    Description = item.Description.EntityValue,
+                    PostType = item.PostType.ToString(),
+                    LikeCount = item.LikeCount.EntityValue,
+                    BlogId = item.BlogId.ToString(),
+                    Blog = TypeAdapterConfig1.GetMapFunction<Blog, BlogResponse>().Invoke(item.Blog)
                 });
             }
             return result;
-
+            
         }
-
-        private static ICollection<Post> funcMain6(ICollection<Post> p9, ICollection<Post> p10)
+        
+        private static ICollection<PostResponse> funcMain2(ICollection<Post> p5, ICollection<PostResponse> p6)
         {
-            if (p9 == null)
+            if (p5 == null)
             {
                 return null;
             }
-            ICollection<Post> result = new List<Post>(p9.Count);
-
-            IEnumerator<Post> enumerator = p9.GetEnumerator();
-
+            ICollection<PostResponse> result = new List<PostResponse>(p5.Count);
+            
+            IEnumerator<Post> enumerator = p5.GetEnumerator();
+            
             while (enumerator.MoveNext())
             {
                 Post item = enumerator.Current;
-                result.Add(item == null ? null : new Post()
+                result.Add(item == null ? null : new PostResponse()
                 {
-                    Id = item.Id,
-                    CreatedDateTime = funcMain7(((IEntity)item).CreatedDateTime.ToString("dddd, dd MMMM yyyy HH:mm")),
-                    ModifiedDateTime = funcMain8(((IEntity)item).ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm")),
-                    Title = item.Title,
-                    PublicationDateTime = item.PublicationDateTime,
-                    Description = item.Description,
-                    PostType = item.PostType,
-                    LikeCount = item.LikeCount,
-                    BlogId = item.BlogId,
-                    Blog = item.Blog == null ? null : new Blog()
-                    {
-                        Id = item.Blog.Id,
-                        CreatedDateTime = funcMain9(((IEntity)item.Blog).CreatedDateTime.ToString("dddd, dd MMMM yyyy HH:mm")),
-                        ModifiedDateTime = funcMain10(((IEntity)item.Blog).ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm")),
-                        Title = item.Blog.Title,
-                        Posts = TypeAdapterConfig1.GetMapFunction<ICollection<Post>, ICollection<Post>>().Invoke(item.Blog.Posts)
-                    }
+                    Id = item.Id.ToString(),
+                    CreatedDateTime = ((IEntity)item).CreatedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"),
+                    ModifiedDateTime = ((IEntity)item).ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"),
+                    Title = item.Title.EntityValue,
+                    PublicationDateTime = item.PublicationDateTime.ToString(),
+                    Description = item.Description.EntityValue,
+                    PostType = item.PostType.ToString(),
+                    LikeCount = item.LikeCount.EntityValue,
+                    BlogId = item.BlogId.ToString(),
+                    Blog = TypeAdapterConfig1.GetMapFunction<Blog, BlogResponse>().Invoke(item.Blog)
                 });
             }
             return result;
-
-        }
-
-        private static DateTime funcMain2(string p3)
-        {
-            return p3 == null ? default(DateTime) : DateTime.Parse(p3);
-        }
-
-        private static DateTime funcMain3(string p4)
-        {
-            return p4 == null ? default(DateTime) : DateTime.Parse(p4);
-        }
-
-        private static DateTime funcMain4(string p5)
-        {
-            return p5 == null ? default(DateTime) : DateTime.Parse(p5);
-        }
-
-        private static DateTime funcMain5(string p6)
-        {
-            return p6 == null ? default(DateTime) : DateTime.Parse(p6);
-        }
-
-        private static DateTime funcMain7(string p11)
-        {
-            return p11 == null ? default(DateTime) : DateTime.Parse(p11);
-        }
-
-        private static DateTime funcMain8(string p12)
-        {
-            return p12 == null ? default(DateTime) : DateTime.Parse(p12);
-        }
-
-        private static DateTime funcMain9(string p13)
-        {
-            return p13 == null ? default(DateTime) : DateTime.Parse(p13);
-        }
-
-        private static DateTime funcMain10(string p14)
-        {
-            return p14 == null ? default(DateTime) : DateTime.Parse(p14);
+            
         }
     }
 }
