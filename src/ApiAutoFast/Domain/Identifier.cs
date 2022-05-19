@@ -62,6 +62,7 @@ public readonly struct Identifier
 
         return success;
     }
+
     private static string ToIdentifierString(Guid id)
     {
         Span<byte> idBytes = stackalloc byte[16];

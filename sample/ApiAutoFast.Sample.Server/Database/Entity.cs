@@ -1,4 +1,5 @@
-﻿using FluentValidation.Results;
+﻿using FastEndpoints;
+using FluentValidation.Results;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 
@@ -34,6 +35,14 @@ public class BlogRelation : DomainValue<string, Blog, BlogRelation>
 public class PostsRelation : DomainValue<ICollection<Post>, PostsRelation>
 {
 
+}
+
+public class Hej
+{
+    public void Test()
+    {
+        PostType p = (PostType)EPostType.Lyric;
+    }
 }
 
 //[AutoFastEndpoints]
@@ -138,7 +147,6 @@ public partial class AutoFastSampleDbContext : DbContext
 //        await SendCreatedAtAsync<GetByIdPostEndpoint>(new { Id = entity.Id }, response, generateAbsoluteUrl: true, cancellation: ct);
 //    }
 //}
-
 
 
 //[AutoFastEndpoints(includeEndpointTarget: EndpointTargetType.Get)]

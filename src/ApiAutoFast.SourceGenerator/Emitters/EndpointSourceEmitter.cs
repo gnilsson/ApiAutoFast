@@ -54,9 +54,12 @@ internal static class EndpointSourceEmitter
         EndpointTargetType.Update => static (sb, endpointConfig) =>
         {
             sb.Append(@"
-        if (Identifier.TryParse(req.Id, out var identifier) is false)
+        var identifier = Identifier.ConvertFromRequest(
+            req.Id,
+            (paramName, message) => ValidationFailures.Add(new ValidationFailure(paramName, message)));
+
+        if (identifier == Identifier.Empty)
         {
-            ValidationFailures.Add(new ValidationFailure(nameof(req.Id), ""Incorrect format on identifier.""));
             await SendErrorsAsync(400, ct);
             return;
         }
@@ -80,9 +83,12 @@ internal static class EndpointSourceEmitter
         EndpointTargetType.Delete => static (sb, endpointConfig) =>
         {
             sb.Append(@"
-        if (Identifier.TryParse(req.Id, out var identifier) is false)
+        var identifier = Identifier.ConvertFromRequest(
+            req.Id,
+            (paramName, message) => ValidationFailures.Add(new ValidationFailure(paramName, message)));
+
+        if (identifier == Identifier.Empty)
         {
-            ValidationFailures.Add(new ValidationFailure(nameof(req.Id), ""Incorrect format on identifier.""));
             await SendErrorsAsync(400, ct);
             return;
         }
@@ -106,9 +112,12 @@ internal static class EndpointSourceEmitter
         EndpointTargetType.GetById => static (sb, endpointConfig) =>
         {
             sb.Append(@"
-        if (Identifier.TryParse(req.Id, out var identifier) is false)
+        var identifier = Identifier.ConvertFromRequest(
+            req.Id,
+            (paramName, message) => ValidationFailures.Add(new ValidationFailure(paramName, message)));
+
+        if (identifier == Identifier.Empty)
         {
-            ValidationFailures.Add(new ValidationFailure(nameof(req.Id), ""Incorrect format on identifier.""));
             await SendErrorsAsync(400, ct);
             return;
         }

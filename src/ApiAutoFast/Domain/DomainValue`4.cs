@@ -48,7 +48,6 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
     //    // note: invoked dynamically to trigger static ctor
     //}
 
-    // note: would like to send in nullable values types here..
     public static TDomain ConvertFromRequest(TRequest? request, Action<string, string> addError)
     {
         var domain = _factory();
@@ -63,9 +62,8 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
         return default!;
     }
 
-    // note: is this performant for get requests? :D
-    //       :S w/e
     public static implicit operator DomainValue<TRequest, TEntity, TResponse, TDomain>(TEntity entityValue) => From(entityValue);
+    //public static implicit operator DomainValue<TRequest, TDomain>(TEntity entityValue) => From(entityValue);
 
     public static DomainValue<TRequest, TEntity, TResponse, TDomain> From(TEntity entityValue)
     {
@@ -74,7 +72,7 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
         return domain;
     }
 
-    public static implicit operator TDomain(DomainValue<TRequest, TEntity, TResponse, TDomain> domain) => domain;
+    //public static implicit operator TDomain(DomainValue<TRequest, TEntity, TResponse, TDomain> domain) => domain;
     public static implicit operator TEntity(DomainValue<TRequest, TEntity, TResponse, TDomain> domain) => domain.EntityValue;
 
     public override string ToString() => EntityValue!.ToString()!;
