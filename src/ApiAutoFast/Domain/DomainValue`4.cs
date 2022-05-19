@@ -63,7 +63,8 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
     }
 
     public static implicit operator DomainValue<TRequest, TEntity, TResponse, TDomain>(TEntity entityValue) => From(entityValue);
-    //public static implicit operator DomainValue<TRequest, TDomain>(TEntity entityValue) => From(entityValue);
+
+    public static implicit operator TEntity(DomainValue<TRequest, TEntity, TResponse, TDomain> domain) => domain.EntityValue;
 
     public static DomainValue<TRequest, TEntity, TResponse, TDomain> From(TEntity entityValue)
     {
@@ -71,9 +72,6 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
         domain.EntityValue = entityValue;
         return domain;
     }
-
-    //public static implicit operator TDomain(DomainValue<TRequest, TEntity, TResponse, TDomain> domain) => domain;
-    public static implicit operator TEntity(DomainValue<TRequest, TEntity, TResponse, TDomain> domain) => domain.EntityValue;
 
     public override string ToString() => EntityValue!.ToString()!;
 }

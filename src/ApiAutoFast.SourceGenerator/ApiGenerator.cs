@@ -85,7 +85,6 @@ public class ApiGenerator : IIncrementalGenerator
                 context.AddSource($"{entityConfig.BaseName}{requestEndpointPair.RequestModel}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
             }
 
-            // note: i guess its a tradeoff if you want to make check inside our outside loop. inside eliminates error but some checks are redundant. switch?
             if (MapsterMapperIsGenerated(compilation, entityConfig.BaseName, entityGenerationConfig.Namespace) is false) continue;
 
             var mappingProfileResult = DefaultSourceEmitter.EmitMappingProfile(sb, entityGenerationConfig.Namespace, entityConfig);

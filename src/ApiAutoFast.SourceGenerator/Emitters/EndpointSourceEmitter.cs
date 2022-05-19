@@ -1,5 +1,5 @@
-﻿using ApiAutoFast.SourceGenerator.Configuration.Enums;
-using ApiAutoFast.SourceGenerator.Configuration;
+﻿using ApiAutoFast.SourceGenerator.Configuration;
+using ApiAutoFast.SourceGenerator.Configuration.Enums;
 using System.Text;
 
 namespace ApiAutoFast.SourceGenerator.Emitters;
@@ -16,7 +16,6 @@ internal static class EndpointSourceEmitter
         if (result.Length == 0)
         {
             await SendNotFoundAsync(ct);
-
             return;
         }
 
@@ -31,34 +30,33 @@ internal static class EndpointSourceEmitter
         EndpointTargetType.Create => static (sb, endpointConfig) =>
         {
             sb.Append(@"
-        var entity = Map.ToDomainEntity(
-            req,
-            (paramName, message) => ValidationFailures.Add(new ValidationFailure(paramName, message)));
+        _entity = Map.ToDomainEntity(req, AddError);
 
-        if (ValidationFailures.Count > 0)
+        if (HasError())
         {
             await SendErrorsAsync(400, ct);
             return;
         }
 
-        await _dbContext.AddAsync(entity, ct);
+        await _dbContext.AddAsync(_entity, ct);
 
-        await _dbContext.SaveChangesAsync(ct);
+        if (_saveChanges)
+        {
+            await _dbContext.SaveChangesAsync(ct);
+        }
 
-        var response = Map.FromEntity(entity);
+        var response = Map.FromEntity(_entity);
 
-        await SendCreatedAtAsync<GetById").Append(endpointConfig.EntityName).Append(@"Endpoint>(new { Id = entity.Id }, response, generateAbsoluteUrl: true, cancellation: ct);");
+        await SendCreatedAtAsync<GetById").Append(endpointConfig.EntityName).Append(@"Endpoint>(new { Id = _entity.Id }, response, generateAbsoluteUrl: true, cancellation: ct);");
             return sb;
         }
         ,
         EndpointTargetType.Update => static (sb, endpointConfig) =>
         {
             sb.Append(@"
-        var identifier = Identifier.ConvertFromRequest(
-            req.Id,
-            (paramName, message) => ValidationFailures.Add(new ValidationFailure(paramName, message)));
+        var identifier = Identifier.ConvertFromRequest(req.Id, AddError);
 
-        if (identifier == Identifier.Empty)
+        if (HasError())
         {
             await SendErrorsAsync(400, ct);
             return;
@@ -83,11 +81,9 @@ internal static class EndpointSourceEmitter
         EndpointTargetType.Delete => static (sb, endpointConfig) =>
         {
             sb.Append(@"
-        var identifier = Identifier.ConvertFromRequest(
-            req.Id,
-            (paramName, message) => ValidationFailures.Add(new ValidationFailure(paramName, message)));
+        var identifier = Identifier.ConvertFromRequest(req.Id, AddError);
 
-        if (identifier == Identifier.Empty)
+        if (HasError())
         {
             await SendErrorsAsync(400, ct);
             return;
@@ -112,11 +108,9 @@ internal static class EndpointSourceEmitter
         EndpointTargetType.GetById => static (sb, endpointConfig) =>
         {
             sb.Append(@"
-        var identifier = Identifier.ConvertFromRequest(
-            req.Id,
-            (paramName, message) => ValidationFailures.Add(new ValidationFailure(paramName, message)));
+        var identifier = Identifier.ConvertFromRequest(req.Id, AddError);
 
-        if (identifier == Identifier.Empty)
+        if (HasError())
         {
             await SendErrorsAsync(400, ct);
             return;
@@ -170,8 +164,15 @@ public partial class ")
             .Append(@">
 {
     partial void ExtendConfigure();
-    private bool _overrideConfigure = false;
     private readonly ").Append(contextName).Append(@" _dbContext;
+    private bool _overrideConfigure = false;");
+        if (endpointConfig.RequestEndpointPair.EndpointTarget is EndpointTargetType.Create)
+        {
+            sb.Append(@"
+    private bool _saveChanges = true;
+    private ").Append(endpointConfig.EntityName).Append(@" _entity;");
+        }
+        sb.Append(@"
 
     public ").Append(endpointConfig.Name).Append(@"(").Append(contextName).Append(@" dbContext)
     {
@@ -195,6 +196,16 @@ public partial class ")
     public override async Task HandleAsync(").Append(endpointConfig.Request).Append(@" req, CancellationToken ct)
     {");
         sb = _endpointSourceGets(endpointConfig.RequestEndpointPair.EndpointTarget)(sb, endpointConfig).Append(@"
+    }
+
+    private void AddError(string property, string message)
+    {
+        ValidationFailures.Add(new ValidationFailure(property, message));
+    }
+
+    private bool HasError()
+    {
+        return ValidationFailures.Count > 0;
     }
 }
 ");
