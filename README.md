@@ -72,7 +72,7 @@ public sealed class Name : DomainValue<string, Name>
 public sealed class BlogsRelation : DomainValue<ICollection<Blog>, BlogsRelation>
 { }
 
-public class FirstLikeDateTime : DomainValue<string, DateTime, FirstLikeDateTime>
+public sealed class FirstLikeDateTime : DomainValue<string, DateTime, FirstLikeDateTime>
 {
     protected override bool TryValidateRequestConversion(string? requestValue, out DateTime entityValue)
     {
