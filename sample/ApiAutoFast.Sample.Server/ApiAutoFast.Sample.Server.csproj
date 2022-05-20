@@ -9,14 +9,14 @@
 
 
 	<ItemGroup>
-		<PackageReference Include="FastEndpoints.Swagger" Version="4.0.0" />
+		<PackageReference Include="FastEndpoints.Swagger" Version="4.2.0" />
 		<PackageReference Include="Mapster" Version="7.3.0" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.4">
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.5">
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.4" />
-		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.5" />
+		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.3.1" />
 	</ItemGroup>
 
 	<ItemGroup>
