@@ -6,7 +6,7 @@ namespace ApiAutoFast;
 
 internal static class PropertyBuilderExtensions
 {
-    public static PropertyBuilder HasDomainValueConversion(this PropertyBuilder propertyBuilder, PropertyInfo propertyInfo)
+    internal static PropertyBuilder HasDomainValueConversion(this PropertyBuilder propertyBuilder, PropertyInfo propertyInfo)
     {
         var requestTypeArgument = propertyInfo.PropertyType.BaseType?.GenericTypeArguments[0];
 

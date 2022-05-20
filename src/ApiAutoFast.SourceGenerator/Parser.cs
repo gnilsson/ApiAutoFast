@@ -1,5 +1,6 @@
 ﻿using ApiAutoFast.SourceGenerator.Configuration;
 using ApiAutoFast.SourceGenerator.Configuration.Enums;
+using ApiAutoFast.SourceGenerator.Descriptive;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -188,7 +189,7 @@ internal static class Parser
 
             var propertyRelation = GetPropertyRelation(property, foreignEntityNames, entityType);
 
-            var typeName = propertyRelation.RelationalType == RelationalType.ToOne ? "Identifier" : property.Type.Name;
+            var typeName = propertyRelation.RelationalType == RelationalType.ToOne ? TypeText.Identifier : property.Type.Name;
 
             var responseType = domainValueType.BaseType.TypeArguments.Length == 4
                 ? domainValueType.BaseType.TypeArguments[2]
@@ -208,7 +209,7 @@ internal static class Parser
 
     private static PropertyRelation GetPropertyRelation(IPropertySymbol property, ImmutableArray<string> foreignEntityNames, ITypeSymbol entityType)
     {
-        if (entityType.Name.Contains("ICollection") && entityType is INamedTypeSymbol { TypeArguments.Length: > 0 } namedTypeSymbol)
+        if (entityType.Name.Contains(TypeText.ICollection) && entityType is INamedTypeSymbol { TypeArguments.Length: > 0 } namedTypeSymbol)
         {
             var entityTypeName = namedTypeSymbol.TypeArguments[0].Name;
 
@@ -259,9 +260,9 @@ internal static class Parser
         {
             if (attributeData.AttributeClass is null) continue;
 
-            var attributeName = GetLastPart(attributeData.AttributeClass.Name).Replace("Attribute", "");
+            var attributeName = GetLastPart(attributeData.AttributeClass.Name).Replace(TypeText.Attribute, "");
 
-            if (attributeName == "ExcludeRequestModel")
+            if (attributeName == TypeText.AttributeName.ExcludeRequestModel)
             {
                 if (attributeData.ConstructorArguments.Length > 0)
                 {
