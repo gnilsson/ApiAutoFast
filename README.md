@@ -8,10 +8,10 @@ To be able to accomplish this, we need to stand on the shoulders of giants; taki
 ### Required packages
 
 ```console
-dotnet add package ApiAutoFast --version 0.4.1-beta
-dotnet add package ApiAutoFast.SourceGenerator --version 0.4.1-beta
-dotnet add package FastEndpoints --version 4.1.0
-dotnet add package FastEndpoints.Swagger --version 4.1.0
+dotnet add package ApiAutoFast --version 0.4.2-beta
+dotnet add package ApiAutoFast.SourceGenerator --version 0.4.2-beta
+dotnet add package FastEndpoints --version 4.2.0
+dotnet add package FastEndpoints.Swagger --version 4.2.0
 dotnet add package Mapster --version 7.3.0
 dotnet add package Microsoft.EntityFrameworkCore --version 6.0.5
 dotnet add package Microsoft.EntityFrameworkCore.Design --version 6.0.5
