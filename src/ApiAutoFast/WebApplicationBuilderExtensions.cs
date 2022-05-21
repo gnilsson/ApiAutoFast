@@ -10,48 +10,39 @@ namespace ApiAutoFast;
 
 public static class WebApplicationBuilderExtensions
 {
-    public delegate object EmptyConstructorDelegate();
+    //public static async Task<WebApplication> BuildAutoFastAsync<TContext>(this WebApplicationBuilder builder, string connectionStringConfigurationName) where TContext : DbContext
+    //{
+    //    //var configurationBase = typeof(TContext).Assembly.DefinedTypes.SingleOrDefault(x => x.BaseType == typeof(AutoFastConfiguration));
 
-    public static EmptyConstructorDelegate CreateEmptyConstructor(Type type)
-    {
-        return Expression.Lambda<EmptyConstructorDelegate>(
-            Expression.New(
-                type.GetConstructor(Type.EmptyTypes)!)).Compile();
-    }
+    //    //if (configurationBase is not null)
+    //    //{
+    //    //    var configuration = (AutoFastConfiguration)CreateEmptyConstructor(configurationBase.UnderlyingSystemType)();
 
-    public static async Task<WebApplication> BuildAutoFastAsync<TContext>(this WebApplicationBuilder builder, string connectionStringConfigurationName) where TContext : DbContext
-    {
-        //var configurationBase = typeof(TContext).Assembly.DefinedTypes.SingleOrDefault(x => x.BaseType == typeof(AutoFastConfiguration));
+    //    //    configuration.Configure();
+    //    //}
 
-        //if (configurationBase is not null)
-        //{
-        //    var configuration = (AutoFastConfiguration)CreateEmptyConstructor(configurationBase.UnderlyingSystemType)();
+    //    //var definedTypes = typeof(TContext).Assembly.DefinedTypes;
 
-        //    configuration.Configure();
-        //}
+    //    //foreach (var domainValueType in definedTypes.Where(x => x.BaseType?.Name is TypeText.DomainValue3 or TypeText.DomainValue2))
+    //    //{
+    //    //    var type = domainValueType.BaseType!.Name is TypeText.DomainValue3 ? domainValueType.BaseType : domainValueType.BaseType.BaseType;
 
-        //var definedTypes = typeof(TContext).Assembly.DefinedTypes;
+    //    //    type!.GetMethod("Init", BindingFlags.Public | BindingFlags.Static)!.Invoke(null, null);
+    //    //}
 
-        //foreach (var domainValueType in definedTypes.Where(x => x.BaseType?.Name is TypeText.DomainValue3 or TypeText.DomainValue2))
-        //{
-        //    var type = domainValueType.BaseType!.Name is TypeText.DomainValue3 ? domainValueType.BaseType : domainValueType.BaseType.BaseType;
+    //    //builder.Services.AddDbContext<TContext>(options => options
+    //    //    .UseSqlServer(builder.Configuration.GetConnectionString(connectionStringConfigurationName))
+    //    //    .LogTo(Console.WriteLine)
+    //    //    .EnableSensitiveDataLogging());
 
-        //    type!.GetMethod("Init", BindingFlags.Public | BindingFlags.Static)!.Invoke(null, null);
-        //}
+    //    //builder.Services.AddUriService();
 
-        builder.Services.AddDbContext<TContext>(options => options
-            .UseSqlServer(builder.Configuration.GetConnectionString(connectionStringConfigurationName))
-            .LogTo(Console.WriteLine)
-            .EnableSensitiveDataLogging());
+    //    //var app = builder.Build();
 
-        builder.Services.AddUriService();
+    //    //var scope = app.Services.CreateScope();
+    //    //var context = scope.ServiceProvider.GetRequiredService<TContext>();
+    //    //await context.Database.MigrateAsync();
 
-        var app = builder.Build();
-
-        var scope = app.Services.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<TContext>();
-        await context.Database.MigrateAsync();
-
-        return app;
-    }
+    //   // return app;
+    //}
 }

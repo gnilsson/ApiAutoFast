@@ -20,7 +20,7 @@ public static class TestHelper
         IEnumerable<PortableExecutableReference> references = new[]
         {
             MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(IAssemblyMarker).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(IAutoFastAssemblyMarker).Assembly.Location),
         };
 
         var compilation = CSharpCompilation.Create(

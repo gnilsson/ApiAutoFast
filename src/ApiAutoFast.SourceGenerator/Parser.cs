@@ -227,7 +227,6 @@ internal static class Parser
         return PropertyRelation.None;
     }
 
-
     private static RequestModelTarget GetRequestModelTarget(ImmutableArray<PropertyAttributeMetadata> attributes)
     {
         if (attributes.Length > 0)

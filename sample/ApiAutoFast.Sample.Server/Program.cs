@@ -1,13 +1,14 @@
 using ApiAutoFast;
-using ApiAutoFast.Sample.Server.Database;
+using ApiAutoFast.Sample.Server;
 using FastEndpoints;
 using FastEndpoints.Swagger;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors();
 builder.Services.AddResponseCaching();
-builder.Services.AddFastEndpoints(new[] { typeof(IAssemblyMarker).Assembly });
+builder.Services.AddFastEndpoints(new[] { typeof(IAutoFastAssemblyMarker).Assembly });
 
 builder.Services
     .AddSwaggerDoc(s =>
@@ -17,7 +18,18 @@ builder.Services
         s.Version = "v0.0";
     }, shortSchemaNames: true);
 
-var app = await builder.BuildAutoFastAsync<AutoFastSampleDbContext>("sqlConn");
+//var app = await builder.BuildAutoFastAsync<AutoFastSampleDbContext>("sqlConn");
+
+builder.Services.AddDbContext<AutoFastSampleDbContext>(options => options
+    .UseSqlServer(builder.Configuration.GetConnectionString("sqlConn"))
+    .LogTo(Console.WriteLine)
+    .EnableSensitiveDataLogging());
+
+var app = builder.Build();
+
+var scope = app.Services.CreateScope();
+var context = scope.ServiceProvider.GetRequiredService<AutoFastSampleDbContext>();
+await context.Database.MigrateAsync();
 
 app.UseDefaultExceptionHandler();
 

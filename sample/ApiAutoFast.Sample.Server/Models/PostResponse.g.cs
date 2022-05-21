@@ -1,6 +1,6 @@
-using ApiAutoFast.Sample.Server.Database;
+using ApiAutoFast.Sample.Server;
 
-namespace ApiAutoFast.Sample.Server.Database
+namespace ApiAutoFast.Sample.Server
 {
     public partial class PostResponse
     {

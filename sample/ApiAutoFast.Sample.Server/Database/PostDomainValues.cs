@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace ApiAutoFast.Sample.Server.Database;
+namespace ApiAutoFast.Sample.Server;
 
 public class PublicationDateTime : DomainValue<string, DateTime, PublicationDateTime>
 {

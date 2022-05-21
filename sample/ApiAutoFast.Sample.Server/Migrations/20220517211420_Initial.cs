@@ -1,5 +1,5 @@
 ﻿using System;
-using ApiAutoFast.Sample.Server.Database;
+using ApiAutoFast.Sample.Server;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable

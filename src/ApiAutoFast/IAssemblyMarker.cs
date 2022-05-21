@@ -1,3 +1,3 @@
 ﻿namespace ApiAutoFast;
 
-public interface IAssemblyMarker { }
+public interface IAutoFastAssemblyMarker { }

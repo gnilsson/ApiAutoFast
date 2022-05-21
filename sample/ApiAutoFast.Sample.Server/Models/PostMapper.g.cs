@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using ApiAutoFast;
-using ApiAutoFast.Sample.Server.Database;
+using ApiAutoFast.Sample.Server;
 using Mapster;
 
-namespace ApiAutoFast.Sample.Server.Database
+namespace ApiAutoFast.Sample.Server
 {
     public static partial class PostMapper
     {

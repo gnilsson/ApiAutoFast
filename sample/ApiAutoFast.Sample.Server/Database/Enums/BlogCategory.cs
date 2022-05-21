@@ -1,4 +1,4 @@
-﻿namespace ApiAutoFast.Sample.Server.Database;
+﻿namespace ApiAutoFast.Sample.Server;
 
 public enum BlogCategory
 {

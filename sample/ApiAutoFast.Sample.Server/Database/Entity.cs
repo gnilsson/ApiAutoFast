@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace ApiAutoFast.Sample.Server.Database;
+namespace ApiAutoFast.Sample.Server;
 
 
 [AutoFastEndpoints]
