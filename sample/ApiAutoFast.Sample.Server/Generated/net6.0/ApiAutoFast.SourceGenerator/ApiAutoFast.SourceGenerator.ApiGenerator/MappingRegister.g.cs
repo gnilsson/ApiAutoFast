@@ -2,7 +2,7 @@
 using Mapster;
 using ApiAutoFast;
 
-namespace ApiAutoFast.Sample.Server.Database;
+namespace ApiAutoFast.Sample.Server;
 
 public partial class MappingRegister : ICodeGenerationRegister
 {

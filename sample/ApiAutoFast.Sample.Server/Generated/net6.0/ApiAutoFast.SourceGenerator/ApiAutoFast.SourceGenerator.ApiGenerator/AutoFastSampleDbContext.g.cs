@@ -3,7 +3,7 @@ using ApiAutoFast;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
-namespace ApiAutoFast.Sample.Server.Database;
+namespace ApiAutoFast.Sample.Server;
 
 public partial class AutoFastSampleDbContext : DbContext
 {

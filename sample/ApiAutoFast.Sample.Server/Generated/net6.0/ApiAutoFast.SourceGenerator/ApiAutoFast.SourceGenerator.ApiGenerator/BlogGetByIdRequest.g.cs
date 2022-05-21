@@ -1,7 +1,7 @@
 ﻿
 using ApiAutoFast;
 
-namespace ApiAutoFast.Sample.Server.Database;
+namespace ApiAutoFast.Sample.Server;
 
 public class BlogGetByIdRequest
 {

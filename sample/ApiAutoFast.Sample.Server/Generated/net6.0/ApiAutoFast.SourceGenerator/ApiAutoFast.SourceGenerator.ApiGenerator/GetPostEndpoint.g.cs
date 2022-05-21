@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ApiAutoFast.Sample.Server.Database;
+namespace ApiAutoFast.Sample.Server;
 
 public partial class GetPostEndpoint : Endpoint<PostQueryRequest, Paginated<PostResponse>, PostMappingProfile>
 {

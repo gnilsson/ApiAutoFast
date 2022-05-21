@@ -22,60 +22,64 @@
 		<ProjectReference Include="..\..\src\ApiAutoFast\ApiAutoFast.csproj" />
 	</ItemGroup>
 
-  <PropertyGroup>
-    <!-- 👇 Persist the source generator (and other) files to disk -->
-    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-    <!-- 👇 The "base" path for the source generators -->
-    <GeneratedFolder>Generated</GeneratedFolder>
-    <!-- 👇 Write the output for each target framework to a different sub-folder -->
-    <CompilerGeneratedFilesOutputPath>$(GeneratedFolder)\$(TargetFramework)</CompilerGeneratedFilesOutputPath>
-  </PropertyGroup>
+	<PropertyGroup>
+		<!-- 👇 Persist the source generator (and other) files to disk -->
+		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+		<!-- 👇 The "base" path for the source generators -->
+		<GeneratedFolder>Generated</GeneratedFolder>
+		<!-- 👇 Write the output for each target framework to a different sub-folder -->
+		<CompilerGeneratedFilesOutputPath>$(GeneratedFolder)\$(TargetFramework)</CompilerGeneratedFilesOutputPath>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <!-- 👇 Exclude from compilation everything in the base folder -->
-    <Compile Remove="$(GeneratedFolder)/**/*.cs" />
-    <!-- 👇 Keep in project as content -->
-    <Content Include="$(GeneratedFolder)/**/*.cs" />
-  </ItemGroup>
+	<ItemGroup>
+		<!-- 👇 Exclude from compilation everything in the base folder -->
+		<Compile Remove="$(GeneratedFolder)/**/*.cs" />
+		<!-- 👇 Keep in project as content -->
+		<Content Include="$(GeneratedFolder)/**/*.cs" />
+	</ItemGroup>
 
 	<!-- Mapster generation commands -->
-  <Target Name="Mapster">
-    <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet tool restore" />
-    <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet mapster model -a &quot;$(TargetDir)$(ProjectName).dll&quot;" />
-    <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet mapster extension -a &quot;$(TargetDir)$(ProjectName).dll&quot;" />
-    <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet mapster mapper -a &quot;$(TargetDir)$(ProjectName).dll&quot;" />
-  </Target>
+	<Target Name="Mapster">
+		<Exec Condition="$(HardBuild) == true" WorkingDirectory="$(ProjectDir)" Command="dotnet msbuild -p:IgnoreFolder=$(IgnoreFolder)" />
+		<Exec WorkingDirectory="$(ProjectDir)" Command="dotnet tool restore" />
+		<Exec WorkingDirectory="$(ProjectDir)" Command="dotnet mapster model -a &quot;$(TargetDir)$(ProjectName).dll&quot;" />
+		<Exec WorkingDirectory="$(ProjectDir)" Command="dotnet mapster extension -a &quot;$(TargetDir)$(ProjectName).dll&quot;" />
+		<Exec WorkingDirectory="$(ProjectDir)" Command="dotnet mapster mapper -a &quot;$(TargetDir)$(ProjectName).dll&quot;" />
+	</Target>
 
 	<!-- Mapster needs two builds to fully generate mapper class -->
-  <Target Name="AutoFastMap">
-    <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet msbuild -t:Mapster -p:IgnoreFolder=$(IgnoreFolder)" />
-    <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet msbuild -t:Mapster -p:IgnoreFolder=$(IgnoreFolder)" />
-  </Target>
+	<Target Name="AutoFastMap">
+		<Exec WorkingDirectory="$(ProjectDir)" Command="dotnet msbuild -t:Mapster -p:IgnoreFolder=$(IgnoreFolder)" />
+		<Exec WorkingDirectory="$(ProjectDir)" Command="dotnet msbuild -t:Mapster -p:IgnoreFolder=$(IgnoreFolder)" />
+	</Target>
 
-  <PropertyGroup>
-    <!-- 👇 Flag to determine to exclude a folder from build -->
-    <IgnoreFolder>false</IgnoreFolder>
-    <!-- 👇 A folder that has errors before everything is generated -->
-    <FolderToIgnore>Endpoints/**/*.cs</FolderToIgnore>
-    <!-- 👇 Ensure our project is part of build to trigger generator -->
-    <ProjectToInclude>../$(ProjectName).csproj/*/*.cs</ProjectToInclude>
-  </PropertyGroup>
+	<PropertyGroup>
+		<!-- 👇 Flag to determine to exclude a folder from build -->
+		<IgnoreFolder>false</IgnoreFolder>
+		<!-- 👇 A folder that has errors before everything is generated -->
+		<FolderToIgnore>Endpoints/**/*.cs</FolderToIgnore>
+		<!-- 👇 Ensure our project is part of build to trigger generator -->
+		<ProjectToInclude>../$(ProjectName).csproj/*/*.cs</ProjectToInclude>
+		<!-- 👇 To sidestep some issue sometimes appearing initially -->
+		<HardBuild>false</HardBuild>
+	</PropertyGroup>
+
 
 	<!-- Parameter passed to build around files that depend on generated files -->
-  <ItemGroup>
-    <Compile Condition="$(IgnoreFolder) == true" Include="$(ProjectToInclude)" />
-    <Compile Condition="$(IgnoreFolder) == true" Remove="$(FolderToIgnore)" />
-    <Content Condition="$(IgnoreFolder) == true" Include="$(FolderToIgnore)" />
-  </ItemGroup>
+	<ItemGroup>
+		<Compile Condition="$(IgnoreFolder) == true" Include="$(ProjectToInclude)" />
+		<Compile Condition="$(IgnoreFolder) == true" Remove="$(FolderToIgnore)" />
+		<Content Condition="$(IgnoreFolder) == true" Include="$(FolderToIgnore)" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <!-- 👇 All generated files -->
-    <Generated Include="**\*.g.cs" />
-  </ItemGroup>
+	<ItemGroup>
+		<!-- 👇 All generated files -->
+		<Generated Include="**\*.g.cs" />
+	</ItemGroup>
 
 	<!-- Clean generated files, needed for mapster files -->
-  <Target Name="CleanGenerated">
-    <Delete Files="@(Generated)" />
-  </Target>
+	<Target Name="CleanGenerated">
+		<Delete Files="@(Generated)" />
+	</Target>
 
 </Project>

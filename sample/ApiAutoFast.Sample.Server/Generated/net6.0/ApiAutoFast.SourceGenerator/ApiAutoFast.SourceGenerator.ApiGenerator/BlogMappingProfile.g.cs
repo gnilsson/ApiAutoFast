@@ -1,7 +1,7 @@
 ﻿
 using FastEndpoints;
 
-namespace ApiAutoFast.Sample.Server.Database;
+namespace ApiAutoFast.Sample.Server;
 
 public partial class BlogMappingProfile : Mapper<BlogCreateCommand, BlogResponse, Blog>
 {
