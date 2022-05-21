@@ -8,10 +8,10 @@ To be able to accomplish this, we need to stand on the shoulders of giants; taki
 ### Required packages
 
 ```console
-dotnet add package ApiAutoFast --version 0.4.1-beta
-dotnet add package ApiAutoFast.SourceGenerator --version 0.4.1-beta
-dotnet add package FastEndpoints --version 4.1.0
-dotnet add package FastEndpoints.Swagger --version 4.1.0
+dotnet add package ApiAutoFast --version 0.4.2-beta
+dotnet add package ApiAutoFast.SourceGenerator --version 0.4.2-beta
+dotnet add package FastEndpoints --version 4.2.0
+dotnet add package FastEndpoints.Swagger --version 4.2.0
 dotnet add package Mapster --version 7.3.0
 dotnet add package Microsoft.EntityFrameworkCore --version 6.0.5
 dotnet add package Microsoft.EntityFrameworkCore.Design --version 6.0.5
@@ -47,6 +47,8 @@ public partial class DemoAafContext
 This setup will yield crud endpoints for each entity, with the availability to extend each generated partial endpoint and modify the pipeline.
 
 The properties are derived from a base class called DomainValue.
+
+(Currently the namespace in which you define your entities must be the same as the one in which you define partial classes).
 
 ```C#
 
@@ -146,7 +148,6 @@ And finally we configure our .csproj file such that we have a command to generat
 ```xml
 
 <Target Name="Mapster">
-  <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet msbuild -p:IgnoreFolder=$(IgnoreFolder)" />
   <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet tool restore" />
   <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet mapster model -a &quot;$(TargetDir)$(ProjectName).dll&quot;" />
   <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet mapster extension -a &quot;$(TargetDir)$(ProjectName).dll&quot;" />
