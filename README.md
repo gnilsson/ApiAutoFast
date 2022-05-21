@@ -48,6 +48,8 @@ This setup will yield crud endpoints for each entity, with the availability to e
 
 The properties are derived from a base class called DomainValue.
 
+(Currently the namespace in which you define your entities must be the same as the one in which you define partial classes).
+
 ```C#
 
 public sealed class Title : DomainValue<string, Title>
@@ -146,7 +148,6 @@ And finally we configure our .csproj file such that we have a command to generat
 ```xml
 
 <Target Name="Mapster">
-  <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet msbuild -p:IgnoreFolder=$(IgnoreFolder)" />
   <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet tool restore" />
   <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet mapster model -a &quot;$(TargetDir)$(ProjectName).dll&quot;" />
   <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet mapster extension -a &quot;$(TargetDir)$(ProjectName).dll&quot;" />
