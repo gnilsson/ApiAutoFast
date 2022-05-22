@@ -1,4 +1,5 @@
 ﻿using ApiAutoFast.Descriptive;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -27,7 +28,7 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
 
     public TEntity EntityValue { get; private set; } = default!;
 
-    protected virtual bool TryValidateRequestConversion(TRequest? requestValue, out TEntity entityValue)
+    protected virtual bool TryValidateRequestConversion(TRequest? requestValue, [NotNullWhen(true)] out TEntity entityValue)
     {
         if (requestValue is TEntity entityRequestValue)
         {

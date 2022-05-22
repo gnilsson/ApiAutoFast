@@ -13,4 +13,6 @@ public class Paginated<TResponse>
     public string? PreviousPage { get; init; }
 
     public int? Total { get; init; }
+
+    public IAsyncEnumerable<TResponse>? Data2 { get; init; }
 }

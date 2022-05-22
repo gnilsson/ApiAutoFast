@@ -1,4 +1,5 @@
 ﻿using System.Buffers.Text;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
@@ -49,7 +50,7 @@ public readonly struct Identifier
         return Empty;
     }
 
-    public static bool TryParse(string valueToParse, out Identifier identifier)
+    public static bool TryParse(string valueToParse, [NotNullWhen(true)] out Identifier identifier)
     {
         identifier = Empty;
 
