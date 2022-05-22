@@ -76,7 +76,6 @@ public class ApiGenerator : IIncrementalGenerator
         var dbContextResult = DefaultSourceEmitter.EmitDbContext(sb, contextConfig, entityGenerationConfig);
         context.AddSource($"{contextConfig.Name}.g.cs", SourceText.From(dbContextResult, Encoding.UTF8));
 
-
         foreach (var entityConfig in entityGenerationConfig.EntityConfigs)
         {
             foreach (var requestEndpointPair in _requestEndpointPairs)
@@ -96,7 +95,7 @@ public class ApiGenerator : IIncrementalGenerator
                 {
                     var endpointConfig = new EndpointConfig(entityConfig, requestEndpointPair);
                     var requestModelsResult = EndpointSourceEmitter.EmitEndpoint(sb, entityGenerationConfig.Namespace, endpointConfig, contextConfig.Name);
-                    context.AddSource($"{endpointConfig.Name}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
+                    context.AddSource($"{endpointConfig.Endpoint}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
                 }
             }
         }

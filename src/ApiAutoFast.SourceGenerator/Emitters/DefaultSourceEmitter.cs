@@ -8,7 +8,7 @@ internal static class DefaultSourceEmitter
 {
     private static readonly Func<RequestModelTarget, string> _getModelTargetSource = static (modelTarget) => modelTarget switch
     {
-        RequestModelTarget.CreateCommand => string.Empty,
+        RequestModelTarget.CreateCommand => "",
         RequestModelTarget.QueryRequest => @"
     public string? CreatedDateTime { get; set; }
     public string? ModifiedDateTime { get; set; }",

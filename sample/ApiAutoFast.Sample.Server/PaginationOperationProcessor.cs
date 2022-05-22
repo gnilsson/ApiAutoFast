@@ -18,8 +18,8 @@ internal sealed class PaginationOperationProcessor : IOperationProcessor
 
     public bool Process(OperationProcessorContext context)
     {
-        var boolSchema = context.SchemaGenerator.Generate(typeof(bool), context.SchemaResolver);
-        var intSchema = context.SchemaGenerator.Generate(typeof(int), context.SchemaResolver);
+
+        //var intSchema = context.SchemaGenerator.Generate(typeof(int), context.SchemaResolver);
 
         //if (PaginationActionDetector.IsKeysetPaginationResultAction(context.MethodInfo, out _))
         //{
@@ -32,6 +32,8 @@ internal sealed class PaginationOperationProcessor : IOperationProcessor
         //{
         //    CreateParameter(_paginationOptions.PageQueryParameterName, "The page", intSchema);
         //}
+
+        var boolSchema = context.SchemaGenerator.Generate(typeof(bool), context.SchemaResolver);
 
         CreateParameter(_paginationOptions.FirstQueryParameterName, "true if you want the first page", boolSchema);
         CreateParameter(_paginationOptions.BeforeQueryParameterName, "Id of the reference entity you want results before");

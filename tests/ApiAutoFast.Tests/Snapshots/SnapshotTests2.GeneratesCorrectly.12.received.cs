@@ -16,7 +16,6 @@ public class Post : IEntity
     public DateTime CreatedDateTime { get; set; }
     public DateTime ModifiedDateTime { get; set; }
     public Identifier BlogId { get; set; }
-    
     public Blog Blog { get; set; }
     public Title Title { get; set; }
     public PublicationDateTime PublicationDateTime { get; set; }

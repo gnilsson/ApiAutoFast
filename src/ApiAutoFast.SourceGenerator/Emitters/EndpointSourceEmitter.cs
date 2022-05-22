@@ -6,24 +6,24 @@ namespace ApiAutoFast.SourceGenerator.Emitters;
 
 internal static class EndpointSourceEmitter
 {
-    private static readonly Func<EndpointTargetType, Func<StringBuilder, EndpointConfig, StringBuilder>> _endpointSourceGets = static (target) => target switch
+    private static Func<StringBuilder, EndpointConfig, StringBuilder> GetEndpointSource(EndpointTargetType endpointTargetType) => endpointTargetType switch
     {
         EndpointTargetType.Get => static (sb, endpointConfig) =>
         {
             sb.Append(@"
-        var result = await _dbContext.").Append(endpointConfig.EntityName).Append(@"s.Where(x => true).ToArrayAsync(ct);
+        var response = YieldResponse(_queryExecutor.ExecuteAsync(HttpContext.Request.Query, ct));
 
-        if (result.Length == 0)
+        // return no content
+
+        await SendOkAsync(new Paginated<").Append(endpointConfig.Response).Append(@"> { Data = response }, ct);
+
+        async IAsyncEnumerable<").Append(endpointConfig.Response).Append(@"> YieldResponse(IAsyncEnumerable<").Append(endpointConfig.Entity).Append(@"> entities)
         {
-            await SendNotFoundAsync(ct);
-            return;
-        }
-
-        var response = result.Select(x => Map.FromEntity(x));
-
-        var pag = new ").Append(endpointConfig.Response).Append(@" { Data = response };
-
-        await SendOkAsync(pag, ct);");
+            await foreach (var entity in entities)
+            {
+                yield return Map.FromEntity(entity);
+            }
+        }");
             return sb;
         }
         ,
@@ -47,7 +47,7 @@ internal static class EndpointSourceEmitter
 
         var response = Map.FromEntity(_entity);
 
-        await SendCreatedAtAsync<GetById").Append(endpointConfig.EntityName).Append(@"Endpoint>(new { Id = _entity.Id }, response, generateAbsoluteUrl: true, cancellation: ct);");
+        await SendCreatedAtAsync<GetById").Append(endpointConfig.Entity).Append(@"Endpoint>(new { Id = _entity.Id }, response, generateAbsoluteUrl: true, cancellation: ct);");
             return sb;
         }
         ,
@@ -62,7 +62,7 @@ internal static class EndpointSourceEmitter
             return;
         }
 
-        var result = await _dbContext.").Append(endpointConfig.EntityName).Append(@"s.FindAsync(identifier);
+        var result = await _dbContext.").Append(endpointConfig.Entity).Append(@"s.FindAsync(identifier);
 
         if (result is null)
         {
@@ -89,7 +89,7 @@ internal static class EndpointSourceEmitter
             return;
         }
 
-        var result = await _dbContext.").Append(endpointConfig.EntityName).Append(@"s.FindAsync(identifier);
+        var result = await _dbContext.").Append(endpointConfig.Entity).Append(@"s.FindAsync(identifier);
 
         if (result is null)
         {
@@ -97,7 +97,7 @@ internal static class EndpointSourceEmitter
             return;
         }
 
-        _dbContext.").Append(endpointConfig.EntityName).Append(@"s.Remove(result);
+        _dbContext.").Append(endpointConfig.Entity).Append(@"s.Remove(result);
 
         await _dbContext.SaveChangesAsync(ct);
 
@@ -116,7 +116,7 @@ internal static class EndpointSourceEmitter
             return;
         }
 
-        var result = await _dbContext.").Append(endpointConfig.EntityName).Append(@"s.FindAsync(identifier);
+        var result = await _dbContext.").Append(endpointConfig.Entity).Append(@"s.FindAsync(identifier);
 
         if (result is null)
         {
@@ -133,7 +133,7 @@ internal static class EndpointSourceEmitter
         _ => static (sb, _) =>
         {
             sb.Append(@"
-        await base.HandleAsync(req, ct);");
+await base.HandleAsync(req, ct);");
             return sb;
         }
     };
@@ -142,41 +142,66 @@ internal static class EndpointSourceEmitter
     {
         sb.Clear();
 
+        var response = endpointConfig.RequestEndpointPair.EndpointTarget is EndpointTargetType.Get ? $"Paginated<{endpointConfig.Response}>" : endpointConfig.Response;
+
         sb.Append(@"
 using ApiAutoFast;
+using ApiAutoFast.EntityFramework;
 using FastEndpoints;
 using FluentValidation.Results;
 using Microsoft.EntityFrameworkCore;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq.Expressions;
 
 namespace ").Append(@namespace).Append(@";
 ");
         sb.Append(@"
 public partial class ")
-            .Append(endpointConfig.Name)
+            .Append(endpointConfig.Endpoint)
             .Append(@" : Endpoint<")
             .Append(endpointConfig.Request)
             .Append(@", ")
-            .Append(endpointConfig.Response)
+            .Append(response)
             .Append(@", ")
             .Append(endpointConfig.MappingProfile)
             .Append(@">
 {
     partial void ExtendConfigure();
     private readonly ").Append(contextName).Append(@" _dbContext;
-    private bool _overrideConfigure = false;");
+    private bool _overrideConfigure = false;
+    private readonly QueryExecutor<").Append(endpointConfig.Entity).Append(@"> _queryExecutor;");
         if (endpointConfig.RequestEndpointPair.EndpointTarget is EndpointTargetType.Create)
         {
             sb.Append(@"
     private bool _saveChanges = true;
-    private ").Append(endpointConfig.EntityName).Append(@" _entity;");
+    private ").Append(endpointConfig.Entity).Append(@" _entity;");
+        }
+        else if (endpointConfig.RequestEndpointPair.EndpointTarget is EndpointTargetType.Get)
+        {
+            sb.Append(@"
+    private static readonly Dictionary<string, Func<string, Expression<Func<").Append(endpointConfig.Entity).Append(@", bool>>>> _stringMethods = new()
+    {");
+            foreach (var propertyName in endpointConfig.StringEntityProperties)
+            {
+                sb.Append(@"
+        [""").Append(propertyName).Append(@"""] = query => entity => ((string)entity.").Append(propertyName).Append(@").Contains(query),");
+            }
+            sb.Append(@"
+    };");
         }
         sb.Append(@"
 
-    public ").Append(endpointConfig.Name).Append(@"(").Append(contextName).Append(@" dbContext)
+
+    public ").Append(endpointConfig.Endpoint).Append(@"(").Append(contextName).Append(@" dbContext)
     {
-        _dbContext = dbContext;
+        _dbContext = dbContext;");
+        if (endpointConfig.RequestEndpointPair.EndpointTarget is EndpointTargetType.Get)
+        {
+            sb.Append(@"
+        _queryExecutor = new QueryExecutor<").Append(endpointConfig.Entity).Append(@">(_dbContext.").Append(endpointConfig.Entity).Append(@"s, _stringMethods);");
+        }
+        sb.Append(@"
     }
 
     public override void Configure()
@@ -195,7 +220,7 @@ public partial class ")
         sb.Append(@"
     public override async Task HandleAsync(").Append(endpointConfig.Request).Append(@" req, CancellationToken ct)
     {");
-        sb = _endpointSourceGets(endpointConfig.RequestEndpointPair.EndpointTarget)(sb, endpointConfig).Append(@"
+        sb = GetEndpointSource(endpointConfig.RequestEndpointPair.EndpointTarget)(sb, endpointConfig).Append(@"
     }
 
     private void AddError(string property, string message)

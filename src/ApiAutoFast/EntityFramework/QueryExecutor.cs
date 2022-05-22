@@ -1,8 +1,6 @@
-﻿//using MR.AspNetCore.Pagination;
-using ApiAutoFast.Utility;
+﻿using ApiAutoFast.Utility;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
 using MR.EntityFrameworkCore.KeysetPagination;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
@@ -30,32 +28,31 @@ public sealed class QueryExecutor<TEntity> where TEntity : class, IEntity
 
     public async IAsyncEnumerable<TEntity> ExecuteAsync(IQueryCollection queryCollection, [EnumeratorCancellation] CancellationToken ct)
     {
-        var queries = queryCollection.ToDictionary(x => x.Key, x => x.Value);
+        var queryParameters = queryCollection.ToDictionary(x => x.Key, x => x.Value);
 
         Expression<Func<TEntity, bool>> predicate = p => true;
         KeysetPaginationDirection? direction = null!;
         var referenceId = Identifier.Empty;
 
-        if (queries.Count > 0)
+        if (queryParameters.Count > 0)
         {
-            foreach (var item in queries)
+            foreach (var param in queryParameters)
             {
-                if (_paginationDirectionParams.TryGetValue(item.Key, out var dir) && direction is null)
+                if (_paginationDirectionParams.TryGetValue(param.Key, out var dir) && direction is null)
                 {
-                    if (bool.TryParse((string)item.Value, out var value) is false || value is false) continue;
+                    if (bool.TryParse((string)param.Value, out var value) is false || value is false) continue;
 
                     direction = dir;
                 }
-                else if (_paginationReferenceParams.Contains(item.Key) && referenceId == Identifier.Empty)
+                else if (_paginationReferenceParams.Contains(param.Key) && referenceId == Identifier.Empty)
                 {
-                    if (Identifier.TryParse(item.Value, out var identifier))
-                    {
-                        referenceId = identifier;
-                    }
+                    if (Identifier.TryParse(param.Value, out var identifier) is false) continue;
+
+                    referenceId = identifier;
                 }
-                else if (_stringMethods.TryGetValue(item.Key, out var func))
+                else if (_stringMethods.TryGetValue(param.Key, out var func))
                 {
-                    predicate = ExpressionUtility.AndAlso(predicate, func(item.Key));
+                    predicate = ExpressionUtility.AndAlso(predicate, func(param.Value));
                 }
             }
         }
@@ -63,9 +60,11 @@ public sealed class QueryExecutor<TEntity> where TEntity : class, IEntity
         var query = _dbSet
             .AsNoTracking()
             .Where(predicate)
-            .KeysetPaginateQuery(x => x.Descending(x => x.Id),
+            .Take(2)
+            .KeysetPaginateQuery(
+            builder => builder.Descending(x => x.Id),
             direction ?? KeysetPaginationDirection.Forward,
-            referenceId != Identifier.Empty ? await _dbSet.FindAsync(new object?[] { referenceId }, cancellationToken: ct) : null)
+            referenceId == Identifier.Empty ? null : await _dbSet.FindAsync(new object?[] { referenceId }, cancellationToken: ct))
             .AsAsyncEnumerable();
 
         await foreach (var entity in query)

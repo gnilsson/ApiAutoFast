@@ -1,6 +1,7 @@
 ﻿//using ApiAutoFast.EntityFramework;
 //using ApiAutoFast.Utility;
 //using FastEndpoints;
+//using FluentValidation.Results;
 //using Microsoft.EntityFrameworkCore;
 //using Microsoft.Extensions.Primitives;
 //using MR.AspNetCore.Pagination;
@@ -41,82 +42,101 @@
 
 //    private static readonly string[] _paginationReferenceParams = new string[] { "before", "after", };
 
+//    private void AddError(string property, string message)
+//    {
+//        ValidationFailures.Add(new ValidationFailure(property, message));
+//    }
 
-//    //public override async Task HandleAsync(PostQueryRequest req, CancellationToken ct)
-//    //{
-//    //    var f = HttpContext.Request.Query.ToArray();
-//    //    var f2 = HttpContext.Request.Query.ToDictionary(x => x.Key, x => x.Value);
+//    private bool HasError()
+//    {
+//        return ValidationFailures.Count > 0;
+//    }
 
-//    //    Expression<Func<Post, bool>> predicate = p => true;
+//    public override async Task HandleAsync(PostQueryRequest req, CancellationToken ct)
+//    {
+//        var f = HttpContext.Request.Query.ToArray();
+//        var f2 = HttpContext.Request.Query.ToDictionary(x => x.Key, x => x.Value);
 
-//    //    KeysetPaginationDirection? direction = null!;
-//    //    var referenceId = Identifier.Empty;
-
-//    //    if (f2.Count > 0)
-//    //    {
-//    //        foreach (var item in f2)
-//    //        {
-//    //            if (_paginationDirectionParams.TryGetValue(item.Key, out var dir) && direction is null)
-//    //            {
-//    //                if (bool.TryParse((string)item.Value, out var value) is false || value is false) continue;
-
-//    //                direction = dir;
-//    //            }
-//    //            else if (_paginationReferenceParams.Contains(item.Key) && referenceId == Identifier.Empty)
-//    //            {
-//    //                if (Identifier.TryParse(item.Value, out var identifier))
-//    //                {
-//    //                    referenceId = identifier;
-//    //                }
-//    //            }
-//    //            else if (_stringMethods.TryGetValue(item.Key, out var func))
-//    //            {
-//    //                predicate = ExpressionUtility.AndAlso(predicate, func(item.Key));
-//    //            }
-//    //        }
-
-//    //    }
-
-//    //    //var f = _dbContext.Posts.Where(x => ((string)x.Title).Contains(req.Title!)).AsAsyncEnumerable();
-
-//    //    //var r = YieldResponse(f);
-
-//    //    //var queries = BuildQuery(HttpContext.Request.QueryString.Value);
-
-//    //    //var usersPaginationResult = await _paginationService.KeysetPaginateAsync(
-//    //    //    _dbContext.Posts,
-//    //    //     (KeysetPaginationBuilder<Post> b) => b.Descending(x => x.CreatedDateTime),
-//    //    //    async id => await _dbContext.Posts.FindAsync(id) ?? null!,
-//    //    //    query => query.Select(x => Map.FromEntity(x)));
+//        Expression<Func<Post, bool>> predicate = p => true;
 
 
-//    //    //var query = _dbContext.Posts
-//    //    //    .AsNoTracking()
-//    //    //    .Where(predicate)
-//    //    //    .KeysetPaginateQuery(x => x.Descending(x => x.Id),
-//    //    //    direction ?? KeysetPaginationDirection.Forward,
-//    //    //    referenceId != Identifier.Empty ? await _dbContext.Posts.FindAsync(new object?[] { referenceId }, cancellationToken: ct) : null)
-//    //    //    .AsAsyncEnumerable();
 
-//    //    //var query = keysetContext.Query.Take(20).ToArrayAsync();
-//    //    //KeysetPaginationResult<PostResponse> ff = await _paginationService.KeysetPaginateAsync<Post, PostResponse>(
-//    //    //    _dbContext.Posts,
-//    //    //    b => b.Descending(x => x.CreatedDateTime),
-//    //    //    async x => await _dbContext.Posts.Where(queries),
-//    //    //    query => query.Select(x => Map.FromEntity(x)));
+//        KeysetPaginationDirection? direction = null!;
+//        var referenceId = Identifier.Empty;
+
+//        if (f2.Count > 0)
+//        {
+//            foreach (var item in f2)
+//            {
+//                if (_paginationDirectionParams.TryGetValue(item.Key, out var dir) && direction is null)
+//                {
+//                    if (bool.TryParse((string)item.Value, out var value) is false || value is false) continue;
+
+//                    direction = dir;
+//                }
+//                else if (_paginationReferenceParams.Contains(item.Key) && referenceId == Identifier.Empty)
+//                {
+//                    if (Identifier.TryParse(item.Value, out var identifier))
+//                    {
+//                        referenceId = identifier;
+//                    }
+//                }
+//                else if (_stringMethods.TryGetValue(item.Key, out var func))
+//                {
+//                    predicate = ExpressionUtility.AndAlso(predicate, func(item.Key));
+//                }
+//            }
+
+//        }
+
+//        //async IAsyncEnumerable<PostResponse> YieldResponse(IAsyncEnumerable<Post> entities)
+//        //{
+//        //    await foreach (var entity in entities)
+//        //    {
+//        //        yield return Map.FromEntity(entity);
+//        //    }
+//        //}
+
+//        //var f = _dbContext.Posts.Where(x => ((string)x.Title).Contains(req.Title!)).AsAsyncEnumerable();
+
+//        //var r = YieldResponse(f);
+
+//        //var queries = BuildQuery(HttpContext.Request.QueryString.Value);
+
+//        //var usersPaginationResult = await _paginationService.KeysetPaginateAsync(
+//        //    _dbContext.Posts,
+//        //     (KeysetPaginationBuilder<Post> b) => b.Descending(x => x.CreatedDateTime),
+//        //    async id => await _dbContext.Posts.FindAsync(id) ?? null!,
+//        //    query => query.Select(x => Map.FromEntity(x)));
 
 
-//    //    //var entities =
-//    //    //var responses = YieldResponse(entities);
+//        //var query = _dbContext.Posts
+//        //    .AsNoTracking()
+//        //    .Where(predicate)
+//        //    .KeysetPaginateQuery(x => x.Descending(x => x.Id),
+//        //    direction ?? KeysetPaginationDirection.Forward,
+//        //    referenceId != Identifier.Empty ? await _dbContext.Posts.FindAsync(new object?[] { referenceId }, cancellationToken: ct) : null)
+//        //    .AsAsyncEnumerable();
+
+//        //var query = keysetContext.Query.Take(20).ToArrayAsync();
+//        //KeysetPaginationResult<PostResponse> ff = await _paginationService.KeysetPaginateAsync<Post, PostResponse>(
+//        //    _dbContext.Posts,
+//        //    b => b.Descending(x => x.CreatedDateTime),
+//        //    async x => await _dbContext.Posts.Where(queries),
+//        //    query => query.Select(x => Map.FromEntity(x)));
 
 
-//    //    //// var r = f.Select(x => Map.FromEntity(x));
+//        //var entities =
+//        //var responses = YieldResponse(entities);
 
-//    //    //var pag = new Paginated<PostResponse> { Data2 = responses };
 
-//    //    await SendOkAsync(pag);
-//    //    return;
-//    //}
+//        //// var r = f.Select(x => Map.FromEntity(x));
+
+//        //var pag = new Paginated<PostResponse> { Data2 = responses };
+
+//      //  await SendOkAsync(pag);
+//        return;
+//    }
 
 //    private async IAsyncEnumerable<Post> YieldResponse(Expression<Func<Post, bool>> queries)
 //    {
@@ -127,21 +147,21 @@
 //    }
 
 
-//    private async IAsyncEnumerable<PostResponse> YieldRespons2e(Expression<Func<Post, bool>> queries)
-//    {
-//        await foreach (var ah in _dbContext.Posts.Where(queries).ToAsyncEnumerable())
-//        {
-//            yield return Map.FromEntity(ah);
-//        }
-//    }
+//    //private async IAsyncEnumerable<PostResponse> YieldRespons2e(Expression<Func<Post, bool>> queries)
+//    //{
+//    //    await foreach (var ah in _dbContext.Posts.Where(queries).ToAsyncEnumerable())
+//    //    {
+//    //        yield return Map.FromEntity(ah);
+//    //    }
+//    //}
 
-//    private async IAsyncEnumerable<PostResponse> YieldResponse(IAsyncEnumerable<Post>? ahh)
-//    {
-//        await foreach (var ah in ahh)
-//        {
-//            yield return Map.FromEntity(ah);
-//        }
-//    }
+//    //private async IAsyncEnumerable<PostResponse> YieldResponse(IAsyncEnumerable<Post>? ahh)
+//    //{
+//    //    await foreach (var ah in ahh)
+//    //    {
+//    //        yield return Map.FromEntity(ah);
+//    //    }
+//    //}
 
 //    //private static readonly Dictionary<string, Func<DbSet<Post>, string, IQueryable<Post>>> _stringMethods = new()
 //    //{

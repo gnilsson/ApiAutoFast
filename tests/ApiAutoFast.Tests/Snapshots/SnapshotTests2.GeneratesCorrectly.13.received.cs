@@ -6,7 +6,7 @@ namespace ApiAutoFast.Sample.Server.Database;
 
 public class PostCreateCommand
 {
-    public string BlogId  { get; set; }
+    public string BlogId { get; set; }
     public string Title { get; set; }
     public string PublicationDateTime { get; set; }
     public string Description { get; set; }

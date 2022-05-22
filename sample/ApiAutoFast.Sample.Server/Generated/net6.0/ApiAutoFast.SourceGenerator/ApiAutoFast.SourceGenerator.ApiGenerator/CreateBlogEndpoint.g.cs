@@ -1,10 +1,12 @@
 ﻿
 using ApiAutoFast;
+using ApiAutoFast.EntityFramework;
 using FastEndpoints;
 using FluentValidation.Results;
 using Microsoft.EntityFrameworkCore;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq.Expressions;
 
 namespace ApiAutoFast.Sample.Server;
 
@@ -13,8 +15,10 @@ public partial class CreateBlogEndpoint : Endpoint<BlogCreateCommand, BlogRespon
     partial void ExtendConfigure();
     private readonly AutoFastSampleDbContext _dbContext;
     private bool _overrideConfigure = false;
+    private readonly QueryExecutor<Blog> _queryExecutor;
     private bool _saveChanges = true;
     private Blog _entity;
+
 
     public CreateBlogEndpoint(AutoFastSampleDbContext dbContext)
     {

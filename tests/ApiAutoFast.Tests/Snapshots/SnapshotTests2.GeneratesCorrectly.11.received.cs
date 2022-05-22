@@ -36,14 +36,14 @@ public partial class MappingRegister : ICodeGenerationRegister
 
         TypeAdapterConfig.GlobalSettings.Default.EnumMappingStrategy(EnumMappingStrategy.ByName);
 
+        TypeAdapterConfig.GlobalSettings.Default.AddDestinationTransform(DestinationTransform.EmptyCollectionIfNull);
+
         TypeAdapterConfig.GlobalSettings
             .When((src, dest, map) => src.GetInterface(nameof(IEntity)) is not null)
             .Map(nameof(IEntity.CreatedDateTime), (IEntity e) => e.CreatedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"))
             .Map(nameof(IEntity.ModifiedDateTime), (IEntity e) => e.ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"));
 
-        TypeAdapterConfig<Posts, ICollection<Post>>.NewConfig().MapWith(x => x.EntityValue);
         TypeAdapterConfig<Title, string>.NewConfig().MapWith(x => x.EntityValue);
-        TypeAdapterConfig<Blog, string>.NewConfig().MapWith(x => x.ToString());
         TypeAdapterConfig<PublicationDateTime, string>.NewConfig().MapWith(x => x.ToString());
         TypeAdapterConfig<Description, string>.NewConfig().MapWith(x => x.EntityValue);
         TypeAdapterConfig<PostType, string>.NewConfig().MapWith(x => x.ToString());
@@ -67,7 +67,6 @@ public static class AdaptAttributeBuilderExtensions
                 cfg.Map(poco => poco.Id, typeof(string));
                 cfg.Map(poco => poco.CreatedDateTime, typeof(string));
                 cfg.Map(poco => poco.ModifiedDateTime, typeof(string));
-                cfg.Map(poco => poco.Posts, typeof(ICollection<Post>));
                 cfg.Map(poco => poco.Title, typeof(string));
             })
             .ForType<Post>(cfg =>
@@ -75,7 +74,7 @@ public static class AdaptAttributeBuilderExtensions
                 cfg.Map(poco => poco.Id, typeof(string));
                 cfg.Map(poco => poco.CreatedDateTime, typeof(string));
                 cfg.Map(poco => poco.ModifiedDateTime, typeof(string));
-                cfg.Map(poco => poco.Blog, typeof(string));
+                cfg.Map(poco => poco.BlogId, typeof(string));
                 cfg.Map(poco => poco.Title, typeof(string));
                 cfg.Map(poco => poco.PublicationDateTime, typeof(string));
                 cfg.Map(poco => poco.Description, typeof(string));

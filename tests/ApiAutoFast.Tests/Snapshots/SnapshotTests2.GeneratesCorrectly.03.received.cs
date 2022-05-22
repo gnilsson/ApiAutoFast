@@ -16,6 +16,6 @@ public class Blog : IEntity
     public Identifier Id { get; set; }
     public DateTime CreatedDateTime { get; set; }
     public DateTime ModifiedDateTime { get; set; }
-    public Posts Posts { get; set; }
+    public ICollection<Post> Posts { get; set; }
     public Title Title { get; set; }
 }

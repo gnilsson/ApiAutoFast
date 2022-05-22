@@ -1,10 +1,12 @@
 ﻿
 using ApiAutoFast;
+using ApiAutoFast.EntityFramework;
 using FastEndpoints;
 using FluentValidation.Results;
 using Microsoft.EntityFrameworkCore;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq.Expressions;
 
 namespace ApiAutoFast.Sample.Server;
 
@@ -13,6 +15,8 @@ public partial class DeletePostEndpoint : Endpoint<PostDeleteCommand, PostRespon
     partial void ExtendConfigure();
     private readonly AutoFastSampleDbContext _dbContext;
     private bool _overrideConfigure = false;
+    private readonly QueryExecutor<Post> _queryExecutor;
+
 
     public DeletePostEndpoint(AutoFastSampleDbContext dbContext)
     {
