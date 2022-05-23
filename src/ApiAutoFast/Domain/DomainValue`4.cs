@@ -5,6 +5,7 @@ using System.Reflection;
 
 namespace ApiAutoFast;
 
+// note: maybe there should be a seperate class called ForeignDomainValue
 public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : DomainValue<TRequest, TEntity, TResponse, TDomain>, new()
 {
     static DomainValue()

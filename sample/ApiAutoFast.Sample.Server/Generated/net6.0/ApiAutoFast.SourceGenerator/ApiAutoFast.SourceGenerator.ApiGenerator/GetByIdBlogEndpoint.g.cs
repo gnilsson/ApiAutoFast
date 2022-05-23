@@ -16,6 +16,10 @@ public partial class GetByIdBlogEndpoint : Endpoint<BlogGetByIdRequest, BlogResp
     private readonly AutoFastSampleDbContext _dbContext;
     private bool _overrideConfigure = false;
     private readonly QueryExecutor<Blog> _queryExecutor;
+    private static readonly string[] _relationalNavigationNames = new[]
+    {
+        "Posts",
+    };
 
 
     public GetByIdBlogEndpoint(AutoFastSampleDbContext dbContext)

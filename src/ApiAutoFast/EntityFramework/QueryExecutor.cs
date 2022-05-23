@@ -25,11 +25,13 @@ public sealed class QueryExecutor<TEntity> where TEntity : class, IEntity
 
     private readonly DbSet<TEntity> _dbSet;
     private readonly Dictionary<string, Func<string, Expression<Func<TEntity, bool>>>> _stringMethods;
+    private readonly string[] _relationalNavigationNames;
 
-    public QueryExecutor(DbSet<TEntity> dbSet, Dictionary<string, Func<string, Expression<Func<TEntity, bool>>>> stringMethods)
+    public QueryExecutor(DbSet<TEntity> dbSet, Dictionary<string, Func<string, Expression<Func<TEntity, bool>>>> stringMethods, string[] relationalNavigationNames)
     {
         _dbSet = dbSet;
         _stringMethods = stringMethods;
+        _relationalNavigationNames = relationalNavigationNames;
     }
 
     public async IAsyncEnumerable<TEntity> ExecuteAsync(IQueryCollection queryCollection, [EnumeratorCancellation] CancellationToken ct)
@@ -46,7 +48,7 @@ public sealed class QueryExecutor<TEntity> where TEntity : class, IEntity
             {
                 if (_paginationDirectionParams.TryGetValue(param.Key, out var dir)
                     && direction is null
-                    && (bool.TryParse((string)param.Value, out var value) is false || value is false))
+                    && (bool.TryParse(param.Value, out var value) is false || value is false))
                 {
                     direction = dir;
                 }
@@ -63,14 +65,21 @@ public sealed class QueryExecutor<TEntity> where TEntity : class, IEntity
             }
         }
 
-        var query = _dbSet
+        var baseQuery = _dbSet
             .AsNoTracking()
-            .Where(predicate)
-            .Take(2)
+            .Where(predicate);
+
+        foreach (var relationalNavigationName in _relationalNavigationNames)
+        {
+            baseQuery = baseQuery.Include(relationalNavigationName);
+        }
+
+        var query = baseQuery
+            .Take(20)
             .KeysetPaginateQuery(
-            builder => builder.Descending(x => x.Id),
-            direction ?? KeysetPaginationDirection.Forward,
-            referenceId == Identifier.Empty ? null : await _dbSet.FindAsync(new object?[] { referenceId }, cancellationToken: ct))
+        builder => builder.Descending(x => x.Id),
+        direction ?? KeysetPaginationDirection.Forward,
+        referenceId == Identifier.Empty ? null : await _dbSet.FindAsync(new object?[] { referenceId }, cancellationToken: ct))
             .AsAsyncEnumerable();
 
         await foreach (var entity in query.WithCancellation(ct))

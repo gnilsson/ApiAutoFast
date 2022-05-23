@@ -51,15 +51,16 @@ public readonly struct Identifier
         return Empty;
     }
 
-    public static bool TryParse(string valueToParse, [NotNullWhen(true)] out Identifier identifier)
+    public static bool TryParse(string? valueToParse, [NotNullWhen(true)] out Identifier identifier)
     {
         identifier = Empty;
 
-        var success = Regex.IsMatch(valueToParse, Base64RegexPattern, RegexOptions.Compiled);
+        var success = string.IsNullOrEmpty(valueToParse) is false
+            && Regex.IsMatch(valueToParse, Base64RegexPattern, RegexOptions.Compiled);
 
         if (success)
         {
-            identifier = new Identifier(valueToParse);
+            identifier = new Identifier(valueToParse!);
         }
 
         return success;

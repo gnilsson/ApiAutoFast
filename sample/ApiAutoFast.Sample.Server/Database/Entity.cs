@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Mapster;
+using Microsoft.EntityFrameworkCore;
 
 namespace ApiAutoFast.Sample.Server;
 
@@ -38,12 +39,43 @@ public class PostsRelation : DomainValue<ICollection<Post>, PostsRelation>
 [AutoFastContext]
 public partial class AutoFastSampleDbContext : DbContext
 {
-    //public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
-    //{
-    //    return Task.FromResult(0);
-    //}
-    //partial void ExtendOnModelCreating(ModelBuilder modelBuilder)
-    //{
-    //    modelBuilder.Entity<Blog>().HasMany<Post>("Posts").WithOne(x => (Blog)x.Blog);
-    //}
+    partial void ExtendOnModelCreating(ModelBuilder modelBuilder)
+    {
+
+    }
 }
+
+public partial class MappingRegister
+{
+    static partial void ExtendRegister(CodeGenerationConfig config)
+    {
+
+    }
+}
+
+//public static class AdaptAttributeBuilderExtensions
+//{
+//    public static AdaptAttributeBuilder ForTypeDefaultValues(this AdaptAttributeBuilder aab)
+//    {
+//        return aab
+//            .ForType<Post>(cfg =>
+//            {
+//                cfg.Map(poco => poco.Id, typeof(string));
+//                cfg.Map(poco => poco.CreatedDateTime, typeof(string));
+//                cfg.Map(poco => poco.ModifiedDateTime, typeof(string));
+//                cfg.Map(poco => poco.Title, typeof(string));
+//                cfg.Map(poco => poco.PublicationDateTime, typeof(string));
+//                cfg.Map(poco => poco.Description, typeof(string));
+//                cfg.Map(poco => poco.PostType, typeof(string));
+//                cfg.Map(poco => poco.LikeCount, typeof(int));
+//                cfg.Ignore(x => x.BlogId);
+//            })
+//            .ForType<Blog>(cfg =>
+//            {
+//                cfg.Map(poco => poco.Id, typeof(string));
+//                cfg.Map(poco => poco.CreatedDateTime, typeof(string));
+//                cfg.Map(poco => poco.ModifiedDateTime, typeof(string));
+//                cfg.Map(poco => poco.Title, typeof(string));
+//            });
+//    }
+//}

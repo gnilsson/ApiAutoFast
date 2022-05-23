@@ -20,12 +20,16 @@ public partial class GetBlogEndpoint : Endpoint<BlogQueryRequest, Paginated<Blog
     {
         ["Title"] = query => entity => ((string)entity.Title).Contains(query),
     };
+    private static readonly string[] _relationalNavigationNames = new[]
+    {
+        "Posts",
+    };
 
 
     public GetBlogEndpoint(AutoFastSampleDbContext dbContext)
     {
         _dbContext = dbContext;
-        _queryExecutor = new QueryExecutor<Blog>(_dbContext.Blogs, _stringMethods);
+        _queryExecutor = new QueryExecutor<Blog>(_dbContext.Blogs, _stringMethods, _relationalNavigationNames);
     }
 
     public override void Configure()

@@ -21,12 +21,16 @@ public partial class GetPostEndpoint : Endpoint<PostQueryRequest, Paginated<Post
         ["Title"] = query => entity => ((string)entity.Title).Contains(query),
         ["Description"] = query => entity => ((string)entity.Description).Contains(query),
     };
+    private static readonly string[] _relationalNavigationNames = new[]
+    {
+        "Blog",
+    };
 
 
     public GetPostEndpoint(AutoFastSampleDbContext dbContext)
     {
         _dbContext = dbContext;
-        _queryExecutor = new QueryExecutor<Post>(_dbContext.Posts, _stringMethods);
+        _queryExecutor = new QueryExecutor<Post>(_dbContext.Posts, _stringMethods, _relationalNavigationNames);
     }
 
     public override void Configure()

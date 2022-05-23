@@ -1,4 +1,6 @@
 ﻿
+ #nullable enable
+
 using ApiAutoFast;
 
 namespace ApiAutoFast.Sample.Server;

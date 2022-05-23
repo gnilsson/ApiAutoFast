@@ -55,8 +55,10 @@ public partial class MappingRegister : ICodeGenerationRegister
             aab.ForTypeDefaultValues();
         }
 
+        TypeAdapterConfig.GlobalSettings.Default.PreserveReference(true);
+        TypeAdapterConfig.GlobalSettings.Default.MaxDepth(2);
+        TypeAdapterConfig.GlobalSettings.Default.ShallowCopyForSameType(true);
         TypeAdapterConfig.GlobalSettings.Default.EnumMappingStrategy(EnumMappingStrategy.ByName);
-
         TypeAdapterConfig.GlobalSettings.Default.AddDestinationTransform(DestinationTransform.EmptyCollectionIfNull);
 
         TypeAdapterConfig.GlobalSettings
@@ -124,6 +126,12 @@ public static class AdaptAttributeBuilderExtensions
             {
                 if (property.DomainValueDefiniton.PropertyRelation.RelationalType is RelationalType.ToMany) continue;
 
+                //if (property.DomainValueDefiniton.PropertyRelation.RelationalType is RelationalType.ToOne)
+                //{
+                //    sb.Append(@"
+                //cfg.Ignore(poco => poco.").Append(property.DomainValueDefiniton.PropertyRelation.IdPropertyName).Append(@");");
+                //}
+
                 var propertyName = property.DomainValueDefiniton.PropertyRelation.RelationalType is RelationalType.ToOne
                     ? property.DomainValueDefiniton.PropertyRelation.IdPropertyName
                     : property.DomainValueDefiniton.PropertyName;
@@ -138,7 +146,6 @@ public static class AdaptAttributeBuilderExtensions
     }
 }
 ");
-
         return sb.ToString();
     }
 
@@ -204,6 +211,8 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity
         sb.Clear();
 
         sb.Append(@"
+ #nullable enable
+
 using ApiAutoFast;
 
 namespace ").Append(@namespace).Append(@";

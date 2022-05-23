@@ -5,7 +5,7 @@ namespace ApiAutoFast.SourceGenerator.Configuration;
 
 internal readonly struct EntityConfig
 {
-    internal EntityConfig(AutoFastEndpointsAttributeArguments endpointsAttributeArguments, ImmutableArray<PropertyMetadata> propertyMetadatas)
+    internal EntityConfig(AutoFastEndpointsAttributeArguments endpointsAttributeArguments, ImmutableArray<PropertyMetadata> propertyMetadatas, ImmutableArray<string> relationalNavigationNames)
     {
         BaseName = endpointsAttributeArguments.EntityName;
         Response = $"{endpointsAttributeArguments.EntityName}Response";
@@ -14,6 +14,7 @@ internal readonly struct EntityConfig
         ModifyCommand = $"{endpointsAttributeArguments.EntityName}{nameof(RequestModelTarget.ModifyCommand)}";
         EndpointsAttributeArguments = endpointsAttributeArguments;
         PropertyMetadatas = propertyMetadatas;
+        RelationalNavigationNames = relationalNavigationNames;
     }
 
     internal readonly string BaseName { get; }
@@ -23,4 +24,5 @@ internal readonly struct EntityConfig
     internal readonly string ModifyCommand { get; }
     internal readonly AutoFastEndpointsAttributeArguments EndpointsAttributeArguments { get; }
     internal readonly ImmutableArray<PropertyMetadata> PropertyMetadatas { get; }
+    internal readonly ImmutableArray<string> RelationalNavigationNames { get; }
 }

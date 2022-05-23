@@ -121,7 +121,12 @@ internal static class Parser
 
             var propertyMetadatas = YieldPropertyMetadata(compilation, members, foreignEntityNames).ToImmutableArray();
 
-            yield return new EntityConfig(entityConfigSetup.EndpointsAttributeArguments, propertyMetadatas);
+            var relationalNavigationNames = propertyMetadatas
+                .Where(x => x.DomainValueDefiniton.PropertyRelation.RelationalType is not RelationalType.None)
+                .Select(x => x.DomainValueDefiniton.PropertyRelation.ForeigEntityProperty)
+                .ToImmutableArray();
+
+            yield return new EntityConfig(entityConfigSetup.EndpointsAttributeArguments, propertyMetadatas, relationalNavigationNames);
         }
     }
 

@@ -33,8 +33,10 @@ public partial class MappingRegister : ICodeGenerationRegister
             aab.ForTypeDefaultValues();
         }
 
+        TypeAdapterConfig.GlobalSettings.Default.PreserveReference(true);
+        TypeAdapterConfig.GlobalSettings.Default.MaxDepth(2);
+        TypeAdapterConfig.GlobalSettings.Default.ShallowCopyForSameType(true);
         TypeAdapterConfig.GlobalSettings.Default.EnumMappingStrategy(EnumMappingStrategy.ByName);
-
         TypeAdapterConfig.GlobalSettings.Default.AddDestinationTransform(DestinationTransform.EmptyCollectionIfNull);
 
         TypeAdapterConfig.GlobalSettings

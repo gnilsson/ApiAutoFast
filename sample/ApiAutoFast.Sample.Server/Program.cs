@@ -9,12 +9,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors();
 builder.Services.AddResponseCaching();
-builder.Services.AddFastEndpoints(new[] { typeof(IAutoFastAssemblyMarker).Assembly });
-
-builder.Services.AddPagination(c =>
-{
-    c.PageQueryParameterName = "p";
-});
 
 builder.Services
     .AddSwaggerDoc(s =>
@@ -24,6 +18,8 @@ builder.Services
         s.Version = "v0.0";
         s.OperationProcessors.Add(new KeysetPaginationOperationProcessor());
     }, shortSchemaNames: true);
+
+builder.Services.AddAutoFast();
 
 builder.Services.AddDbContext<AutoFastSampleDbContext>(options => options
     .UseSqlServer(builder.Configuration.GetConnectionString("sqlConn"))

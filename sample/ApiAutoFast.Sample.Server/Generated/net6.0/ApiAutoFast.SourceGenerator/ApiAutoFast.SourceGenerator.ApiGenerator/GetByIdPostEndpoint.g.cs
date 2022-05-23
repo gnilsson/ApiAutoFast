@@ -16,6 +16,10 @@ public partial class GetByIdPostEndpoint : Endpoint<PostGetByIdRequest, PostResp
     private readonly AutoFastSampleDbContext _dbContext;
     private bool _overrideConfigure = false;
     private readonly QueryExecutor<Post> _queryExecutor;
+    private static readonly string[] _relationalNavigationNames = new[]
+    {
+        "Blog",
+    };
 
 
     public GetByIdPostEndpoint(AutoFastSampleDbContext dbContext)

@@ -1,5 +1,6 @@
 ﻿using ApiAutoFast.SourceGenerator.Configuration;
 using ApiAutoFast.SourceGenerator.Configuration.Enums;
+using System.Collections.Immutable;
 using System.Text;
 
 namespace ApiAutoFast.SourceGenerator.Emitters;
@@ -138,7 +139,7 @@ await base.HandleAsync(req, ct);");
         }
     };
 
-    internal static string EmitEndpoint(StringBuilder sb, string @namespace, EndpointConfig endpointConfig, string contextName)
+    internal static string EmitEndpoint(StringBuilder sb, string @namespace, EndpointConfig endpointConfig, string contextName, ImmutableArray<string> relationalNavigationNames)
     {
         sb.Clear();
 
@@ -190,6 +191,20 @@ public partial class ")
             sb.Append(@"
     };");
         }
+
+        if (endpointConfig.RequestEndpointPair.EndpointTarget is EndpointTargetType.Get or EndpointTargetType.GetById)
+        {
+            sb.Append(@"
+    private static readonly string[] _relationalNavigationNames = new[]
+    {");
+            foreach (var relationalNavigationName in relationalNavigationNames)
+            {
+                sb.Append(@"
+        """).Append(relationalNavigationName).Append(@""",");
+            }
+            sb.Append(@"
+    };");
+        }
         sb.Append(@"
 
 
@@ -199,7 +214,7 @@ public partial class ")
         if (endpointConfig.RequestEndpointPair.EndpointTarget is EndpointTargetType.Get)
         {
             sb.Append(@"
-        _queryExecutor = new QueryExecutor<").Append(endpointConfig.Entity).Append(@">(_dbContext.").Append(endpointConfig.Entity).Append(@"s, _stringMethods);");
+        _queryExecutor = new QueryExecutor<").Append(endpointConfig.Entity).Append(@">(_dbContext.").Append(endpointConfig.Entity).Append(@"s, _stringMethods, _relationalNavigationNames);");
         }
         sb.Append(@"
     }
