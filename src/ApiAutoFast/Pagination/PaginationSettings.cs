@@ -5,6 +5,6 @@ public readonly struct PaginationSettings
     public PaginationSettings()
     { }
 
-    public int DefaultPageSize { get; } = 20;
-    public int MaxPageSize { get; } = 50;
+    public int DefaultSize { get; } = 20;
+    public int MaxSize { get; } = 50;
 }

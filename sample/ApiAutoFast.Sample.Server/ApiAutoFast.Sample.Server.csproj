@@ -52,7 +52,7 @@
 
 	<!-- Mapster needs two builds to fully generate mapper class -->
 	<Target Name="AutoFastMap">
-		<Exec WorkingDirectory="$(ProjectDir)" Command="dotnet msbuild -t:Mapster -p:IgnoreFolder=$(IgnoreFolder)" />
+		<Exec WorkingDirectory="$(ProjectDir)" Command="dotnet msbuild -t:Mapster -p:IgnoreFolder=$(IgnoreFolder) -p:HardBuild=$(HardBuild)" />
 		<Exec WorkingDirectory="$(ProjectDir)" Command="dotnet msbuild -t:Mapster -p:IgnoreFolder=$(IgnoreFolder) -p:HardBuild=$(HardBuild)" />
 	</Target>
 

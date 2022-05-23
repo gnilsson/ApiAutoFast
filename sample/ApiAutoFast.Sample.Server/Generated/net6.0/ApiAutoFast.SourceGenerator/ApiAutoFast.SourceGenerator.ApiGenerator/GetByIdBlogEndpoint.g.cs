@@ -46,7 +46,7 @@ public partial class GetByIdBlogEndpoint : Endpoint<BlogGetByIdRequest, BlogResp
             return;
         }
 
-        var result = await _dbContext.Blogs.FindAsync(identifier);
+        var result = await _dbContext.Blogs.FindAsync(new object?[] { identifier }, cancellationToken: ct);
 
         if (result is null)
         {

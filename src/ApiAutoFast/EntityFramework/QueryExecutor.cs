@@ -1,7 +1,9 @@
-﻿using ApiAutoFast.Utility;
+﻿using ApiAutoFast.Descriptive;
+using ApiAutoFast.Utility;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using MR.EntityFrameworkCore.KeysetPagination;
+using System.Collections.Immutable;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 
@@ -11,11 +13,15 @@ public sealed class QueryExecutor<TEntity> where TEntity : class, IEntity
 {
     private static readonly Dictionary<string, KeysetPaginationDirection> _paginationDirectionParams = new()
     {
-        ["first"] = KeysetPaginationDirection.Forward,
-        ["last"] = KeysetPaginationDirection.Backward
+        [QueryParameterText.First] = KeysetPaginationDirection.Forward,
+        [QueryParameterText.Last] = KeysetPaginationDirection.Backward
     };
 
-    private static readonly string[] _paginationReferenceParams = new string[] { "before", "after", };
+    private static readonly ImmutableArray<string> _paginationReferenceParams = new()
+    {
+        QueryParameterText.Before,
+        QueryParameterText.After,
+    };
 
     private readonly DbSet<TEntity> _dbSet;
     private readonly Dictionary<string, Func<string, Expression<Func<TEntity, bool>>>> _stringMethods;
@@ -38,16 +44,16 @@ public sealed class QueryExecutor<TEntity> where TEntity : class, IEntity
         {
             foreach (var param in queryParameters)
             {
-                if (_paginationDirectionParams.TryGetValue(param.Key, out var dir) && direction is null)
+                if (_paginationDirectionParams.TryGetValue(param.Key, out var dir)
+                    && direction is null
+                    && (bool.TryParse((string)param.Value, out var value) is false || value is false))
                 {
-                    if (bool.TryParse((string)param.Value, out var value) is false || value is false) continue;
-
                     direction = dir;
                 }
-                else if (_paginationReferenceParams.Contains(param.Key) && referenceId == Identifier.Empty)
+                else if (_paginationReferenceParams.Contains(param.Key)
+                    && referenceId == Identifier.Empty
+                    && (Identifier.TryParse(param.Value, out var identifier) is false))
                 {
-                    if (Identifier.TryParse(param.Value, out var identifier) is false) continue;
-
                     referenceId = identifier;
                 }
                 else if (_stringMethods.TryGetValue(param.Key, out var func))
@@ -67,7 +73,7 @@ public sealed class QueryExecutor<TEntity> where TEntity : class, IEntity
             referenceId == Identifier.Empty ? null : await _dbSet.FindAsync(new object?[] { referenceId }, cancellationToken: ct))
             .AsAsyncEnumerable();
 
-        await foreach (var entity in query)
+        await foreach (var entity in query.WithCancellation(ct))
         {
             yield return entity;
         }

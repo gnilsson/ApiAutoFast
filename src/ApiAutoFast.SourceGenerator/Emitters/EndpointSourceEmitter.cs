@@ -62,7 +62,7 @@ internal static class EndpointSourceEmitter
             return;
         }
 
-        var result = await _dbContext.").Append(endpointConfig.Entity).Append(@"s.FindAsync(identifier);
+        var result = await _dbContext.").Append(endpointConfig.Entity).Append(@"s.FindAsync(new object?[] { identifier }, cancellationToken: ct);
 
         if (result is null)
         {
@@ -89,7 +89,7 @@ internal static class EndpointSourceEmitter
             return;
         }
 
-        var result = await _dbContext.").Append(endpointConfig.Entity).Append(@"s.FindAsync(identifier);
+        var result = await _dbContext.").Append(endpointConfig.Entity).Append(@"s.FindAsync(new object?[] { identifier }, cancellationToken: ct);
 
         if (result is null)
         {
@@ -116,7 +116,7 @@ internal static class EndpointSourceEmitter
             return;
         }
 
-        var result = await _dbContext.").Append(endpointConfig.Entity).Append(@"s.FindAsync(identifier);
+        var result = await _dbContext.").Append(endpointConfig.Entity).Append(@"s.FindAsync(new object?[] { identifier }, cancellationToken: ct);
 
         if (result is null)
         {

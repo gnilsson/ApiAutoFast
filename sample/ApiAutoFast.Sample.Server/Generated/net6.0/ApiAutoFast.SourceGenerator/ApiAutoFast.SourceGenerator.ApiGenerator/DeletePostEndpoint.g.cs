@@ -46,7 +46,7 @@ public partial class DeletePostEndpoint : Endpoint<PostDeleteCommand, PostRespon
             return;
         }
 
-        var result = await _dbContext.Posts.FindAsync(identifier);
+        var result = await _dbContext.Posts.FindAsync(new object?[] { identifier }, cancellationToken: ct);
 
         if (result is null)
         {
