@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using MassTransit;
 
 namespace ApiAutoFast;
 
@@ -21,13 +22,13 @@ public readonly struct Identifier
     private readonly Guid _guidValue;
     private readonly string _base64Value;
 
-    public Identifier(Guid guidValue)
+    public Identifier(in Guid guidValue)
     {
         _guidValue = guidValue;
         _base64Value = ToIdentifierString(guidValue);
     }
 
-    public Identifier(string base64Value)
+    public Identifier(in string base64Value)
     {
         if (Guid.TryParse(base64Value, out _guidValue))
         {
@@ -39,7 +40,7 @@ public readonly struct Identifier
         _base64Value = base64Value;
     }
 
-    public static Identifier New() => new(Guid.NewGuid());
+    public static Identifier New() => new(NewId.NextGuid());
 
     public static Identifier ConvertFromRequest(string request, Action<string, string> addError)
     {
