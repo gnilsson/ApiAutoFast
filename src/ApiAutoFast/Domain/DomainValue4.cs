@@ -31,24 +31,20 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
 
     protected virtual bool TryValidateRequestConversion(TRequest? requestValue, [NotNullWhen(true)] out TEntity entityValue)
     {
+        entityValue = default!;
+
         if (requestValue is TEntity entityRequestValue)
         {
             entityValue = entityRequestValue;
-            return requestValue is not null;
         }
 
-        throw new NotImplementedException($"{TypeText.DomainValue4} needs an overriden {nameof(TryValidateRequestConversion)} method.");
+        return requestValue is not null;
     }
 
     protected virtual TResponse ToResponse()
     {
         throw new NotImplementedException($"{TypeText.DomainValue4} needs an overriden {nameof(ToResponse)} method.");
     }
-
-    //public static void Init()
-    //{
-    //    // note: invoked dynamically to trigger static ctor
-    //}
 
     public static TDomain ConvertFromRequest(TRequest? request, Action<string, string> addError)
     {

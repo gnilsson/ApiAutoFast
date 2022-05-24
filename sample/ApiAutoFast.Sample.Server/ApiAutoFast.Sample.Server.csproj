@@ -40,7 +40,7 @@
 
 	<!-- Mapster generation commands -->
 	<Target Name="Mapster">
-		<Exec Condition="$(HardBuild) == true" WorkingDirectory="$(ProjectDir)" Command="dotnet msbuild -p:IgnoreFolder=$(IgnoreFolder)" />
+		<Exec WorkingDirectory="$(ProjectDir)" Command="dotnet msbuild -p:IgnoreFolder=$(IgnoreFolder)" />
 		<Exec WorkingDirectory="$(ProjectDir)" Command="dotnet tool restore" />
 		<Exec WorkingDirectory="$(ProjectDir)" Command="dotnet mapster model -a &quot;$(TargetDir)$(ProjectName).dll&quot;" />
 		<Exec WorkingDirectory="$(ProjectDir)" Command="dotnet mapster extension -a &quot;$(TargetDir)$(ProjectName).dll&quot;" />
@@ -49,8 +49,8 @@
 
 	<!-- Mapster needs two builds to fully generate mapper class -->
 	<Target Name="AutoFastMap">
-		<Exec WorkingDirectory="$(ProjectDir)" Command="dotnet msbuild -t:Mapster -p:IgnoreFolder=$(IgnoreFolder) -p:HardBuild=$(HardBuild)" />
-		<Exec WorkingDirectory="$(ProjectDir)" Command="dotnet msbuild -t:Mapster -p:IgnoreFolder=$(IgnoreFolder) -p:HardBuild=$(HardBuild)" />
+		<Exec WorkingDirectory="$(ProjectDir)" Command="dotnet msbuild -t:Mapster -p:IgnoreFolder=$(IgnoreFolder)" />
+		<Exec WorkingDirectory="$(ProjectDir)" Command="dotnet msbuild -t:Mapster -p:IgnoreFolder=$(IgnoreFolder)" />
 	</Target>
 
 	<PropertyGroup>
@@ -60,8 +60,6 @@
 		<FolderToIgnore>Endpoints/**/*.cs</FolderToIgnore>
 		<!-- 👇 Ensure our project is part of build to trigger generator -->
 		<ProjectToInclude>../$(ProjectName).csproj/*/*.cs</ProjectToInclude>
-		<!-- 👇 To sidestep some issue sometimes appearing initially -->
-		<HardBuild>false</HardBuild>
 	</PropertyGroup>
 
 
