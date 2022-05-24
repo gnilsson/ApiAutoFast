@@ -8,4 +8,5 @@ internal sealed class TypeText
     internal const string DomainValue2 = "DomainValue`2";
     internal const string DomainValue3 = "DomainValue`3";
     internal const string DomainValue4 = "DomainValue`4";
+    internal const string Paginated1 = "Paginated`1";
 }
