@@ -195,7 +195,7 @@ public partial class ")
         if (endpointConfig.RequestEndpointPair.EndpointTarget is EndpointTargetType.Get or EndpointTargetType.GetById)
         {
             sb.Append(@"
-    private static readonly string[] _relationalNavigationNames = new[]
+    private static readonly string[] _relationalNavigationNames = new string[]
     {");
             foreach (var relationalNavigationName in relationalNavigationNames)
             {
