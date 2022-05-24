@@ -27,7 +27,10 @@ public sealed class QueryExecutor<TEntity> where TEntity : class, IEntity
     private readonly Dictionary<string, Func<string, Expression<Func<TEntity, bool>>>> _stringMethods;
     private readonly string[] _relationalNavigationNames;
 
-    public QueryExecutor(DbSet<TEntity> dbSet, Dictionary<string, Func<string, Expression<Func<TEntity, bool>>>> stringMethods, string[] relationalNavigationNames)
+    public QueryExecutor(
+        DbSet<TEntity> dbSet,
+        Dictionary<string, Func<string, Expression<Func<TEntity, bool>>>> stringMethods,
+        string[] relationalNavigationNames)
     {
         _dbSet = dbSet;
         _stringMethods = stringMethods;
@@ -48,13 +51,14 @@ public sealed class QueryExecutor<TEntity> where TEntity : class, IEntity
             {
                 if (_paginationDirectionParams.TryGetValue(param.Key, out var dir)
                     && direction is null
-                    && (bool.TryParse(param.Value, out var value) is false || value is false))
+                    && bool.TryParse(param.Value, out var value)
+                    && value)
                 {
                     direction = dir;
                 }
                 else if (_paginationReferenceParams.Contains(param.Key)
                     && referenceId == Identifier.Empty
-                    && (Identifier.TryParse(param.Value, out var identifier) is false))
+                    && Identifier.TryParse(param.Value, out var identifier))
                 {
                     referenceId = identifier;
                 }
