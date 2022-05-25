@@ -18,9 +18,9 @@ public partial class GetBlogEndpoint : Endpoint<BlogQueryRequest, Paginated<Blog
     private readonly QueryExecutor<Blog> _queryExecutor;
     private static readonly Dictionary<string, Func<string, Expression<Func<Blog, bool>>>> _stringMethods = new()
     {
-        ["Title"] = query => entity => ((string)entity.Title).Contains(query),
+        ["Title"] = static query => entity => ((string)entity.Title).Contains(query),
     };
-    private static readonly string[] _relationalNavigationNames = new[]
+    private static readonly string[] _relationalNavigationNames = new string[]
     {
         "Posts",
     };

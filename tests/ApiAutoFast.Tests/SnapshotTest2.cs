@@ -30,12 +30,12 @@ public class BlogEntity
 [AutoFastEndpoints]
 public class PostEntity
 {
+    public LikeCount LikeCount { get; set; } = default!;
     public BlogRelation Blog { get; set; } = default!;
     public Title Title { get; set; } = default!;
     public PublicationDateTime PublicationDateTime { get; set; } = default!;
     public Description Description { get; set; } = default!;
     public PostType PostType { get; set; } = default!;
-    public LikeCount LikeCount { get; set; } = default!;
 }
 
 
@@ -76,11 +76,12 @@ public class Description : DomainValue<string, Description>
 public class PostType : DomainValue<EPostType, EPostType, string, PostType>
 { }
 
+[IncludeInCommand(typeof(Blog))]
 public class LikeCount : DomainValue<int, LikeCount>
 { }
 
 
-    [AutoFastContext]
+[AutoFastContext]
 public partial class AutoFastSampleDbContext : DbContext
 {
 

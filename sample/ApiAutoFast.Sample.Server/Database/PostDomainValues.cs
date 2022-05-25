@@ -32,5 +32,6 @@ public class Description : DomainValue<string, Description>
 public class PostType : DomainValue<EPostType, EPostType, string, PostType>
 { }
 
+//[IncludeInCommand(EEntity.Post)]
 public class LikeCount : DomainValue<int, LikeCount>
 { }

@@ -8,7 +8,7 @@ namespace ApiAutoFast;
 /// <param name="includeRequestModelTarget">If not applied, property is per default included in
 /// RequestModelTarget.CreateCommand | RequestModelTarget.ModifyCommand | RequestModelTarget.QueryRequest</param>
 /// </summary>
-[AttributeUsage(AttributeTargets.Property)]
+[AttributeUsage(AttributeTargets.Class)]
 public class ExcludeRequestModelAttribute : Attribute
 {
     public ExcludeRequestModelAttribute(RequestModelTarget includeRequestModelTarget = RequestModelTarget.None)

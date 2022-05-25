@@ -18,10 +18,10 @@ public partial class GetPostEndpoint : Endpoint<PostQueryRequest, Paginated<Post
     private readonly QueryExecutor<Post> _queryExecutor;
     private static readonly Dictionary<string, Func<string, Expression<Func<Post, bool>>>> _stringMethods = new()
     {
-        ["Title"] = query => entity => ((string)entity.Title).Contains(query),
-        ["Description"] = query => entity => ((string)entity.Description).Contains(query),
+        ["Title"] = static query => entity => ((string)entity.Title).Contains(query),
+        ["Description"] = static query => entity => ((string)entity.Description).Contains(query),
     };
-    private static readonly string[] _relationalNavigationNames = new[]
+    private static readonly string[] _relationalNavigationNames = new string[]
     {
         "Blog",
     };

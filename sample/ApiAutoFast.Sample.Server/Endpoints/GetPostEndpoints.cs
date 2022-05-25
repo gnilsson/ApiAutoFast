@@ -89,6 +89,9 @@
 
 //        }
 
+//        var ah = _dbContext.Posts.AsNoTracking().Where(x => x.Id == Identifier.New()).Include("");
+
+//        var b = await ah.SingleOrDefaultAsync(x => x.Id == "", ct);
 //        //async IAsyncEnumerable<PostResponse> YieldResponse(IAsyncEnumerable<Post> entities)
 //        //{
 //        //    await foreach (var entity in entities)

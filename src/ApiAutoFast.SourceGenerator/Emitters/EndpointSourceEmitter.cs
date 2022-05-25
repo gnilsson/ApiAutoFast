@@ -117,7 +117,14 @@ internal static class EndpointSourceEmitter
             return;
         }
 
-        var result = await _dbContext.").Append(endpointConfig.Entity).Append(@"s.FindAsync(new object?[] { identifier }, cancellationToken: ct);
+        var query = _dbContext.").Append(endpointConfig.Entity).Append(@"s.AsNoTracking();
+
+        foreach (var relationalNavigationName in _relationalNavigationNames)
+        {
+            query = query.Include(relationalNavigationName);
+        }
+
+        var result = await query.SingleOrDefaultAsync(x => x.Id == identifier, ct);
 
         if (result is null)
         {
@@ -134,7 +141,7 @@ internal static class EndpointSourceEmitter
         _ => static (sb, _) =>
         {
             sb.Append(@"
-await base.HandleAsync(req, ct);");
+        await base.HandleAsync(req, ct);");
             return sb;
         }
     };
@@ -186,7 +193,7 @@ public partial class ")
             foreach (var propertyName in endpointConfig.StringEntityProperties)
             {
                 sb.Append(@"
-        [""").Append(propertyName).Append(@"""] = query => entity => ((string)entity.").Append(propertyName).Append(@").Contains(query),");
+        [""").Append(propertyName).Append(@"""] = static query => entity => ((string)entity.").Append(propertyName).Append(@").Contains(query),");
             }
             sb.Append(@"
     };");

@@ -34,6 +34,7 @@ public class ApiGenerator : IIncrementalGenerator
             ctx.AddSource("AutoFastContextAttribute.g.cs", SourceText.From(EmbeddedSourceEmitter.AutoFastContextAttribute, Encoding.UTF8));
             ctx.AddSource("RequestModelTargetEnum.g.cs", SourceText.From(EmbeddedSourceEmitter.RequestModelTargetEnum, Encoding.UTF8));
             ctx.AddSource("ExcludeRequestModelAttribute.g.cs", SourceText.From(EmbeddedSourceEmitter.ExcludeRequestModelAttribute, Encoding.UTF8));
+            ctx.AddSource("IncludeInCommandAttribute.g.cs", SourceText.From(EmbeddedSourceEmitter.IncludeInCommandAttribute, Encoding.UTF8));
         });
 
         IncrementalValuesProvider<SemanticTargetInformation> classDeclarations = context.SyntaxProvider
@@ -44,6 +45,8 @@ public class ApiGenerator : IIncrementalGenerator
 
         IncrementalValueProvider<(Compilation Compilation, ImmutableArray<SemanticTargetInformation> SemanticTargetInformations)> compilationSemanticTargetInformations =
             context.CompilationProvider.Combine(classDeclarations.Collect());
+
+        // note: would it somehow be possible to precompile something other than embedded content?
 
         context.RegisterSourceOutput(compilationSemanticTargetInformations, static (spc, source) => Execute(source.Compilation, source.SemanticTargetInformations, spc));
     }
@@ -65,6 +68,11 @@ public class ApiGenerator : IIncrementalGenerator
             var entityResult = DefaultSourceEmitter.EmitEntityModels(sb, entityGenerationConfig.Namespace, entityConfig);
             context.AddSource($"{entityConfig.BaseName}.g.cs", SourceText.From(entityResult, Encoding.UTF8));
         }
+
+        //var entityEnumResult = DefaultSourceEmitter.EmitEntityEnum(sb, entityGenerationConfig.Namespace, entityGenerationConfig.EntityConfigs);
+        //context.AddSource($"EEntity.g.cs", SourceText.From(entityEnumResult, Encoding.UTF8));
+
+        //context.AddSource("IncludeInCommandAttribute.g.cs", SourceText.From(EmbeddedSourceEmitter.IncludeInCommandAttribute, Encoding.UTF8));
 
         var mappingRegisterResult = DefaultSourceEmitter.EmitMappingRegister(sb, entityGenerationConfig);
         context.AddSource("MappingRegister.g.cs", SourceText.From(mappingRegisterResult, Encoding.UTF8));

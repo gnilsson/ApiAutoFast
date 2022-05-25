@@ -1,5 +1,6 @@
 ﻿using ApiAutoFast.SourceGenerator.Configuration;
 using ApiAutoFast.SourceGenerator.Configuration.Enums;
+using System.Collections.Immutable;
 using System.Text;
 
 namespace ApiAutoFast.SourceGenerator.Emitters;
@@ -146,6 +147,30 @@ public static class AdaptAttributeBuilderExtensions
     }
 }
 ");
+        return sb.ToString();
+    }
+
+    internal static string EmitEntityEnum(StringBuilder sb, string @namespace, ImmutableArray<EntityConfig> entityConfigs)
+    {
+        sb.Clear();
+
+        sb.Append(@"
+using System;
+
+namespace ApiAutoFast").Append(@";
+
+[Flags]
+public enum EEntity
+{");
+        var count = 0;
+        foreach (var entity in entityConfigs)
+        {
+            sb.Append(@"
+    ").Append(entity.BaseName).Append(@" = 1 << ").Append(count).Append(@",");
+            count++;
+        }
+        sb.Append(@"
+}");
         return sb.ToString();
     }
 

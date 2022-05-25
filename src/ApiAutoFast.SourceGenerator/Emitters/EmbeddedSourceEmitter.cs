@@ -46,7 +46,7 @@ namespace ApiAutoFast;
 /// <param name=""includeRequestModelTarget"">If not applied, property is per default included in
 /// RequestModelTarget.CreateCommand | RequestModelTarget.ModifyCommand | RequestModelTarget.QueryRequest</param>
 /// </summary>
-[AttributeUsage(AttributeTargets.Property)]
+[AttributeUsage(AttributeTargets.Class)]
 public class ExcludeRequestModelAttribute : Attribute
 {
     public ExcludeRequestModelAttribute(RequestModelTarget includeRequestModelTarget = RequestModelTarget.None)
@@ -57,6 +57,51 @@ public class ExcludeRequestModelAttribute : Attribute
     public RequestModelTarget IncludeRequestModelTarget { get; }
 }
 ";
+
+    public const string IncludeInCommandAttribute = @"
+    using System;
+
+    namespace ApiAutoFast;
+
+    /// <summary>
+    /// Attribute to include property in another entity command.
+    /// <param name=""otherEntityType"">The other entity</param>
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class)]
+    public class IncludeInCommandAttribute : Attribute
+    {
+        public IncludeInCommandAttribute(params Type[] otherEntityTypes)
+        {
+            OtherEntityTypes = otherEntityTypes;
+        }
+
+        public Type[] OtherEntityTypes { get; }
+    }
+    ";
+
+    // note: pin this idea for now
+    //    public const string IncludeInCommandAttribute = @"
+    //using System;
+
+    //namespace ApiAutoFast;
+
+    ///// <summary>
+    ///// Attribute to include property in another entity command.
+    ///// <param name=""otherEntityType"">The other entity</param>
+    ///// </summary>
+    //[AttributeUsage(AttributeTargets.Class)]
+    //public class IncludeInCommandAttribute : Attribute
+    //{
+    //    public IncludeInCommandAttribute(EEntity eentity)
+    //    {
+    //        EEntity = eentity;
+    //    }
+
+    //    public EEntity EEntity { get; }
+    //}
+    //";
+
+
 
     public const string RequestModelTargetEnum = @"
 using System;

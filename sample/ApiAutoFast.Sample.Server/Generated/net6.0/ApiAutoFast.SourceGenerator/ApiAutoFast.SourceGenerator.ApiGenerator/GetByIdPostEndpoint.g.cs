@@ -16,7 +16,7 @@ public partial class GetByIdPostEndpoint : Endpoint<PostGetByIdRequest, PostResp
     private readonly AutoFastSampleDbContext _dbContext;
     private bool _overrideConfigure = false;
     private readonly QueryExecutor<Post> _queryExecutor;
-    private static readonly string[] _relationalNavigationNames = new[]
+    private static readonly string[] _relationalNavigationNames = new string[]
     {
         "Blog",
     };
@@ -50,7 +50,14 @@ public partial class GetByIdPostEndpoint : Endpoint<PostGetByIdRequest, PostResp
             return;
         }
 
-        var result = await _dbContext.Posts.FindAsync(new object?[] { identifier }, cancellationToken: ct);
+        var query = _dbContext.Posts.AsNoTracking();
+
+        foreach (var relationalNavigationName in _relationalNavigationNames)
+        {
+            query = query.Include(relationalNavigationName);
+        }
+
+        var result = await query.SingleOrDefaultAsync(x => x.Id == identifier, ct);
 
         if (result is null)
         {

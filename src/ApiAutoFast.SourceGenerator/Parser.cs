@@ -21,10 +21,7 @@ internal static class Parser
         {
             foreach (var attributeSyntax in attributeListSyntax.Attributes)
             {
-                if (context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol is not IMethodSymbol attributeSymbol)
-                {
-                    continue;
-                }
+                if (context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol is not IMethodSymbol attributeSymbol) continue;
 
                 var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
 
@@ -32,7 +29,7 @@ internal static class Parser
 
                 if (fullName is AutoFastEndpointsAttribute or AutoFastContextAttribute)
                 {
-                    return new(classDeclarationSyntax, fullName);
+                    return new SemanticTargetInformation(classDeclarationSyntax, fullName);
                 }
             }
         }
@@ -119,7 +116,9 @@ internal static class Parser
                 .Select(x => x.EndpointsAttributeArguments.EntityName)
                 .ToImmutableArray();
 
-            var propertyMetadatas = YieldPropertyMetadata(compilation, members, foreignEntityNames).ToImmutableArray();
+            var propertySetups = YieldPropertySetup(compilation, members, foreignEntityNames).ToImmutableArray();
+
+            var propertyMetadatas = YieldPropertyMetadata(propertySetups).ToImmutableArray();
 
             var relationalNavigationNames = propertyMetadatas
                 .Where(x => x.DomainValueDefiniton.PropertyRelation.RelationalType is not RelationalType.None)
@@ -130,13 +129,38 @@ internal static class Parser
         }
     }
 
-    private static IEnumerable<PropertyMetadata> YieldPropertyMetadata(Compilation compilation, ImmutableArray<ISymbol> members, ImmutableArray<string> foreignEntityNames)
+    private readonly struct PropertySetup
+    {
+        public PropertySetup(IPropertySymbol propertySymbol, DomainValueDefinition domainValueDefinition)
+        {
+            PropertySymbol = propertySymbol;
+            DomainValueDefinition = domainValueDefinition;
+        }
+
+        internal readonly IPropertySymbol PropertySymbol { get; }
+        internal readonly DomainValueDefinition DomainValueDefinition { get; }
+    }
+
+    private static IEnumerable<PropertySetup> YieldPropertySetup(Compilation compilation, ImmutableArray<ISymbol> members, ImmutableArray<string> foreignEntityNames)
     {
         foreach (var member in members)
         {
-            if (member is not IPropertySymbol property) continue;
+            if (member is not IPropertySymbol property
+                || TryGetDomainValueDefinition(compilation, property, foreignEntityNames, out var domainValueDefinition) is false)
+            {
+                continue;
+            }
 
-            if (TryGetDomainValueDefinition(compilation, property, foreignEntityNames, out var domainValueDefinition) is false) continue;
+            yield return new PropertySetup(property, domainValueDefinition);
+        }
+    }
+
+    private static IEnumerable<PropertyMetadata> YieldPropertyMetadata(ImmutableArray<PropertySetup> propertySetups)
+    {
+        foreach (var setup in propertySetups)
+        {
+            var property = setup.PropertySymbol;
+            var domainValueDefinition = setup.DomainValueDefinition;
 
             var propertyString = property.ToDisplayString(new SymbolDisplayFormat(
                 propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
@@ -171,6 +195,47 @@ internal static class Parser
         }
     }
 
+    //private static IEnumerable<PropertyMetadata> YieldPropertyMetadata(Compilation compilation, ImmutableArray<ISymbol> members, ImmutableArray<string> foreignEntityNames)
+    //{
+    //    foreach (var member in members)
+    //    {
+    //        if (member is not IPropertySymbol property) continue;
+
+    //        if (TryGetDomainValueDefinition(compilation, property, foreignEntityNames, out var domainValueDefinition) is false) continue;
+
+    //        var propertyString = property.ToDisplayString(new SymbolDisplayFormat(
+    //            propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
+    //            memberOptions: SymbolDisplayMemberOptions.IncludeAccessibility));
+
+    //        var firstSpaceIndex = propertyString.IndexOf(' ');
+    //        // note: might consider using domainvalue.entitytype here to skip the whole valueconversion shenanigans
+    //        var entitySource = domainValueDefinition.PropertyRelation.RelationalType is RelationalType.None
+    //            ? propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.TypeName}")
+    //            : propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.EntityType}");
+
+    //        if (domainValueDefinition.PropertyRelation.RelationalType is RelationalType.ToOne)
+    //        {
+    //            // note: this got way too messy when its no direct 1-1 mapping from real and generated properties..
+    //            var extendPropertyNameIndex = propertyString.IndexOf('{') - 1;
+    //            propertyString = propertyString.Insert(extendPropertyNameIndex, $"Id");
+    //        }
+
+    //        var requestSource = domainValueDefinition.PropertyRelation.RelationalType is RelationalType.ToMany
+    //            ? string.Empty
+    //            : propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}?");
+
+    //        var commandSource = domainValueDefinition.PropertyRelation.RelationalType is RelationalType.ToMany
+    //            ? string.Empty // note: as of now there is no support to adding multiple foreign entities in one command
+    //            : propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}");
+
+    //        var attributes = YieldAttributeMetadata(property).ToImmutableArray();
+
+    //        var requestModelTarget = GetRequestModelTarget(attributes);
+
+    //        yield return new PropertyMetadata(entitySource, requestSource, commandSource, domainValueDefinition, requestModelTarget, attributes);
+    //    }
+    //}
+
     private static bool TryGetDomainValueDefinition(
         Compilation compilation,
         IPropertySymbol property,
@@ -178,6 +243,7 @@ internal static class Parser
         out DomainValueDefinition domainValueDefinition)
     {
         // note: check if ToResponse is implemented for response mapping?
+        // todo: get attributes
         domainValueDefinition = default;
 
         var domainValueType = compilation.GetTypeByMetadataName(property.Type.ToString());

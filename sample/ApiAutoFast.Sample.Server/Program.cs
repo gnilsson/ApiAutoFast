@@ -1,4 +1,4 @@
-using ApiAutoFast;
+global using ApiAutoFast;
 using ApiAutoFast.Pagination;
 using ApiAutoFast.Sample.Server;
 using FastEndpoints;
