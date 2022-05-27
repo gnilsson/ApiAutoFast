@@ -116,7 +116,7 @@ internal static class Parser
                 .Select(x => x.EndpointsAttributeArguments.EntityName)
                 .ToImmutableArray();
 
-            var propertySetups = YieldPropertySetup(compilation, members, foreignEntityNames).ToImmutableArray();
+            var propertySetups = YieldPropertySetup(compilation, members, foreignEntityNames, entityConfigSetup.EndpointsAttributeArguments.EntityName).ToImmutableArray();
 
             var propertyMetadatas = YieldPropertyMetadata(propertySetups).ToImmutableArray();
 
@@ -131,27 +131,43 @@ internal static class Parser
 
     private readonly struct PropertySetup
     {
-        public PropertySetup(IPropertySymbol propertySymbol, DomainValueDefinition domainValueDefinition)
+        public PropertySetup(IPropertySymbol propertySymbol, DomainValueDefinition domainValueDefinition, EntityLocation entityLocation)
         {
             PropertySymbol = propertySymbol;
             DomainValueDefinition = domainValueDefinition;
+            EntityLocation = entityLocation;
         }
 
         internal readonly IPropertySymbol PropertySymbol { get; }
         internal readonly DomainValueDefinition DomainValueDefinition { get; }
+        internal readonly EntityLocation EntityLocation { get; }
     }
 
-    private static IEnumerable<PropertySetup> YieldPropertySetup(Compilation compilation, ImmutableArray<ISymbol> members, ImmutableArray<string> foreignEntityNames)
+    private readonly struct EntityLocation
+    {
+        public EntityLocation(string name, RequestModelTarget requestModelTarget)
+        {
+            Name = name;
+            RequestModelTarget = requestModelTarget;
+        }
+
+        internal readonly string Name { get; }
+        internal readonly RequestModelTarget RequestModelTarget { get; }
+    }
+
+    private static IEnumerable<PropertySetup> YieldPropertySetup(Compilation compilation, ImmutableArray<ISymbol> members, ImmutableArray<string> foreignEntityNames, string entityName)
     {
         foreach (var member in members)
         {
             if (member is not IPropertySymbol property
                 || TryGetDomainValueDefinition(compilation, property, foreignEntityNames, out var domainValueDefinition) is false)
             {
+                // do something here...
+
                 continue;
             }
 
-            yield return new PropertySetup(property, domainValueDefinition);
+            yield return new PropertySetup(property, domainValueDefinition, new EntityLocation(entityName, RequestModelTarget.Defaults));
         }
     }
 

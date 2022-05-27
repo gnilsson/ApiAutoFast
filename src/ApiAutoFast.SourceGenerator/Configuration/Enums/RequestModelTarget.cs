@@ -9,4 +9,5 @@ internal enum RequestModelTarget
     QueryRequest = 4,
     GetByIdRequest = 8,
     DeleteCommand = 16,
+    Defaults = CreateCommand | ModifyCommand | QueryRequest,
 }
