@@ -68,13 +68,13 @@ public partial class MappingRegister : ICodeGenerationRegister
             .Map(nameof(IEntity.ModifiedDateTime), (IEntity e) => e.ModifiedDateTime.ToString(""dddd, dd MMMM yyyy HH:mm""));
 ");
         var domainValueDefinitions = generationConfig.EntityConfigs
-            .SelectMany(x => x.PropertyMetadatas)
-            .Select(x => x.DomainValueDefiniton)
+            .SelectMany(x => x.Properties)
+            .Select(x => x.Key)
             .Distinct();
 
         foreach (var domainValueDefinition in domainValueDefinitions)
         {
-            if (domainValueDefinition.PropertyRelation.RelationalType is not RelationalType.None) continue;
+            if (domainValueDefinition.PropertyRelation.Type is not RelationalType.None) continue;
 
             if (domainValueDefinition.ResponseType == domainValueDefinition.EntityType)
             {
@@ -123,7 +123,7 @@ public static class AdaptAttributeBuilderExtensions
                 cfg.Map(poco => poco.Id, typeof(string));
                 cfg.Map(poco => poco.CreatedDateTime, typeof(string));
                 cfg.Map(poco => poco.ModifiedDateTime, typeof(string));");
-            foreach (var property in entity.PropertyMetadatas)
+            foreach (var property in entity.Properties)
             {
                 if (property.DomainValueDefiniton.PropertyRelation.RelationalType is RelationalType.ToMany) continue;
 
@@ -190,7 +190,7 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity
 {
     public ").Append(entityConfig.BaseName).Append(@"()
     {");
-        foreach (var propertyMetadata in entityConfig.PropertyMetadatas)
+        foreach (var propertyMetadata in entityConfig.Properties)
         {
             if (propertyMetadata.DomainValueDefiniton.PropertyRelation.RelationalType is RelationalType.ToMany)
             {
@@ -207,7 +207,7 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity
     public Identifier Id { get; set; }
     public DateTime CreatedDateTime { get; set; }
     public DateTime ModifiedDateTime { get; set; }");
-        foreach (var propertyMetadata in entityConfig.PropertyMetadatas)
+        foreach (var propertyMetadata in entityConfig.Properties)
         {
             foreach (var attributeMetadata in propertyMetadata.AttributeMetadatas)
             {
@@ -247,7 +247,7 @@ public class ").Append(entityConfig.BaseName).Append(modelTarget).Append(@"
 {");
         sb.Append(_getModelTargetSource(modelTarget));
 
-        foreach (var propertyMetadata in entityConfig.PropertyMetadatas)
+        foreach (var propertyMetadata in entityConfig.Properties)
         {
             if (propertyMetadata.RequestModelTarget.HasFlag(modelTarget))
             {
@@ -355,7 +355,7 @@ public partial class ")
             return originalEntity;
         }
 ");
-        foreach (var propertyMetadata in entityConfig.PropertyMetadatas)
+        foreach (var propertyMetadata in entityConfig.Properties)
         {
             if (propertyMetadata.AttributeMetadatas.Any(x => x.Name is nameof(RequestModelTarget.ModifyCommand)))
             {
@@ -372,7 +372,7 @@ public partial class ")
         return new ").Append(entityConfig.BaseName).Append(@"
         {
 ");
-        foreach (var property in entityConfig.PropertyMetadatas)
+        foreach (var property in entityConfig.Properties)
         {
             // note: temporary check
             if (property.DomainValueDefiniton.PropertyRelation.RelationalType is RelationalType.ToMany) continue;

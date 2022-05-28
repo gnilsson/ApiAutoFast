@@ -8,7 +8,7 @@ internal readonly struct PropertyRelation
 
     private PropertyRelation(RelationalType relationalType)
     {
-        RelationalType = relationalType;
+        Type = relationalType;
         ForeignEntityName = string.Empty;
         ForeigEntityProperty = string.Empty;
         IdPropertyName = string.Empty;
@@ -18,7 +18,7 @@ internal readonly struct PropertyRelation
     {
         ForeignEntityName = foreignEntityName;
         ForeigEntityProperty = foreigEntityProperty;
-        RelationalType = relationalType;
+        Type = relationalType;
         IdPropertyName = relationalType switch
         {
             RelationalType.ToMany => $"{ForeignEntityName}Ids",
@@ -29,6 +29,6 @@ internal readonly struct PropertyRelation
 
     internal readonly string ForeignEntityName { get; }
     internal readonly string ForeigEntityProperty { get; }
-    internal readonly RelationalType RelationalType { get; }
+    internal readonly RelationalType Type { get; }
     internal readonly string IdPropertyName { get; }
 }

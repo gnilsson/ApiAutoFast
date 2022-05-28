@@ -12,7 +12,7 @@ public static class AutoFastDbContextHelper
     {
         return typeof(T)
             .GetProperties()
-            .Where(x => x.PropertyType.Name == "DbSet`1")
+            .Where(x => x.PropertyType.Name == TypeText.DbSet1)
             .Select(x => x.PropertyType.GenericTypeArguments[0])
             .ToArray();
     }
