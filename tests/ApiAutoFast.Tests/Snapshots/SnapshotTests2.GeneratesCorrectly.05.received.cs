@@ -1,10 +1,21 @@
-﻿//HintName: BlogDeleteCommand.g.cs
+﻿//HintName: IncludeInCommandAttribute.g.cs
 
-using ApiAutoFast;
+    using System;
 
-namespace ApiAutoFast.Sample.Server.Database;
+    namespace ApiAutoFast;
 
-public class BlogDeleteCommand
-{
-    public string Id { get; set; }
-}
+    /// <summary>
+    /// Attribute to include property in another entity command.
+    /// <param name="otherEntityType">The other entity</param>
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class)]
+    public class IncludeInCommandAttribute : Attribute
+    {
+        public IncludeInCommandAttribute(params Type[] otherEntityTypes)
+        {
+            OtherEntityTypes = otherEntityTypes;
+        }
+
+        public Type[] OtherEntityTypes { get; }
+    }
+    

@@ -11,7 +11,7 @@ internal readonly struct PropertyRelation
         Type = relationalType;
         ForeignEntityName = string.Empty;
         ForeigEntityProperty = string.Empty;
-        IdPropertyName = string.Empty;
+        //IdPropertyName = string.Empty;
     }
 
     internal PropertyRelation(string foreignEntityName, string foreigEntityProperty, RelationalType relationalType)
@@ -19,16 +19,22 @@ internal readonly struct PropertyRelation
         ForeignEntityName = foreignEntityName;
         ForeigEntityProperty = foreigEntityProperty;
         Type = relationalType;
-        IdPropertyName = relationalType switch
-        {
-            RelationalType.ToMany => $"{ForeignEntityName}Ids",
-            RelationalType.ToOne => $"{ForeignEntityName}Id",
-            _ => string.Empty
-        };
+        //IdPropertyName = relationalType switch
+        //{
+        //    RelationalType.ToMany => $"{ForeignEntityName}Ids",
+        //    RelationalType.ToOne => $"{ForeignEntityName}Id",
+        //    _ => string.Empty
+        //};
     }
 
     internal readonly string ForeignEntityName { get; }
     internal readonly string ForeigEntityProperty { get; }
     internal readonly RelationalType Type { get; }
-    internal readonly string IdPropertyName { get; }
+//    internal readonly string IdPropertyName { get; }
+}
+
+internal enum PropertyKind
+{
+    Domain = 0,
+    Identifier
 }

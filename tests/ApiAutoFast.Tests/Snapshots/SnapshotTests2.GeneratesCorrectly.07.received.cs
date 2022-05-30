@@ -1,12 +1,16 @@
-﻿//HintName: BlogModifyCommand.g.cs
+﻿//HintName: RequestModelTargetEnum.g.cs
 
-using ApiAutoFast;
+using System;
 
-namespace ApiAutoFast.Sample.Server.Database;
+namespace ApiAutoFast;
 
-public class BlogModifyCommand
+[Flags]
+public enum RequestModelTarget
 {
-    public string Id { get; set; }
-    
-    public string Title { get; set; }
+    None = 0,
+    CreateCommand = 1,
+    ModifyCommand = 2,
+    QueryRequest = 4,
+    GetByIdRequest = 8,
+    DeleteCommand = 16,
 }

@@ -1,41 +1,21 @@
-﻿//HintName: AutoFastSampleDbContext.g.cs
+﻿//HintName: Blog.g.cs
 
 using ApiAutoFast;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace ApiAutoFast.Sample.Server.Database;
 
-public partial class AutoFastSampleDbContext : DbContext
+public class Blog : IEntity
 {
-    private static readonly Type[] _entityTypes;
-
-    static AutoFastSampleDbContext()
+    public Blog()
     {
-        _entityTypes = AutoFastDbContextHelper.GetEntityTypes<AutoFastSampleDbContext>();
+        this.Posts = new HashSet<Post>();
     }
 
-    partial void ExtendOnModelCreating(ModelBuilder modelBuilder);
-    partial void ExtendSaveChanges();
-
-    public AutoFastSampleDbContext(DbContextOptions<AutoFastSampleDbContext> options) : base(options) { }
-
-    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        AutoFastDbContextHelper.UpdateModifiedDateTime(ChangeTracker.Entries());
-
-        ExtendSaveChanges();
-
-        return await base.SaveChangesAsync(cancellationToken);
-    }
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        AutoFastDbContextHelper.BuildEntities(modelBuilder, _entityTypes);
-
-        ExtendOnModelCreating(modelBuilder);
-    }
-
-    public DbSet<Blog> Blogs { get; init; } = default!;
-    public DbSet<Post> Posts { get; init; } = default!;
+    public Identifier Id { get; set; }
+    public DateTime CreatedDateTime { get; set; }
+    public DateTime ModifiedDateTime { get; set; }
+    public ICollection<Post> Posts { get; set; }
+    public Title Title { get; set; }
 }

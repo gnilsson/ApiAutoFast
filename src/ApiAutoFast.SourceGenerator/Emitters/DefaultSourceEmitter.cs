@@ -22,55 +22,60 @@ internal static class DefaultSourceEmitter
         sb.Clear();
 
         sb.Append(@"
-using Mapster;
-using ApiAutoFast;
+    using Mapster;
+    using ApiAutoFast;
 
-namespace ").Append(generationConfig.Namespace).Append(@";
+    namespace ").Append(generationConfig.Namespace).Append(@";
 
-public partial class MappingRegister : ICodeGenerationRegister
-{
-    private bool _overrideRegisterResponses = false;
-    private bool _extendRegisterResponses = false;
-
-    static partial void OnOverrideRegisterResponses(AdaptAttributeBuilder aab);
-    static partial void OnExtendRegisterResponses(AdaptAttributeBuilder aab);
-    static partial void ExtendRegister(CodeGenerationConfig config);
-    static partial void RegisterMappers(CodeGenerationConfig config);
-
-    public void Register(CodeGenerationConfig config)
+    public partial class MappingRegister : ICodeGenerationRegister
     {
-        var aab = config.AdaptTo(""[name]Response"");
+        private bool _overrideRegisterResponses = false;
+        private bool _extendRegisterResponses = false;
 
-        if (_overrideRegisterResponses)
+        static partial void OnOverrideRegisterResponses(AdaptAttributeBuilder aab);
+        static partial void OnExtendRegisterResponses(AdaptAttributeBuilder aab);
+        static partial void ExtendRegister(CodeGenerationConfig config);
+        static partial void RegisterMappers(CodeGenerationConfig config);
+
+        public void Register(CodeGenerationConfig config)
         {
-            OnOverrideRegisterResponses(aab);
-        }
-        else if (_extendRegisterResponses)
-        {
-            aab.ForTypeDefaultValues();
+            var aab = config.AdaptTo(""[name]Response"");
 
-            OnExtendRegisterResponses(aab);
-        }
-        else
-        {
-            aab.ForTypeDefaultValues();
-        }
+            if (_overrideRegisterResponses)
+            {
+                OnOverrideRegisterResponses(aab);
+            }
+            else if (_extendRegisterResponses)
+            {
+                aab.ForTypeDefaultValues();
 
-        TypeAdapterConfig.GlobalSettings.Default.PreserveReference(true);
-        TypeAdapterConfig.GlobalSettings.Default.MaxDepth(2);
-        TypeAdapterConfig.GlobalSettings.Default.ShallowCopyForSameType(true);
-        TypeAdapterConfig.GlobalSettings.Default.EnumMappingStrategy(EnumMappingStrategy.ByName);
-        TypeAdapterConfig.GlobalSettings.Default.AddDestinationTransform(DestinationTransform.EmptyCollectionIfNull);
+                OnExtendRegisterResponses(aab);
+            }
+            else
+            {
+                aab.ForTypeDefaultValues();
+            }
 
-        TypeAdapterConfig.GlobalSettings
-            .When((src, dest, map) => src.GetInterface(nameof(IEntity)) is not null)
-            .Map(nameof(IEntity.CreatedDateTime), (IEntity e) => e.CreatedDateTime.ToString(""dddd, dd MMMM yyyy HH:mm""))
-            .Map(nameof(IEntity.ModifiedDateTime), (IEntity e) => e.ModifiedDateTime.ToString(""dddd, dd MMMM yyyy HH:mm""));
-");
+            TypeAdapterConfig.GlobalSettings.Default.PreserveReference(true);
+            TypeAdapterConfig.GlobalSettings.Default.MaxDepth(2);
+            TypeAdapterConfig.GlobalSettings.Default.ShallowCopyForSameType(true);
+            TypeAdapterConfig.GlobalSettings.Default.EnumMappingStrategy(EnumMappingStrategy.ByName);
+            TypeAdapterConfig.GlobalSettings.Default.AddDestinationTransform(DestinationTransform.EmptyCollectionIfNull);
+
+            TypeAdapterConfig.GlobalSettings
+                .When((src, dest, map) => src.GetInterface(nameof(IEntity)) is not null)
+                .Map(nameof(IEntity.CreatedDateTime), (IEntity e) => e.CreatedDateTime.ToString(""dddd, dd MMMM yyyy HH:mm""))
+                .Map(nameof(IEntity.ModifiedDateTime), (IEntity e) => e.ModifiedDateTime.ToString(""dddd, dd MMMM yyyy HH:mm""));
+    ");
         var domainValueDefinitions = generationConfig.EntityConfigs
             .SelectMany(x => x.Properties)
             .Select(x => x.Key)
             .Distinct();
+
+        foreach (var ah in generationConfig.EntityConfigs.Select(x => x.Properties[PropertyTarget.Entity]).SelectMany(x => x.Value))
+        {
+
+        }
 
         foreach (var domainValueDefinition in domainValueDefinitions)
         {
@@ -79,7 +84,7 @@ public partial class MappingRegister : ICodeGenerationRegister
             if (domainValueDefinition.ResponseType == domainValueDefinition.EntityType)
             {
                 sb.Append(@"
-        TypeAdapterConfig<")
+            TypeAdapterConfig<")
                     .Append(domainValueDefinition.TypeName)
                     .Append(@", ")
                     .Append(domainValueDefinition.ResponseType)
@@ -89,7 +94,7 @@ public partial class MappingRegister : ICodeGenerationRegister
             }
 
             sb.Append(@"
-        TypeAdapterConfig<")
+            TypeAdapterConfig<")
                 .Append(domainValueDefinition.TypeName)
                 .Append(@", ")
                 .Append(domainValueDefinition.ResponseType)
@@ -98,31 +103,31 @@ public partial class MappingRegister : ICodeGenerationRegister
 
         sb.Append(@"
 
-        ExtendRegister(config);
+            ExtendRegister(config);
 
-        config.GenerateMapper(""[name]Mapper"")");
+            config.GenerateMapper(""[name]Mapper"")");
         foreach (var entity in generationConfig.EntityConfigs)
         {
             sb.Append(@"
-            .ForType<").Append(entity.BaseName).Append(@">()");
+                .ForType<").Append(entity.BaseName).Append(@">()");
         }
         sb.Append(@";").Append(@"
+        }
     }
-}
 
-public static class AdaptAttributeBuilderExtensions
-{
-    public static AdaptAttributeBuilder ForTypeDefaultValues(this AdaptAttributeBuilder aab)
+    public static class AdaptAttributeBuilderExtensions
     {
-        return aab");
+        public static AdaptAttributeBuilder ForTypeDefaultValues(this AdaptAttributeBuilder aab)
+        {
+            return aab");
         foreach (var entity in generationConfig.EntityConfigs)
         {
             sb.Append(@"
-            .ForType<").Append(entity.BaseName).Append(@">(cfg =>
-            {
-                cfg.Map(poco => poco.Id, typeof(string));
-                cfg.Map(poco => poco.CreatedDateTime, typeof(string));
-                cfg.Map(poco => poco.ModifiedDateTime, typeof(string));");
+                .ForType<").Append(entity.BaseName).Append(@">(cfg =>
+                {
+                    cfg.Map(poco => poco.Id, typeof(string));
+                    cfg.Map(poco => poco.CreatedDateTime, typeof(string));
+                    cfg.Map(poco => poco.ModifiedDateTime, typeof(string));");
             foreach (var property in entity.Properties)
             {
                 if (property.DomainValueDefiniton.PropertyRelation.RelationalType is RelationalType.ToMany) continue;
@@ -138,48 +143,49 @@ public static class AdaptAttributeBuilderExtensions
                     : property.DomainValueDefiniton.PropertyName;
 
                 sb.Append(@"
-                cfg.Map(poco => poco.").Append(propertyName).Append(@", typeof(").Append(property.DomainValueDefiniton.ResponseType).Append(@"));");
+                    cfg.Map(poco => poco.").Append(propertyName).Append(@", typeof(").Append(property.DomainValueDefiniton.ResponseType).Append(@"));");
             }
             sb.Append(@"
-            })");
+                })");
         }
         sb.Append(@";
-    }
-}
-");
-        return sb.ToString();
-    }
-
-    internal static string EmitEntityEnum(StringBuilder sb, string @namespace, ImmutableArray<EntityConfig> entityConfigs)
-    {
-        sb.Clear();
-
-        sb.Append(@"
-using System;
-
-namespace ApiAutoFast").Append(@";
-
-[Flags]
-public enum EEntity
-{");
-        var count = 0;
-        foreach (var entity in entityConfigs)
-        {
-            sb.Append(@"
-    ").Append(entity.BaseName).Append(@" = 1 << ").Append(count).Append(@",");
-            count++;
         }
-        sb.Append(@"
-}");
+    }
+    ");
         return sb.ToString();
     }
+
+    //    // note: this does not work currently, it might only work if there is some magic done in before the generator executes
+    ////    internal static string EmitEntityEnum(StringBuilder sb, string @namespace, ImmutableArray<EntityConfig> entityConfigs)
+    ////    {
+    ////        sb.Clear();
+
+    ////        sb.Append(@"
+    ////using System;
+
+    ////namespace ApiAutoFast").Append(@";
+
+    ////[Flags]
+    ////public enum EEntity
+    ////{");
+    ////        var count = 0;
+    ////        foreach (var entity in entityConfigs)
+    ////        {
+    ////            sb.Append(@"
+    ////    ").Append(entity.BaseName).Append(@" = 1 << ").Append(count).Append(@",");
+    ////            count++;
+    ////        }
+    ////        sb.Append(@"
+    ////}");
+    ////        return sb.ToString();
+    ////    }
 
     internal static string EmitEntityModels(StringBuilder sb, string @namespace, EntityConfig entityConfig)
-    {
-        //todo: get extra namespaces from config entity
-        sb.Clear();
+{
+    //todo: get extra namespaces from config entity
+    sb.Clear();
 
-        sb.Append(@"
+    sb.Append(@"
 using ApiAutoFast;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
@@ -190,210 +196,269 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity
 {
     public ").Append(entityConfig.BaseName).Append(@"()
     {");
-        foreach (var propertyMetadata in entityConfig.Properties)
+    foreach (var propertyMetadata in entityConfig.Properties[PropertyTarget.Entity])
+    {
+        if (propertyMetadata.Relation.Type is RelationalType.ToMany)
         {
-            if (propertyMetadata.DomainValueDefiniton.PropertyRelation.RelationalType is RelationalType.ToMany)
-            {
-                sb.Append(@"
-        this.").Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.ForeigEntityProperty)
-                .Append(@" = new HashSet<")
-                .Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.ForeignEntityName)
-                .Append(@">();");
-            }
+            sb.Append(@"
+        this.").Append(propertyMetadata.Relation.ForeigEntityProperty)
+            .Append(@" = new HashSet<")
+            .Append(propertyMetadata.Relation.ForeignEntityName)
+            .Append(@">();");
         }
-        sb.Append(@"
+    }
+    sb.Append(@"
     }
 
     public Identifier Id { get; set; }
     public DateTime CreatedDateTime { get; set; }
     public DateTime ModifiedDateTime { get; set; }");
-        foreach (var propertyMetadata in entityConfig.Properties)
-        {
-            foreach (var attributeMetadata in propertyMetadata.AttributeMetadatas)
-            {
-                if (attributeMetadata.AttributeType is AttributeType.Default)
-                {
-                    sb.Append(@"
-    [").Append(attributeMetadata.Name).Append(@"]");
-                }
-            }
-            if (propertyMetadata.DomainValueDefiniton.PropertyRelation.RelationalType is RelationalType.ToOne)
-            {
-                sb.Append(@"
-    public Identifier ").Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.IdPropertyName).Append(@" { get; set; }");
-            }
-            sb.Append(@"
-    ").Append(propertyMetadata.EntitySource);
-        }
+    foreach (var propertyMetadata in entityConfig.Properties[PropertyTarget.Entity])
+    {
         sb.Append(@"
+    ").Append(propertyMetadata.Source);
+    }
+    sb.Append(@"
 }
 ");
-        return sb.ToString();
-    }
-
-    internal static string EmitRequestModel(StringBuilder sb, string @namespace, EntityConfig entityConfig, RequestModelTarget modelTarget)
-    {
-        sb.Clear();
-
-        sb.Append(@"
- #nullable enable
-
-using ApiAutoFast;
-
-namespace ").Append(@namespace).Append(@";
-");
-        sb.Append(@"
-public class ").Append(entityConfig.BaseName).Append(modelTarget).Append(@"
-{");
-        sb.Append(_getModelTargetSource(modelTarget));
-
-        foreach (var propertyMetadata in entityConfig.Properties)
-        {
-            if (propertyMetadata.RequestModelTarget.HasFlag(modelTarget))
-            {
-                if (modelTarget is RequestModelTarget.QueryRequest)
-                {
-                    sb.Append(@"
-    ").Append(propertyMetadata.RequestSource);
-                    continue;
-                }
-                sb.Append(@"
-    ").Append(propertyMetadata.CommandSource);
-            }
-        }
-        sb.Append(@"
+    return sb.ToString();
 }
-");
-        return sb.ToString();
-    }
 
-    internal static string EmitDbContext(StringBuilder sb, ContextGenerationConfig contextConfig, EntityGenerationConfig endpointsConfig)
-    {
-        sb.Clear();
+//    //        foreach (var attributeMetadata in propertyMetadata.AttributeMetadatas)
+//    //        {
+//    //            if (attributeMetadata.AttributeType is AttributeType.Default)
+//    //            {
+//    //                sb.Append(@"
+//    //[").Append(attributeMetadata.Name).Append(@"]");
+//    //            }
+//    //        }
+//    //        if (propertyMetadata.Relation.Type is RelationalType.ToOne)
+//    //        {
+//    //            sb.Append(@"
+//    //public Identifier ").Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.IdPropertyName).Append(@" { get; set; }");
+//    //        }
 
-        sb.Append(@"
-using ApiAutoFast;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 
-namespace ").Append(endpointsConfig.Namespace).Append(@";
+//    //    internal static string EmitEntityModels(StringBuilder sb, string @namespace, EntityConfig entityConfig)
+//    //    {
+//    //        //todo: get extra namespaces from config entity
+//    //        sb.Clear();
 
-public partial class ").Append(contextConfig.Name).Append(@" : DbContext
-{
-    private static readonly Type[] _entityTypes;
+//    //        sb.Append(@"
+//    //using ApiAutoFast;
+//    //using System.ComponentModel.DataAnnotations;
+//    //using Microsoft.EntityFrameworkCore;
 
-    static ").Append(contextConfig.Name).Append(@"()
-    {
-        _entityTypes = AutoFastDbContextHelper.GetEntityTypes<").Append(contextConfig.Name).Append(@">();
-    }
+//    //namespace ").Append(@namespace).Append(@";
 
-    partial void ExtendOnModelCreating(ModelBuilder modelBuilder);
-    partial void ExtendSaveChanges();
+//    //public class ").Append(entityConfig.BaseName).Append(@" : IEntity
+//    //{
+//    //    public ").Append(entityConfig.BaseName).Append(@"()
+//    //    {");
+//    //        foreach (var propertyMetadata in entityConfig.Properties)
+//    //        {
+//    //            if (propertyMetadata.DomainValueDefiniton.PropertyRelation.RelationalType is RelationalType.ToMany)
+//    //            {
+//    //                sb.Append(@"
+//    //        this.").Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.ForeigEntityProperty)
+//    //                .Append(@" = new HashSet<")
+//    //                .Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.ForeignEntityName)
+//    //                .Append(@">();");
+//    //            }
+//    //        }
+//    //        sb.Append(@"
+//    //    }
 
-    public ").Append(contextConfig.Name).Append(@"(DbContextOptions<").Append(contextConfig.Name).Append(@"> options) : base(options) { }
+//    //    public Identifier Id { get; set; }
+//    //    public DateTime CreatedDateTime { get; set; }
+//    //    public DateTime ModifiedDateTime { get; set; }");
+//    //        foreach (var propertyMetadata in entityConfig.Properties)
+//    //        {
+//    //            foreach (var attributeMetadata in propertyMetadata.AttributeMetadatas)
+//    //            {
+//    //                if (attributeMetadata.AttributeType is AttributeType.Default)
+//    //                {
+//    //                    sb.Append(@"
+//    //    [").Append(attributeMetadata.Name).Append(@"]");
+//    //                }
+//    //            }
+//    //            if (propertyMetadata.DomainValueDefiniton.PropertyRelation.RelationalType is RelationalType.ToOne)
+//    //            {
+//    //                sb.Append(@"
+//    //    public Identifier ").Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.IdPropertyName).Append(@" { get; set; }");
+//    //            }
+//    //            sb.Append(@"
+//    //    ").Append(propertyMetadata.EntitySource);
+//    //        }
+//    //        sb.Append(@"
+//    //}
+//    //");
+//    //        return sb.ToString();
+//    //    }
 
-    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        AutoFastDbContextHelper.UpdateModifiedDateTime(ChangeTracker.Entries());
+//    internal static string EmitRequestModel(StringBuilder sb, string @namespace, EntityConfig entityConfig, RequestModelTarget modelTarget)
+//    {
+//        sb.Clear();
 
-        ExtendSaveChanges();
+//        sb.Append(@"
+// #nullable enable
 
-        return await base.SaveChangesAsync(cancellationToken);
-    }
+//using ApiAutoFast;
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        AutoFastDbContextHelper.BuildEntities(modelBuilder, _entityTypes);
+//namespace ").Append(@namespace).Append(@";
+//");
+//        sb.Append(@"
+//public class ").Append(entityConfig.BaseName).Append(modelTarget).Append(@"
+//{");
+//        sb.Append(_getModelTargetSource(modelTarget));
 
-        ExtendOnModelCreating(modelBuilder);
-    }
-");
-        foreach (var entity in endpointsConfig.EntityConfigs)
-        {
-            sb.Append(@"
-    public DbSet<").Append(entity.BaseName).Append("> ").Append(entity.BaseName).Append(@"s { get; init; } = default!;");
-        }
-        sb.Append(@"
-}
-");
-        return sb.ToString();
-    }
+//        foreach (var propertyMetadata in entityConfig.Properties)
+//        {
+//            if (propertyMetadata.RequestModelTarget.HasFlag(modelTarget))
+//            {
+//                if (modelTarget is RequestModelTarget.QueryRequest)
+//                {
+//                    sb.Append(@"
+//    ").Append(propertyMetadata.RequestSource);
+//                    continue;
+//                }
+//                sb.Append(@"
+//    ").Append(propertyMetadata.CommandSource);
+//            }
+//        }
+//        sb.Append(@"
+//}
+//");
+//        return sb.ToString();
+//    }
 
-    internal static string EmitMappingProfile(StringBuilder sb, string @namespace, EntityConfig entityConfig)
-    {
-        sb.Clear();
+//    internal static string EmitDbContext(StringBuilder sb, ContextGenerationConfig contextConfig, EntityGenerationConfig endpointsConfig)
+//    {
+//        sb.Clear();
 
-        sb.Append(@"
-using FastEndpoints;
+//        sb.Append(@"
+//using ApiAutoFast;
+//using Microsoft.EntityFrameworkCore;
+//using Microsoft.EntityFrameworkCore.ChangeTracking;
 
-namespace ").Append(@namespace).Append(@";
+//namespace ").Append(endpointsConfig.Namespace).Append(@";
 
-public partial class ")
-    .Append(entityConfig.MappingProfile)
-    .Append(@" : Mapper<")
-    .Append(entityConfig.CreateCommand)
-    .Append(@", ")
-    .Append(entityConfig.Response)
-    .Append(", ")
-    .Append(entityConfig.BaseName)
-    .Append(@">
-{
-    private readonly bool _onOverrideUpdateEntity = false;
+//public partial class ").Append(contextConfig.Name).Append(@" : DbContext
+//{
+//    private static readonly Type[] _entityTypes;
 
-    partial void").Append(@" OnOverrideUpdateEntity(ref ").Append(entityConfig.BaseName).Append(@" originalEntity, ").Append(entityConfig.ModifyCommand).Append(@" e);
+//    static ").Append(contextConfig.Name).Append(@"()
+//    {
+//        _entityTypes = AutoFastDbContextHelper.GetEntityTypes<").Append(contextConfig.Name).Append(@">();
+//    }
 
-    public override ").Append(entityConfig.Response).Append(@" FromEntity(").Append(entityConfig.BaseName).Append(@" e)
-    {
-        return e.AdaptToResponse();
-    }
+//    partial void ExtendOnModelCreating(ModelBuilder modelBuilder);
+//    partial void ExtendSaveChanges();
 
-    public ").Append(entityConfig.BaseName).Append(@" UpdateEntity(").Append(entityConfig.BaseName).Append(@" originalEntity, ").Append(entityConfig.ModifyCommand).Append(@" e)
-    {
-        if(_onOverrideUpdateEntity)
-        {
-            OnOverrideUpdateEntity(ref originalEntity, e);
-            return originalEntity;
-        }
-");
-        foreach (var propertyMetadata in entityConfig.Properties)
-        {
-            if (propertyMetadata.AttributeMetadatas.Any(x => x.Name is nameof(RequestModelTarget.ModifyCommand)))
-            {
-                sb.Append(@"
-        originalEntity.").Append(propertyMetadata.DomainValueDefiniton.PropertyName).Append(@" = e.").Append(propertyMetadata.DomainValueDefiniton.PropertyName).Append(';');
-            }
-        }
-        sb.Append(@"
-        return originalEntity;
-    }
+//    public ").Append(contextConfig.Name).Append(@"(DbContextOptions<").Append(contextConfig.Name).Append(@"> options) : base(options) { }
 
-    public ").Append(entityConfig.BaseName).Append(@" ToDomainEntity(").Append(entityConfig.CreateCommand).Append(@" command, Action<string, string> addValidationError)
-    {
-        return new ").Append(entityConfig.BaseName).Append(@"
-        {
-");
-        foreach (var property in entityConfig.Properties)
-        {
-            // note: temporary check
-            if (property.DomainValueDefiniton.PropertyRelation.RelationalType is RelationalType.ToMany) continue;
+//    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+//    {
+//        AutoFastDbContextHelper.UpdateModifiedDateTime(ChangeTracker.Entries());
 
-            var propertyName = property.DomainValueDefiniton.PropertyRelation.RelationalType is RelationalType.ToOne
-                ? property.DomainValueDefiniton.PropertyRelation.IdPropertyName
-                : property.DomainValueDefiniton.PropertyName;
+//        ExtendSaveChanges();
 
-            sb.Append(@"            ")
-                .Append(propertyName)
-                .Append(@" = ")
-                .Append(property.DomainValueDefiniton.TypeName)
-                .Append(@".ConvertFromRequest(command.")
-                .Append(propertyName)
-                .Append(@", addValidationError),
-");
-        }
-        sb.Append(@"        };
-    }
-}
-");
-        return sb.ToString();
-    }
+//        return await base.SaveChangesAsync(cancellationToken);
+//    }
+
+//    protected override void OnModelCreating(ModelBuilder modelBuilder)
+//    {
+//        AutoFastDbContextHelper.BuildEntities(modelBuilder, _entityTypes);
+
+//        ExtendOnModelCreating(modelBuilder);
+//    }
+//");
+//        foreach (var entity in endpointsConfig.EntityConfigs)
+//        {
+//            sb.Append(@"
+//    public DbSet<").Append(entity.BaseName).Append("> ").Append(entity.BaseName).Append(@"s { get; init; } = default!;");
+//        }
+//        sb.Append(@"
+//}
+//");
+//        return sb.ToString();
+//    }
+
+//    internal static string EmitMappingProfile(StringBuilder sb, string @namespace, EntityConfig entityConfig)
+//    {
+//        sb.Clear();
+
+//        sb.Append(@"
+//using FastEndpoints;
+
+//namespace ").Append(@namespace).Append(@";
+
+//public partial class ")
+//    .Append(entityConfig.MappingProfile)
+//    .Append(@" : Mapper<")
+//    .Append(entityConfig.CreateCommand)
+//    .Append(@", ")
+//    .Append(entityConfig.Response)
+//    .Append(", ")
+//    .Append(entityConfig.BaseName)
+//    .Append(@">
+//{
+//    private readonly bool _onOverrideUpdateEntity = false;
+
+//    partial void").Append(@" OnOverrideUpdateEntity(ref ").Append(entityConfig.BaseName).Append(@" originalEntity, ").Append(entityConfig.ModifyCommand).Append(@" e);
+
+//    public override ").Append(entityConfig.Response).Append(@" FromEntity(").Append(entityConfig.BaseName).Append(@" e)
+//    {
+//        return e.AdaptToResponse();
+//    }
+
+//    public ").Append(entityConfig.BaseName).Append(@" UpdateEntity(").Append(entityConfig.BaseName).Append(@" originalEntity, ").Append(entityConfig.ModifyCommand).Append(@" e)
+//    {
+//        if(_onOverrideUpdateEntity)
+//        {
+//            OnOverrideUpdateEntity(ref originalEntity, e);
+//            return originalEntity;
+//        }
+//");
+//        foreach (var propertyMetadata in entityConfig.Properties)
+//        {
+//            if (propertyMetadata.AttributeMetadatas.Any(x => x.Name is nameof(RequestModelTarget.ModifyCommand)))
+//            {
+//                sb.Append(@"
+//        originalEntity.").Append(propertyMetadata.DomainValueDefiniton.PropertyName).Append(@" = e.").Append(propertyMetadata.DomainValueDefiniton.PropertyName).Append(';');
+//            }
+//        }
+//        sb.Append(@"
+//        return originalEntity;
+//    }
+
+//    public ").Append(entityConfig.BaseName).Append(@" ToDomainEntity(").Append(entityConfig.CreateCommand).Append(@" command, Action<string, string> addValidationError)
+//    {
+//        return new ").Append(entityConfig.BaseName).Append(@"
+//        {
+//");
+//        foreach (var property in entityConfig.Properties)
+//        {
+//            // note: temporary check
+//            if (property.DomainValueDefiniton.PropertyRelation.RelationalType is RelationalType.ToMany) continue;
+
+//            var propertyName = property.DomainValueDefiniton.PropertyRelation.RelationalType is RelationalType.ToOne
+//                ? property.DomainValueDefiniton.PropertyRelation.IdPropertyName
+//                : property.DomainValueDefiniton.PropertyName;
+
+//            sb.Append(@"            ")
+//                .Append(propertyName)
+//                .Append(@" = ")
+//                .Append(property.DomainValueDefiniton.TypeName)
+//                .Append(@".ConvertFromRequest(command.")
+//                .Append(propertyName)
+//                .Append(@", addValidationError),
+//");
+//        }
+//        sb.Append(@"        };
+//    }
+//}
+//");
+//        return sb.ToString();
+//    }
 }

@@ -13,17 +13,17 @@ public class ApiGenerator : IIncrementalGenerator
 {
     static ApiGenerator()
     {
-        _requestEndpointPairs = new RequestEndpointPair[]
+        _requestEndpointPairs = ImmutableArray.Create(new RequestEndpointPair[]
         {
             new (RequestModelTarget.GetByIdRequest, EndpointTargetType.GetById, "Http.GET"),
             new (RequestModelTarget.DeleteCommand,  EndpointTargetType.Delete,  "Http.DELETE"),
             new (RequestModelTarget.ModifyCommand,  EndpointTargetType.Update,  "Http.PUT"),
             new (RequestModelTarget.CreateCommand,  EndpointTargetType.Create,  "Http.POST"),
             new (RequestModelTarget.QueryRequest,   EndpointTargetType.Get,     "Http.GET"),
-        };
+        });
     }
 
-    private static readonly RequestEndpointPair[] _requestEndpointPairs;
+    private static readonly ImmutableArray<RequestEndpointPair> _requestEndpointPairs;
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -69,44 +69,44 @@ public class ApiGenerator : IIncrementalGenerator
             context.AddSource($"{entityConfig.BaseName}.g.cs", SourceText.From(entityResult, Encoding.UTF8));
         }
 
-        //var entityEnumResult = DefaultSourceEmitter.EmitEntityEnum(sb, entityGenerationConfig.Namespace, entityGenerationConfig.EntityConfigs);
-        //context.AddSource($"EEntity.g.cs", SourceText.From(entityEnumResult, Encoding.UTF8));
+        ////var entityEnumResult = DefaultSourceEmitter.EmitEntityEnum(sb, entityGenerationConfig.Namespace, entityGenerationConfig.EntityConfigs);
+        ////context.AddSource($"EEntity.g.cs", SourceText.From(entityEnumResult, Encoding.UTF8));
 
-        //context.AddSource("IncludeInCommandAttribute.g.cs", SourceText.From(EmbeddedSourceEmitter.IncludeInCommandAttribute, Encoding.UTF8));
+        ////context.AddSource("IncludeInCommandAttribute.g.cs", SourceText.From(EmbeddedSourceEmitter.IncludeInCommandAttribute, Encoding.UTF8));
 
-        var mappingRegisterResult = DefaultSourceEmitter.EmitMappingRegister(sb, entityGenerationConfig);
-        context.AddSource("MappingRegister.g.cs", SourceText.From(mappingRegisterResult, Encoding.UTF8));
+        //var mappingRegisterResult = DefaultSourceEmitter.EmitMappingRegister(sb, entityGenerationConfig);
+        //context.AddSource("MappingRegister.g.cs", SourceText.From(mappingRegisterResult, Encoding.UTF8));
 
-        if (generationConfig!.Value.ContextGeneration.HasValue is false) return;
+        //if (generationConfig!.Value.ContextGeneration.HasValue is false) return;
 
-        var contextConfig = generationConfig!.Value.ContextGeneration.Value;
+        //var contextConfig = generationConfig!.Value.ContextGeneration.Value;
 
-        var dbContextResult = DefaultSourceEmitter.EmitDbContext(sb, contextConfig, entityGenerationConfig);
-        context.AddSource($"{contextConfig.Name}.g.cs", SourceText.From(dbContextResult, Encoding.UTF8));
+        //var dbContextResult = DefaultSourceEmitter.EmitDbContext(sb, contextConfig, entityGenerationConfig);
+        //context.AddSource($"{contextConfig.Name}.g.cs", SourceText.From(dbContextResult, Encoding.UTF8));
 
-        foreach (var entityConfig in entityGenerationConfig.EntityConfigs)
-        {
-            foreach (var requestEndpointPair in _requestEndpointPairs)
-            {
-                var requestModelsResult = DefaultSourceEmitter.EmitRequestModel(sb, entityGenerationConfig.Namespace, entityConfig, requestEndpointPair.RequestModel);
-                context.AddSource($"{entityConfig.BaseName}{requestEndpointPair.RequestModel}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
-            }
+        //foreach (var entityConfig in entityGenerationConfig.EntityConfigs)
+        //{
+        //    foreach (var requestEndpointPair in _requestEndpointPairs)
+        //    {
+        //        var requestModelsResult = DefaultSourceEmitter.EmitRequestModel(sb, entityGenerationConfig.Namespace, entityConfig, requestEndpointPair.RequestModel);
+        //        context.AddSource($"{entityConfig.BaseName}{requestEndpointPair.RequestModel}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
+        //    }
 
-            if (MapsterMapperIsGenerated(compilation, entityConfig.BaseName, entityGenerationConfig.Namespace) is false) continue;
+        //    if (MapsterMapperIsGenerated(compilation, entityConfig.BaseName, entityGenerationConfig.Namespace) is false) continue;
 
-            var mappingProfileResult = DefaultSourceEmitter.EmitMappingProfile(sb, entityGenerationConfig.Namespace, entityConfig);
-            context.AddSource($"{entityConfig.MappingProfile}.g.cs", SourceText.From(mappingProfileResult, Encoding.UTF8));
+        //    var mappingProfileResult = DefaultSourceEmitter.EmitMappingProfile(sb, entityGenerationConfig.Namespace, entityConfig);
+        //    context.AddSource($"{entityConfig.MappingProfile}.g.cs", SourceText.From(mappingProfileResult, Encoding.UTF8));
 
-            foreach (var requestEndpointPair in _requestEndpointPairs)
-            {
-                if (entityConfig.EndpointsAttributeArguments.EndpointTargetType.HasFlag(requestEndpointPair.EndpointTarget))
-                {
-                    var endpointConfig = new EndpointConfig(entityConfig, requestEndpointPair);
-                    var requestModelsResult = EndpointSourceEmitter.EmitEndpoint(sb, entityGenerationConfig.Namespace, endpointConfig, contextConfig.Name, entityConfig.RelationalNavigationNames);
-                    context.AddSource($"{endpointConfig.Endpoint}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
-                }
-            }
-        }
+        //    foreach (var requestEndpointPair in _requestEndpointPairs)
+        //    {
+        //        if (entityConfig.EndpointsAttributeArguments.EndpointTargetType.HasFlag(requestEndpointPair.EndpointTarget))
+        //        {
+        //            var endpointConfig = new EndpointConfig(entityConfig, requestEndpointPair);
+        //            var requestModelsResult = EndpointSourceEmitter.EmitEndpoint(sb, entityGenerationConfig.Namespace, endpointConfig, contextConfig.Name, entityConfig.RelationalNavigationNames);
+        //            context.AddSource($"{endpointConfig.Endpoint}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
+        //        }
+        //    }
+        //}
     }
 
     // note: mapster needs two build steps, after the first one it generates an empty mapper.
