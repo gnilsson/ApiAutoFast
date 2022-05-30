@@ -5,7 +5,7 @@ namespace ApiAutoFast.SourceGenerator.Configuration;
 
 internal readonly struct EntityConfig
 {
-    internal EntityConfig(AutoFastEndpointsAttributeArguments endpointsAttributeArguments, ImmutableDictionary<PropertyTarget, ImmutableArray<PropertyOutput>> properties, ImmutableArray<string> relationalNavigationNames)
+    internal EntityConfig(AutoFastEndpointsAttributeArguments endpointsAttributeArguments, ImmutableDictionary<PropertyTarget, ImmutableArray<PropertyOutput>> properties, ImmutableArray<string> relationalNavigationNames, ImmutableArray<DefinedDomainValue> definedDomainValues)
     {
         BaseName = endpointsAttributeArguments.EntityName;
         Response = $"{endpointsAttributeArguments.EntityName}Response";
@@ -15,6 +15,7 @@ internal readonly struct EntityConfig
         EndpointsAttributeArguments = endpointsAttributeArguments;
         Properties = properties;
         RelationalNavigationNames = relationalNavigationNames;
+        DefinedDomainValues = definedDomainValues;
     }
 
     internal readonly string BaseName { get; }
@@ -25,13 +26,64 @@ internal readonly struct EntityConfig
     internal readonly AutoFastEndpointsAttributeArguments EndpointsAttributeArguments { get; }
     //internal readonly ImmutableArray<Property> Properties { get; }
     internal readonly ImmutableArray<string> RelationalNavigationNames { get; }
+    public ImmutableArray<DefinedDomainValue> DefinedDomainValues { get; }
     internal readonly ImmutableDictionary<PropertyTarget, ImmutableArray<PropertyOutput>> Properties { get; }
 }
 
-internal readonly struct ModelOutput
+
+
+internal readonly struct DefinedProperty
 {
-    internal readonly IReadOnlyDictionary<PropertyTarget, ImmutableArray<string>> PropertyModelSource { get; }
+    public DefinedProperty(string name, string baseSource)
+    {
+        Name = name;
+        BaseSource = baseSource;
+    }
+
+    internal readonly string Name { get; }
+    internal readonly string BaseSource { get; }
 }
+
+internal readonly struct DefinedDomainValue
+{
+    public DefinedDomainValue(DomainValueDefinition domainValueDefinition, ImmutableArray<DefinedProperty> definedProperties)
+    {
+        DefinedProperties = definedProperties;
+        DomainValueDefinition = domainValueDefinition;
+    }
+
+    public DomainValueDefinition DomainValueDefinition { get; }
+    public ImmutableArray<DefinedProperty> DefinedProperties { get; }
+}
+
+internal readonly struct DomainValue
+{
+    public DomainValue(string entityType, string requestType, PropertyRelation propertyRelation)
+    {
+        EntityType = entityType;
+        RequestType = requestType;
+        PropertyRelation = propertyRelation;
+    }
+
+    public string EntityType { get; }
+    public string RequestType { get; }
+    public PropertyRelation PropertyRelation { get; }
+}
+
+internal readonly struct DomainValueProperty
+{
+    public DomainValueProperty(string propertyName, string entityName, DomainValue domainValue)
+    {
+        PropertyName = propertyName;
+        EntityName = entityName;
+        DomainValue = domainValue;
+    }
+
+    public string PropertyName { get; }
+    public string EntityName { get; }
+    public DomainValue DomainValue { get; }
+}
+
 
 internal readonly struct PropertyOutput
 {

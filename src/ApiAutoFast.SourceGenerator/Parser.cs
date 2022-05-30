@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 
 namespace ApiAutoFast.SourceGenerator;
 
@@ -80,10 +79,6 @@ internal static class Parser
 
             var endpointsAttributeArguments = GetAutoFastEndpointsAttributeArguments(namedTypeSymbol);
 
-            //var members = semanticModel
-            //    .GetDeclaredSymbol(entityClassDeclaration)!
-            //    .GetMembers();
-
             yield return new EntityConfigSetup(entityClassDeclaration, semanticModel, endpointsAttributeArguments);
         }
     }
@@ -100,68 +95,6 @@ internal static class Parser
 
         return new AutoFastEndpointsAttributeArguments(entityName!, endpointTarget);
     }
-
-    //private static IEnumerable<KeyValuePair<string, ImmutableArray<Property>>> YieldPropertySetup3(Compilation compilation, ImmutableArray<EntityConfigSetup> entityConfigSetups)
-    //{
-    //    var entityNames = entityConfigSetups
-    //        .Select(x => x.EndpointsAttributeArguments.EntityName)
-    //        .ToImmutableArray();
-
-    //    foreach (var entity in entityConfigSetups)
-    //    {
-    //        var propertySetups = YieldProperty(compilation, entityNames, entity).ToImmutableArray();
-
-    //        yield return new KeyValuePair<string, ImmutableArray<Property>>(entity.EndpointsAttributeArguments.EntityName, propertySetups);
-
-    //        //yield return new KeyValuePair<string, IReadOnlyDictionary<DomainValueDefinition, ImmutableArray<PropertySetup2>>>(
-    //        //    entity.EndpointsAttributeArguments.EntityName,
-    //        //    new ReadOnlyDictionary<DomainValueDefinition, ImmutableArray<PropertySetup2>>(propertySetups));
-    //    }
-    //}
-
-    //private static IEnumerable<IEnumerable<PropertySetup>> YieldPropertySetup3(Compilation compilation, ImmutableArray<EntityConfigSetup> entityConfigSetups)
-    //{
-    //    var entityNames = entityConfigSetups
-    //        .Select(x => x.EndpointsAttributeArguments.EntityName)
-    //        .ToImmutableArray();
-
-    //    foreach (var entity in entityConfigSetups)
-    //    {
-    //        yield return YieldDefinedValues(compilation, entityNames, entity);
-    //    }
-    //}
-
-    // yield return new KeyValuePair<string, ImmutableArray<Property>>(entity.EndpointsAttributeArguments.EntityName, propertySetups);
-
-    //yield return new KeyValuePair<string, IReadOnlyDictionary<DomainValueDefinition, ImmutableArray<PropertySetup2>>>(
-    //    entity.EndpointsAttributeArguments.EntityName,
-    //    new ReadOnlyDictionary<DomainValueDefinition, ImmutableArray<PropertySetup2>>(propertySetups));
-
-    //private static IEnumerable<KeyValuePair<DomainValueDefinition, ImmutableArray<PropertySetup2>>> YieldPropertySetup(Compilation compilation, ImmutableArray<string> entityNames, EntityConfigSetup entity)
-    //{
-    //private static IEnumerable<IEnumerable<PropertyOutput>> YieldProperty(Compilation compilation, ImmutableArray<string> entityNames, EntityConfigSetup entity)
-    //{
-    //    var members = entity.SemanticModel
-    //        .GetDeclaredSymbol(entity.ClassDeclarationSyntax)!
-    //        .GetMembers();
-
-    //    var found = new List<DomainValueDefinition>();
-
-    //    var ff = new Dictionary<PropertyTarget, ImmutableArray<string>>();
-
-    //    foreach (var member in members)
-    //    {
-    //        if (member is not IPropertySymbol property) continue;
-
-    //        if (TryGetDomainValueDefinition(compilation, property, entityNames, out var domainValueDefinition) is false) continue;
-
-    //        var hmm = YieldPropertySetup2(entity);
-
-    //        yield return hmm;
-
-
-    //    }
-    //}
 
     private static IEnumerable<KeyValuePair<string, Dictionary<string, List<(DefinedProperty, DomainValueDefinition)>>>> YieldPropertySetup3(Compilation compilation, ImmutableArray<EntityConfigSetup> entityConfigSetups)
     {
@@ -210,31 +143,6 @@ internal static class Parser
         }
 
         return values;
-    }
-
-
-    private readonly struct DefinedProperty
-    {
-        public DefinedProperty(string name, string baseSource)
-        {
-            Name = name;
-            BaseSource = baseSource;
-        }
-
-        internal readonly string Name { get; }
-        internal readonly string BaseSource { get; }
-    }
-
-    private readonly struct DefinedDomainValue
-    {
-        public DefinedDomainValue(DomainValueDefinition domainValueDefinition, ImmutableArray<DefinedProperty> definedProperties)
-        {
-            DefinedProperties = definedProperties;
-            DomainValueDefinition = domainValueDefinition;
-        }
-
-        public DomainValueDefinition DomainValueDefinition { get; }
-        public ImmutableArray<DefinedProperty> DefinedProperties { get; }
     }
 
     private static IEnumerable<PropertyOutput> YieldPropertySetup2(string entityName, DefinedProperty definedProperty, DomainValueDefinition domainValueDefinition)
@@ -288,34 +196,6 @@ internal static class Parser
         }
     }
 
-    private readonly struct DomainValueProperty
-    {
-        public DomainValueProperty(string propertyName, string entityName, DomainValue domainValue)
-        {
-            PropertyName = propertyName;
-            EntityName = entityName;
-            DomainValue = domainValue;
-        }
-
-        public string PropertyName { get; }
-        public string EntityName { get; }
-        public DomainValue DomainValue { get; }
-    }
-
-    private readonly struct DomainValue
-    {
-        public DomainValue(string entityType, string requestType, PropertyRelation propertyRelation)
-        {
-            EntityType = entityType;
-            RequestType = requestType;
-            PropertyRelation = propertyRelation;
-        }
-
-        public string EntityType { get; }
-        public string RequestType { get; }
-        public PropertyRelation PropertyRelation { get; }
-    }
-
     private static IEnumerable<EntityConfig> YieldEntityConfig(
         Compilation compilation,
         ImmutableArray<ClassDeclarationSyntax> entityClassDeclarations,
@@ -324,52 +204,11 @@ internal static class Parser
 
         var entityConfigSetups = YieldEntityConfigSetup(compilation, entityClassDeclarations).ToImmutableArray();
 
+        var ff = YieldPropertySetup3(compilation, entityConfigSetups);
 
-        //foreach (var value in values)
-        //{
-        //    var domainValueDefinition = values[value.Key].First().Item2;
+        var abc = YieldPropertySetup4(ff).ToImmutableArray();
 
-        //    var properties = value.Value.Select(x => x.Item1).ToImmutableArray();
-
-        //    yield return new DefinedDomainValue(domainValueDefinition, properties);
-        //}
-
-        // temp
-        var entityNames = entityConfigSetups
-            .Select(x => x.EndpointsAttributeArguments.EntityName)
-            .ToImmutableArray();
-
-        var ff = YieldPropertySetup3(compilation, entityConfigSetups);  //.SelectMany(x => x).Select(y => y).ToImmutableArray();
-
-        var gg = ff.SelectMany(x => x.Value).ToImmutableArray();
-
-        var hmhmh = YieldPropertySetup4(ff).SelectMany(x => x).ToImmutableArray();
-
-
-        //var abc = new Dictionary<string, Dictionary<PropertyTarget, List<PropertyOutput>>>();
-
-        //foreach (var bb in hmhmh)
-        //{
-        //    if (abc.TryGetValue(bb.EntityKind, out var b))
-        //    {
-        //        if (b.TryGetValue(bb.Target, out var c))
-        //        {
-        //            c.Add(bb);
-        //        }
-        //        else
-        //        {
-        //            b.Add(bb.Target, new List<PropertyOutput> { bb });
-        //        }
-        //    }
-        //    else
-        //    {
-        //        abc.Add(bb.EntityKind, new Dictionary<PropertyTarget, List<PropertyOutput>>
-        //        {
-        //            [bb.Target] = new List<PropertyOutput> { bb }
-        //        });
-        //    }
-        //    //    abc[bb.EntityKind][bb.Target].Add(bb);
-        //}
+        var dom = DomainSetup1(ff).ToImmutableArray();
 
         foreach (var item in abc)
         {
@@ -387,147 +226,34 @@ internal static class Parser
                 .Select(x => (x.Key, Value: x.Value.ToImmutableArray()))
                 .ToImmutableDictionary(x => x.Key, x => x.Value);
 
-            //var ae = item.Value.ToImmutableArray();
-            //var bc = new ReadOnlyDictionary<PropertyTarget, ImmutableArray<PropertyOutput>>(ae);
+            var dom2 = dom
+                .Where(x => x.DomainValueDefinition.EntityType == item.Key)
+                .ToImmutableArray();
 
-            //var endpointsAttributeArguments = entityConfigSetups
-            //    .First(x => x.EndpointsAttributeArguments.EntityName == ss.FirstOrDefault().PropertyOutputs.First().EntityType)
-            //    .EndpointsAttributeArguments;
-
-            //var ahh = ss.Select(x => x).ToImmutableArray();
-
-            yield return new EntityConfig(endpointsAttributeArguments, fff, relationalNavigationNames);
+            yield return new EntityConfig(endpointsAttributeArguments, fff, relationalNavigationNames, dom2);
         }
-
-
-
-        //var dict2 = new Dictionary<string, Dictionary<PropertyTarget, ImmutableArray<PropertyOutput>>>();
-
-        //foreach (var hm in ff)
-        //{
-        //    foreach (var item in entityNames)
-        //    {
-        //        var dict = new Dictionary<PropertyTarget, ImmutableArray<PropertyOutput>>();
-
-        //        var enums = Enum.GetValues(typeof(PropertyTarget)) as PropertyTarget[];
-
-        //        foreach (var aa in enums!)
-        //        {
-        //            var sss = ff.Where(x => x.Target == aa);
-
-        //            dict.Add(aa, sss.ToImmutableArray());
-        //        }
-
-        //    }
-
-
-        //    //dict2.Add(hm.EntityType, dict);
-        //}
-        //.SelectMany(y => y).GroupBy(x => x.EntityType);
-        //.SelectMany(x => x.GroupBy(x => x.Select(x => x.EntityType)));
-        //.SelectMany(x => x.GroupBy(y => y.PropertyOutputs.Select(x => x.EntityType)));
-
-        //foreach (var ss in ff)
-        //{
-        //    var relationalNavigationNames = ss
-        //            .Where(x => x.Relation.Type is not RelationalType.None)
-        //            .Select(x => x.Relation.ForeigEntityProperty)
-        //            .ToImmutableArray();
-
-        //    var endpointsAttributeArguments = entityConfigSetups.First(x => x.EndpointsAttributeArguments.EntityName == ss.Key);
-
-
-        //    //var endpointsAttributeArguments = entityConfigSetups
-        //    //    .First(x => x.EndpointsAttributeArguments.EntityName == ss.FirstOrDefault().PropertyOutputs.First().EntityType)
-        //    //    .EndpointsAttributeArguments;
-
-        //    //var ahh = ss.Select(x => x).ToImmutableArray();
-
-        //    yield return new EntityConfig(endpointsAttributeArguments, ss, relationalNavigationNames);
-        //}
-
-        //var domainValueProperties = YieldPropertySetup3(compilation, entityConfigSetups).ToDictionary(x => x.Key, x => x.Value);
-
-        //foreach (var aha in domainValueProperties)
-        //{
-        //    var relationalNavigationNames = aha.Value
-        //        .Where(x => x.Relation.Type is not RelationalType.None)
-        //        .Select(x => x.Relation.ForeigEntityProperty)
-        //        .ToImmutableArray();
-
-        //    var endpointsAttributeArguments = entityConfigSetups
-        //        .First(x => x.EndpointsAttributeArguments.EntityName == aha.Key)
-        //        .EndpointsAttributeArguments;
-
-        //    var ff = aha.Value.SelectMany(x => x.PropertyOutputs.Where(y => y.Target is PropertyTarget.Entity));
-
-        //    yield return new EntityConfig(endpointsAttributeArguments, aha.Value, relationalNavigationNames);
-        //}
-
-
-
-
-        //foreach (var item in entityConfigSetups)
-        //{
-        //    var f = domainValueProperties.Values.Where(x => x.Select(x => x.EntityType) == item.EndpointsAttributeArguments.EntityName));
-
-        //    //var group = domainValueProperties.GroupBy(x => x.Value.Select(x =))
-
-        //    //var f = domainValueProperties.Where(x => x.Value.)
-        //    //    .FirstOrDefault(x => (x.Key, x.Value.Where(x => x.EntityType == item.EndpointsAttributeArguments.EntityName)));
-
-
-        //    var relationalNavigationNames = domainValueProperties
-        //        .Where(x => x.Value.Select(x => x.EntityType).Contains(item.EndpointsAttributeArguments.EntityName) && x.Key.PropertyRelation.RelationalType is not RelationalType.None)
-        //        .Select(x => x.Key.PropertyRelation.ForeigEntityProperty)
-        //        .ToImmutableArray();
-
-
-        //}
-
-        //foreach (var setup in domainValueProperties)
-        //{
-
-
-        //    yield return new EntityConfig(entityConfigSetup.EndpointsAttributeArguments, propertyMetadatas, relationalNavigationNames);
-        //}
-
-        //var groups = propertySetups.GroupBy(x => x.EntityType);
-
-        //foreach (var group in groups)
-        //{
-        //    var entityPropertySetups = group.Select(x => x).ToImmutableArray();
-
-        //    //var propertyMetadatas = YieldPropertyMetadata(propertySetups).ToImmutableArray();
-        //}
-
-        //foreach (var entityConfigSetup in entityConfigSetups)
-        //{
-        //    ct.ThrowIfCancellationRequested();
-
-
-
-        //    var propertySetups = YieldPropertySetup(compilation, members, foreignEntityNames, entityConfigSetup.EndpointsAttributeArguments.EntityName).ToImmutableArray();
-
-        //    propertySetups = propertySetups.Distinct().ToImmutableArray();
-
-        //    var propertyMetadatas = YieldPropertyMetadata(propertySetups).ToImmutableArray();
-
-        //    var relationalNavigationNames = propertyMetadatas
-        //        .Where(x => x.DomainValueDefiniton.PropertyRelation.RelationalType is not RelationalType.None)
-        //        .Select(x => x.DomainValueDefiniton.PropertyRelation.ForeigEntityProperty)
-        //        .ToImmutableArray();
-
-        //    yield return new EntityConfig(entityConfigSetup.EndpointsAttributeArguments, propertyMetadatas, relationalNavigationNames);
-        //}
     }
 
-    private static Dictionary<string, Dictionary<PropertyTarget, List<PropertyOutput>>> YieldPropertySetup4(
-        IEnumerable<KeyValuePair<string, Dictionary<string, List<(DefinedProperty, DomainValueDefinition)>>>> ff)
+    private static IEnumerable<DefinedDomainValue> DomainSetup1(IEnumerable<KeyValuePair<string, Dictionary<string, List<(DefinedProperty, DomainValueDefinition)>>>> values)
+    {
+        foreach (var value in values)
+        {
+            foreach (var item in value.Value)
+            {
+                var domainValueDefinition = value.Value[item.Key].First().Item2;
+
+                var properties = item.Value.Select(x => x.Item1).ToImmutableArray();
+
+                yield return new DefinedDomainValue(domainValueDefinition, properties);
+            }
+        }
+    }
+
+    private static Dictionary<string, Dictionary<PropertyTarget, List<PropertyOutput>>> YieldPropertySetup4(IEnumerable<KeyValuePair<string, Dictionary<string, List<(DefinedProperty, DomainValueDefinition)>>>> values)
     {
         var abc = new Dictionary<string, Dictionary<PropertyTarget, List<PropertyOutput>>>();
 
-        foreach (var item in ff)
+        foreach (var item in values)
         {
             foreach (var sa in item.Value)
             {
@@ -558,180 +284,6 @@ internal static class Parser
 
         return abc;
     }
-
-    //private static IEnumerable<EntityConfig> YieldEntityConfig(
-    //    Compilation compilation,
-    //    ImmutableArray<ClassDeclarationSyntax> entityClassDeclarations,
-    //    CancellationToken ct)
-    //{
-    //    var entityConfigSetups = YieldEntityConfigSetup(compilation, entityClassDeclarations).ToImmutableArray();
-
-    //    // note: some are duplicates
-    //    //var domainValueDefinitions = YieldDomainValueDefinitionReference(compilation, entityConfigSetups).ToImmutableArray();
-
-    //    var propertySetups = YieldPropertySetup(compilation, entityConfigSetups).ToImmutableArray();
-
-    //    foreach (var entityConfigSetup in entityConfigSetups)
-    //    {
-    //        ct.ThrowIfCancellationRequested();
-
-    //        var members = entityConfigSetup.SemanticModel
-    //            .GetDeclaredSymbol(entityConfigSetup.ClassDeclarationSyntax)!
-    //            .GetMembers();
-
-    //        var foreignEntityNames = entityConfigSetups
-    //            .Where(x => x.EndpointsAttributeArguments.EntityName != entityConfigSetup.EndpointsAttributeArguments.EntityName)
-    //            .Select(x => x.EndpointsAttributeArguments.EntityName)
-    //            .ToImmutableArray();
-
-    //        var propertySetups = YieldPropertySetup(compilation, members, foreignEntityNames, entityConfigSetup.EndpointsAttributeArguments.EntityName).ToImmutableArray();
-
-    //        propertySetups = propertySetups.Distinct().ToImmutableArray();
-
-    //        var propertyMetadatas = YieldPropertyMetadata(propertySetups).ToImmutableArray();
-
-    //        var relationalNavigationNames = propertyMetadatas
-    //            .Where(x => x.DomainValueDefiniton.PropertyRelation.RelationalType is not RelationalType.None)
-    //            .Select(x => x.DomainValueDefiniton.PropertyRelation.ForeigEntityProperty)
-    //            .ToImmutableArray();
-
-    //        yield return new EntityConfig(entityConfigSetup.EndpointsAttributeArguments, propertyMetadatas, relationalNavigationNames);
-    //    }
-    //}
-
-
-    //private readonly struct PropertySetup
-    //{
-    //    public PropertySetup(DomainValueDefinition domainValueDefinition, PropertyLocation entityLocation, string basePropertyString)
-    //    {
-    //        DomainValueDefinition = domainValueDefinition;
-    //        EntityLocation = entityLocation;
-    //        BasePropertyString = basePropertyString;
-    //    }
-
-    //    internal readonly DomainValueDefinition DomainValueDefinition { get; }
-    //    internal readonly PropertyLocation EntityLocation { get; }
-    //    internal readonly string BasePropertyString { get; }
-    //}
-
-    //private readonly struct PropertyLocation
-    //{
-    //    public PropertyLocation(string name, PropertyTarget propertyTarget)
-    //    {
-    //        Name = name;
-    //        PropertyTarget = propertyTarget;
-    //    }
-
-    //    internal readonly string Name { get; }
-    //    internal readonly PropertyTarget PropertyTarget { get; }
-    //}
-
-    //private static IEnumerable<PropertySetup> YieldPropertySetup(Compilation compilation, ImmutableArray<ISymbol> members, ImmutableArray<string> foreignEntityNames, string entityName)
-    //{
-    //    var dict = new Dictionary<PropertyLocation, PropertySetup>();
-
-    //    foreach (var member in members)
-    //    {
-    //        if (member is not IPropertySymbol property
-    //            || TryGetDomainValueDefinition(compilation, property, foreignEntityNames, out var domainValueDefinition) is false)
-    //        {
-    //            continue;
-    //        }
-
-
-
-    //        var propertyString = property.ToDisplayString(new SymbolDisplayFormat(
-    //            propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
-    //            memberOptions: SymbolDisplayMemberOptions.IncludeAccessibility));
-
-
-    //        yield return new PropertySetup(domainValueDefinition, new PropertyLocation(entityName, PropertyTarget.CreateCommand), propertyString);
-    //        yield return new PropertySetup(domainValueDefinition, new PropertyLocation(entityName, PropertyTarget.ModifyCommand), propertyString);
-    //        yield return new PropertySetup(domainValueDefinition, new PropertyLocation(entityName, PropertyTarget.QueryRequest), propertyString);
-    //    }
-    //}
-
-    //private static IEnumerable<PropertyMetadata> YieldPropertyMetadata(ImmutableArray<PropertySetup2> propertySetups)
-    //{
-    //    foreach (var setup in propertySetups)
-    //    {
-    //        var propertyString = setup.BaseSource;
-    //        //var property = setup.PropertySymbol;
-    //        //var domainValueDefinition = setup.DomainValueDefinition;
-
-    //        //var propertyString = property.ToDisplayString(new SymbolDisplayFormat(
-    //        //    propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
-    //        //    memberOptions: SymbolDisplayMemberOptions.IncludeAccessibility));
-
-    //        var firstSpaceIndex = propertyString.IndexOf(' ');
-    //        // note: might consider using domainvalue.entitytype here to skip the whole valueconversion shenanigans
-    //        var entitySource = domainValueDefinition.PropertyRelation.RelationalType is RelationalType.None
-    //            ? propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.TypeName}")
-    //            : propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.EntityType}");
-
-    //        if (domainValueDefinition.PropertyRelation.RelationalType is RelationalType.ToOne)
-    //        {
-    //            // note: this got way too messy when its no direct 1-1 mapping from real and generated properties..
-    //            var extendPropertyNameIndex = propertyString.IndexOf('{') - 1;
-    //            propertyString = propertyString.Insert(extendPropertyNameIndex, $"Id");
-    //        }
-
-    //        var requestSource = domainValueDefinition.PropertyRelation.RelationalType is RelationalType.ToMany
-    //            ? string.Empty
-    //            : propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}?");
-
-    //        var commandSource = domainValueDefinition.PropertyRelation.RelationalType is RelationalType.ToMany
-    //            ? string.Empty // note: as of now there is no support to adding multiple foreign entities in one command
-    //            : propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}");
-
-    //        var attributes = YieldAttributeMetadata(property).ToImmutableArray();
-
-    //        var requestModelTarget = GetRequestModelTarget(attributes);
-
-    //        yield return new PropertyMetadata(entitySource, requestSource, commandSource, domainValueDefinition, requestModelTarget, attributes);
-    //    }
-    //}
-
-    //private static IEnumerable<PropertyMetadata> YieldPropertyMetadata(Compilation compilation, ImmutableArray<ISymbol> members, ImmutableArray<string> foreignEntityNames)
-    //{
-    //    foreach (var member in members)
-    //    {
-    //        if (member is not IPropertySymbol property) continue;
-
-    //        if (TryGetDomainValueDefinition(compilation, property, foreignEntityNames, out var domainValueDefinition) is false) continue;
-
-    //        var propertyString = property.ToDisplayString(new SymbolDisplayFormat(
-    //            propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
-    //            memberOptions: SymbolDisplayMemberOptions.IncludeAccessibility));
-
-    //        var firstSpaceIndex = propertyString.IndexOf(' ');
-    //        // note: might consider using domainvalue.entitytype here to skip the whole valueconversion shenanigans
-    //        var entitySource = domainValueDefinition.PropertyRelation.RelationalType is RelationalType.None
-    //            ? propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.TypeName}")
-    //            : propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.EntityType}");
-
-    //        if (domainValueDefinition.PropertyRelation.RelationalType is RelationalType.ToOne)
-    //        {
-    //            // note: this got way too messy when its no direct 1-1 mapping from real and generated properties..
-    //            var extendPropertyNameIndex = propertyString.IndexOf('{') - 1;
-    //            propertyString = propertyString.Insert(extendPropertyNameIndex, $"Id");
-    //        }
-
-    //        var requestSource = domainValueDefinition.PropertyRelation.RelationalType is RelationalType.ToMany
-    //            ? string.Empty
-    //            : propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}?");
-
-    //        var commandSource = domainValueDefinition.PropertyRelation.RelationalType is RelationalType.ToMany
-    //            ? string.Empty // note: as of now there is no support to adding multiple foreign entities in one command
-    //            : propertyString.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}");
-
-    //        var attributes = YieldAttributeMetadata(property).ToImmutableArray();
-
-    //        var requestModelTarget = GetRequestModelTarget(attributes);
-
-    //        yield return new PropertyMetadata(entitySource, requestSource, commandSource, domainValueDefinition, requestModelTarget, attributes);
-    //    }
-    //}
 
     private static bool TryGetDomainValueDefinition(
         Compilation compilation,
@@ -875,9 +427,3 @@ internal static class Parser
         return nameSpace;
     }
 }
-
-//var semanticModel = compilation.GetSemanticModel(entity.ClassDeclarationSyntax.SyntaxTree);
-
-//if (semanticModel.GetDeclaredSymbol(entity.ClassDeclarationSyntax) is not INamedTypeSymbol namedTypeSymbol) continue;
-
-//var attributes = namedTypeSymbol.GetAttributes();
