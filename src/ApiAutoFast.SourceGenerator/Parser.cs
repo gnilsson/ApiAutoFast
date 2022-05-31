@@ -96,20 +96,6 @@ internal static class Parser
         return new AutoFastEndpointsAttributeArguments(entityName!, endpointTarget);
     }
 
-    private static IEnumerable<KeyValuePair<string, Dictionary<string, List<(DefinedProperty, DomainValueDefinition)>>>> YieldPropertySetup3(Compilation compilation, ImmutableArray<EntityConfigSetup> entityConfigSetups)
-    {
-        var entityNames = entityConfigSetups
-            .Select(x => x.EndpointsAttributeArguments.EntityName)
-            .ToImmutableArray();
-
-        foreach (var entity in entityConfigSetups)
-        {
-            yield return new KeyValuePair<string, Dictionary<string, List<(DefinedProperty, DomainValueDefinition)>>>(
-                entity.EndpointsAttributeArguments.EntityName,
-                YieldDefinedValues(compilation, entityNames, entity));
-        }
-    }
-
     private static Dictionary<string, List<(DefinedProperty, DomainValueDefinition)>> YieldDefinedValues(Compilation compilation, ImmutableArray<string> entityNames, EntityConfigSetup entity)
     {
         var members = entity.SemanticModel
@@ -196,93 +182,108 @@ internal static class Parser
         }
     }
 
+    private static IEnumerable<KeyValuePair<string, Dictionary<string, List<(DefinedProperty, DomainValueDefinition)>>>> YieldPropertyConfigSetup(
+        Compilation compilation,
+        ImmutableArray<EntityConfigSetup> entityConfigSetups)
+    {
+        var entityNames = entityConfigSetups
+            .Select(x => x.EndpointsAttributeArguments.EntityName)
+            .ToImmutableArray();
+
+        foreach (var entity in entityConfigSetups)
+        {
+            yield return new KeyValuePair<string, Dictionary<string, List<(DefinedProperty, DomainValueDefinition)>>>(
+                entity.EndpointsAttributeArguments.EntityName,
+                YieldDefinedValues(compilation, entityNames, entity));
+        }
+    }
+
     private static IEnumerable<EntityConfig> YieldEntityConfig(
         Compilation compilation,
         ImmutableArray<ClassDeclarationSyntax> entityClassDeclarations,
         CancellationToken ct)
     {
-
         var entityConfigSetups = YieldEntityConfigSetup(compilation, entityClassDeclarations).ToImmutableArray();
 
-        var ff = YieldPropertySetup3(compilation, entityConfigSetups);
+        var propertyConfigSetups = YieldPropertyConfigSetup(compilation, entityConfigSetups).ToImmutableArray();
 
-        var abc = YieldPropertySetup4(ff).ToImmutableArray();
-
-        var dom = DomainSetup1(ff).ToImmutableArray();
-
-        foreach (var item in abc)
+        foreach (var propertyConfig in YieldPropertyConfig(propertyConfigSetups))
         {
-            var relationalNavigationNames = item
-                .Value[PropertyTarget.Entity]
+            ct.ThrowIfCancellationRequested();
+
+            var relationalNavigationNames = propertyConfig
+                .Properties[PropertyTarget.Entity]
                 .Where(x => x.Relation.Type is not RelationalType.None && x.PropertyKind is not PropertyKind.Identifier)
                 .Select(x => x.Relation.ForeigEntityProperty)
                 .ToImmutableArray();
 
             var endpointsAttributeArguments = entityConfigSetups
-                .First(x => x.EndpointsAttributeArguments.EntityName == item.Key)
+                .First(x => x.EndpointsAttributeArguments.EntityName == propertyConfig.EntityName)
                 .EndpointsAttributeArguments;
 
-            var fff = item.Value
-                .Select(x => (x.Key, Value: x.Value.ToImmutableArray()))
-                .ToImmutableDictionary(x => x.Key, x => x.Value);
-
-            var dom2 = dom
-                .Where(x => x.DomainValueDefinition.EntityType == item.Key)
-                .ToImmutableArray();
-
-            yield return new EntityConfig(endpointsAttributeArguments, fff, relationalNavigationNames, dom2);
+            yield return new EntityConfig(endpointsAttributeArguments, relationalNavigationNames, propertyConfig);
         }
     }
 
-    private static IEnumerable<DefinedDomainValue> DomainSetup1(IEnumerable<KeyValuePair<string, Dictionary<string, List<(DefinedProperty, DomainValueDefinition)>>>> values)
+    private static IEnumerable<PropertyConfig> YieldPropertyConfig(ImmutableArray<KeyValuePair<string, Dictionary<string, List<(DefinedProperty, DomainValueDefinition)>>>> entityNameKeyKvps)
     {
-        foreach (var value in values)
+        var propertiesCollection = new Dictionary<string, Dictionary<PropertyTarget, List<PropertyOutput>>>();
+        var domainValuesCollection = new Dictionary<string, ImmutableArray<DefinedDomainValue>>();
+
+        foreach (var kvpDictionaries in entityNameKeyKvps)
         {
-            foreach (var item in value.Value)
+            var definedDomainValues = new List<DefinedDomainValue>();
+
+            foreach (var kvpProperties in kvpDictionaries.Value)
             {
-                var domainValueDefinition = value.Value[item.Key].First().Item2;
+                var backingIdentifierPropertyNames = new List<string>();
 
-                var properties = item.Value.Select(x => x.Item1).ToImmutableArray();
-
-                yield return new DefinedDomainValue(domainValueDefinition, properties);
-            }
-        }
-    }
-
-    private static Dictionary<string, Dictionary<PropertyTarget, List<PropertyOutput>>> YieldPropertySetup4(IEnumerable<KeyValuePair<string, Dictionary<string, List<(DefinedProperty, DomainValueDefinition)>>>> values)
-    {
-        var abc = new Dictionary<string, Dictionary<PropertyTarget, List<PropertyOutput>>>();
-
-        foreach (var item in values)
-        {
-            foreach (var sa in item.Value)
-            {
-                foreach (var sa2 in sa.Value)
+                foreach (var (definedProperty, definedDomainValue) in kvpProperties.Value)
                 {
-                    foreach (var bb in YieldPropertySetup2(item.Key, sa2.Item1, sa2.Item2))
+                    foreach (var propertyOutput in YieldPropertySetup2(kvpDictionaries.Key, definedProperty, definedDomainValue))
                     {
-                        if (abc.TryGetValue(bb.EntityKind, out var b))
+                        if (propertyOutput.PropertyKind is PropertyKind.Identifier && propertyOutput.Name == $"{definedProperty.Name}Id")
                         {
-                            if (b.TryGetValue(bb.Target, out var c))
-                            {
-                                c.Add(bb);
-                                continue;
-                            }
+                            backingIdentifierPropertyNames.Add(propertyOutput.Name);
+                        }
 
-                            b.Add(bb.Target, new List<PropertyOutput> { bb });
+                        if (propertiesCollection.TryGetValue(propertyOutput.EntityKind, out var propertyDictionary) is false)
+                        {
+                            propertiesCollection.Add(propertyOutput.EntityKind, new Dictionary<PropertyTarget, List<PropertyOutput>>
+                            {
+                                [propertyOutput.Target] = new List<PropertyOutput> { propertyOutput }
+                            });
                             continue;
                         }
 
-                        abc.Add(bb.EntityKind, new Dictionary<PropertyTarget, List<PropertyOutput>>
+                        if (propertyDictionary.TryGetValue(propertyOutput.Target, out var outputs) is false)
                         {
-                            [bb.Target] = new List<PropertyOutput> { bb }
-                        });
+                            propertyDictionary.Add(propertyOutput.Target, new List<PropertyOutput> { propertyOutput });
+                            continue;
+                        }
+
+                        outputs.Add(propertyOutput);
                     }
                 }
+
+                var domainValueDefinition = kvpDictionaries.Value[kvpProperties.Key].First().Item2;
+                var definedProperties = kvpProperties.Value.Select(x => x.Item1).ToImmutableArray();
+                definedDomainValues.Add(new DefinedDomainValue(domainValueDefinition, definedProperties, backingIdentifierPropertyNames.ToImmutableArray()));
             }
+
+            domainValuesCollection.Add(kvpDictionaries.Key, definedDomainValues.ToImmutableArray());
         }
 
-        return abc;
+        foreach (var kvpCollection in propertiesCollection)
+        {
+            var domainValues = domainValuesCollection[kvpCollection.Key];
+
+            var properties = kvpCollection.Value
+                .Select(x => (x.Key, Value: x.Value.ToImmutableArray()))
+                .ToImmutableDictionary(x => x.Key, x => x.Value);
+
+            yield return new PropertyConfig(kvpCollection.Key, properties, domainValues);
+        }
     }
 
     private static bool TryGetDomainValueDefinition(
