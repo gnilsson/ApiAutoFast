@@ -14,5 +14,5 @@ public class PostQueryRequest
     public string? Description { get; set; }
     public ApiAutoFast.Sample.Server.EPostType? PostType { get; set; }
     public int? LikeCount { get; set; }
-    public string? BlogId { get; set; }
+    public string? Blog { get; set; }
 }

@@ -19,6 +19,6 @@ public class Post : IEntity
     public Description Description { get; set; }
     public PostType PostType { get; set; }
     public LikeCount LikeCount { get; set; }
-    public Identifier BlogId { get; set; }
     public Blog Blog { get; set; }
+    public Identifier BlogId { get; set; }
 }

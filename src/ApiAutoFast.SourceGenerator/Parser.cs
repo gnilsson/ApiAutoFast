@@ -135,11 +135,11 @@ internal static class Parser
     {
         var firstSpaceIndex = definedProperty.BaseSource.IndexOf(' ');
 
-        var entityType = domainValueDefinition.PropertyRelation.Type is RelationalType.None
+        var type = domainValueDefinition.PropertyRelation.Type is RelationalType.None
             ? domainValueDefinition.TypeName
             : domainValueDefinition.EntityType;
 
-        var entitySource = definedProperty.BaseSource.Insert(firstSpaceIndex, $" {entityType}");
+        var entitySource = definedProperty.BaseSource.Insert(firstSpaceIndex, $" {type}");
         var requestSource = definedProperty.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}?");
         var commandSource = definedProperty.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}");
 
@@ -163,22 +163,26 @@ internal static class Parser
             }
         }
 
+        yield return new PropertyOutput(entityName, entitySource, PropertyTarget.Entity, definedProperty.Name, type, domainValueDefinition.PropertyRelation);
+
+        var propertyName = definedProperty.Name;
+
         if (domainValueDefinition.PropertyRelation.Type is RelationalType.ToOne)
         {
             var idPropertySource = definedProperty.BaseSource.Insert(firstSpaceIndex, $" {TypeText.Identifier}");
             var extendPropertyNameIndex = idPropertySource.IndexOf('{') - 1;
             idPropertySource = idPropertySource.Insert(extendPropertyNameIndex, $"Id");
+            propertyName = $"{definedProperty.Name}Id";
 
-            yield return new PropertyOutput(entityName, idPropertySource, PropertyTarget.Entity, $"{definedProperty.Name}Id", TypeText.Identifier, domainValueDefinition.PropertyRelation, PropertyKind.Identifier);
+            yield return new PropertyOutput(entityName, idPropertySource, PropertyTarget.Entity, propertyName, TypeText.Identifier, domainValueDefinition.PropertyRelation, PropertyKind.Identifier);
         }
-
-        yield return new PropertyOutput(entityName, entitySource, PropertyTarget.Entity, definedProperty.Name, entityType, domainValueDefinition.PropertyRelation);
 
         if (domainValueDefinition.PropertyRelation.Type is not RelationalType.ToMany)
         {
-            yield return new PropertyOutput(entityName, requestSource, PropertyTarget.QueryRequest, definedProperty.Name, $"{domainValueDefinition.RequestType}?");
-            yield return new PropertyOutput(entityName, commandSource, PropertyTarget.CreateCommand, definedProperty.Name, domainValueDefinition.RequestType);
-            yield return new PropertyOutput(entityName, commandSource, PropertyTarget.ModifyCommand, definedProperty.Name, domainValueDefinition.RequestType);
+            yield return new PropertyOutput(entityName, requestSource, PropertyTarget.QueryRequest, propertyName, $"{domainValueDefinition.RequestType}?");
+            // todo: use flags
+            yield return new PropertyOutput(entityName, commandSource, PropertyTarget.CreateCommand, propertyName, domainValueDefinition.RequestType);
+            yield return new PropertyOutput(entityName, commandSource, PropertyTarget.ModifyCommand, propertyName, domainValueDefinition.RequestType);
         }
     }
 
@@ -345,21 +349,6 @@ internal static class Parser
         return PropertyRelation.None;
     }
 
-    private static RequestModelTarget GetRequestModelTarget(ImmutableArray<PropertyAttributeMetadata> attributes)
-    {
-        if (attributes.Length > 0)
-        {
-            var attriubteMetadata = attributes.FirstOrDefault(x => x.RequestModelTarget is not null);
-
-            if (attriubteMetadata.RequestModelTarget.HasValue)
-            {
-                return attriubteMetadata.RequestModelTarget.Value;
-            }
-        }
-
-        return RequestModelTarget.CreateCommand | RequestModelTarget.ModifyCommand | RequestModelTarget.QueryRequest;
-    }
-
     private static string GetLastPart(string valueToSubstring, char seperator = '.')
     {
         var index = valueToSubstring.LastIndexOf(seperator);
@@ -369,34 +358,6 @@ internal static class Parser
         var lastPart = valueToSubstring.Substring(index, valueToSubstring.Length - index);
 
         return lastPart;
-    }
-
-    private static IEnumerable<PropertyAttributeMetadata> YieldAttributeMetadata(IPropertySymbol propertyMember)
-    {
-        foreach (var attributeData in propertyMember.GetAttributes())
-        {
-            if (attributeData.AttributeClass is null) continue;
-
-            var attributeName = GetLastPart(attributeData.AttributeClass.Name).Replace(TypeText.Attribute, "");
-
-            if (attributeName == TypeText.AttributeText.ExcludeRequestModel)
-            {
-                if (attributeData.ConstructorArguments.Length > 0)
-                {
-                    yield return new PropertyAttributeMetadata(
-                        AttributeType.Custom,
-                        attributeName,
-                        (RequestModelTarget)attributeData.ConstructorArguments[0].Value!);
-
-                    continue;
-                }
-
-                yield return new PropertyAttributeMetadata(AttributeType.Custom, attributeName, RequestModelTarget.None);
-                continue;
-            }
-
-            yield return new PropertyAttributeMetadata(AttributeType.Default, attributeName);
-        }
     }
 
     private static string GetNamespace(ClassDeclarationSyntax classDeclarationSyntax)
@@ -428,3 +389,46 @@ internal static class Parser
         return nameSpace;
     }
 }
+
+//private static IEnumerable<PropertyAttributeMetadata> YieldAttributeMetadata(IPropertySymbol propertyMember)
+//{
+//    foreach (var attributeData in propertyMember.GetAttributes())
+//    {
+//        if (attributeData.AttributeClass is null) continue;
+
+//        var attributeName = GetLastPart(attributeData.AttributeClass.Name).Replace(TypeText.Attribute, "");
+
+//        if (attributeName == TypeText.AttributeText.ExcludeRequestModel)
+//        {
+//            if (attributeData.ConstructorArguments.Length > 0)
+//            {
+//                yield return new PropertyAttributeMetadata(
+//                    AttributeType.Custom,
+//                    attributeName,
+//                    (RequestModelTarget)attributeData.ConstructorArguments[0].Value!);
+
+//                continue;
+//            }
+
+//            yield return new PropertyAttributeMetadata(AttributeType.Custom, attributeName, RequestModelTarget.None);
+//            continue;
+//        }
+
+//        yield return new PropertyAttributeMetadata(AttributeType.Default, attributeName);
+//    }
+//}
+
+//private static RequestModelTarget GetRequestModelTarget(ImmutableArray<PropertyAttributeMetadata> attributes)
+//{
+//    if (attributes.Length > 0)
+//    {
+//        var attriubteMetadata = attributes.FirstOrDefault(x => x.RequestModelTarget is not null);
+
+//        if (attriubteMetadata.RequestModelTarget.HasValue)
+//        {
+//            return attriubteMetadata.RequestModelTarget.Value;
+//        }
+//    }
+
+//    return RequestModelTarget.CreateCommand | RequestModelTarget.ModifyCommand | RequestModelTarget.QueryRequest;
+//}

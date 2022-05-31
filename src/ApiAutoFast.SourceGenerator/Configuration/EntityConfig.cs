@@ -135,10 +135,13 @@ internal readonly struct Property
     public PropertyRelation Relation { get; }
 }
 
+[Flags]
 internal enum PropertyTarget
 {
-    Entity = 0,
-    CreateCommand,
-    ModifyCommand,
-    QueryRequest,
+    None = 0,
+    Entity = 1,
+    CreateCommand = 2,
+    ModifyCommand = 4,
+    QueryRequest = 8,
+    All = 16,
 }
