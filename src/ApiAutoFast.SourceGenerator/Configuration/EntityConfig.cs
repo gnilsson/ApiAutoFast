@@ -1,4 +1,5 @@
 ﻿using ApiAutoFast.SourceGenerator.Configuration.Enums;
+using Microsoft.CodeAnalysis;
 using System.Collections.Immutable;
 
 namespace ApiAutoFast.SourceGenerator.Configuration;
@@ -29,7 +30,7 @@ internal readonly struct EntityConfig
 
 internal readonly struct PropertyConfig
 {
-    internal PropertyConfig(string entityName, ImmutableDictionary<PropertyTarget, ImmutableArray<PropertyOutput>> properties, ImmutableArray<DefinedDomainValue> domainValues)
+    internal PropertyConfig(string entityName, ImmutableArray<PropertyOutput> properties, ImmutableArray<DefinedDomainValue> domainValues)
     {
         EntityName = entityName;
         Properties = properties;
@@ -37,35 +38,59 @@ internal readonly struct PropertyConfig
     }
 
     internal readonly string EntityName { get; }
-    internal readonly ImmutableDictionary<PropertyTarget, ImmutableArray<PropertyOutput>> Properties { get; }
+    internal readonly ImmutableArray<PropertyOutput> Properties { get; }
     internal readonly ImmutableArray<DefinedDomainValue> DomainValues { get; }
 }
 
-
-internal readonly struct DefinedProperty
+internal readonly struct DomainValueMetadata
 {
-    public DefinedProperty(string name, string baseSource)
+    internal DomainValueMetadata(DomainValueDefinition domainValueDefinition, ImmutableArray<AttributeData> attributeDatas)
+    {
+        DomainValueDefinition = domainValueDefinition;
+        AttributeDatas = attributeDatas;
+    }
+
+    internal readonly DomainValueDefinition DomainValueDefinition { get; }
+    internal readonly ImmutableArray<AttributeData> AttributeDatas { get; }
+}
+
+
+internal readonly struct PropertySetup
+{
+    internal PropertySetup(string name, string baseSource, DomainValueMetadata domainValueMetadata)
     {
         Name = name;
         BaseSource = baseSource;
+        DomainValueMetadata = domainValueMetadata;
     }
 
     internal readonly string Name { get; }
     internal readonly string BaseSource { get; }
+    internal readonly DomainValueMetadata DomainValueMetadata { get; }
+}
+
+internal readonly struct DefinedProperty
+{
+    public DefinedProperty(string name, PropertyKind propertyKind)
+    {
+        Name = name;
+        PropertyKind = propertyKind;
+    }
+
+    internal readonly string Name { get; }
+    internal readonly PropertyKind PropertyKind { get; }
 }
 
 internal readonly struct DefinedDomainValue
 {
-    public DefinedDomainValue(DomainValueDefinition domainValueDefinition, ImmutableArray<DefinedProperty> definedProperties, ImmutableArray<string> backingIdentifierPropertyNames)
+    public DefinedDomainValue(DomainValueDefinition domainValueDefinition, ImmutableArray<DefinedProperty> definedProperties)
     {
-        DefinedProperties = definedProperties;
-        BackingIdentifierPropertyNames = backingIdentifierPropertyNames;
         DomainValueDefinition = domainValueDefinition;
+        DefinedProperties = definedProperties;
     }
 
     public DomainValueDefinition DomainValueDefinition { get; }
     public ImmutableArray<DefinedProperty> DefinedProperties { get; }
-    public ImmutableArray<string> BackingIdentifierPropertyNames { get; }
 }
 
 internal readonly struct DomainValue

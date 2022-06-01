@@ -22,8 +22,8 @@ internal readonly struct EndpointConfig
         Response = entityConfig.Response;
         Request = $"{entityConfig.BaseName}{requestEndpointPair.RequestModel}";
         RequestEndpointPair = requestEndpointPair;
-        StringEntityProperties = entityConfig.PropertyConfig.Properties[PropertyTarget.Entity]
-            .Where(x => x.Type == "string")
+        StringEntityProperties = entityConfig.PropertyConfig.Properties
+            .Where(x => x.Target is PropertyTarget.Entity && x.Type == "string")
             .Select(x => x.Name)
             .ToImmutableArray();
     }

@@ -32,7 +32,7 @@ public class PostEntity
 {
     public LikeCount LikeCount { get; set; } = default!;
     public BlogRelation Blog { get; set; } = default!;
-    public Title Title { get; set; } = default!;
+    public Title Tit { get; set; } = default!;
     public PublicationDateTime PublicationDateTime { get; set; } = default!;
     public Description Description { get; set; } = default!;
     public PostType PostType { get; set; } = default!;

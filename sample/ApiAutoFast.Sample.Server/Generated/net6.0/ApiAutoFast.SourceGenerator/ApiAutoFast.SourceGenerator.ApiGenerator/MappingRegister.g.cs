@@ -75,6 +75,7 @@
                     cfg.Map(poco => poco.PostType, typeof(string));
                     cfg.Map(poco => poco.LikeCount, typeof(int));
                     cfg.Map(poco => poco.BlogId, typeof(string));
+                    cfg.Map(poco => poco.Blog, typeof(string));
                 })
                 .ForType<Blog>(cfg =>
                 {
@@ -82,6 +83,7 @@
                     cfg.Map(poco => poco.CreatedDateTime, typeof(string));
                     cfg.Map(poco => poco.ModifiedDateTime, typeof(string));
                     cfg.Map(poco => poco.Title, typeof(string));
+                    cfg.Map(poco => poco.Posts, typeof(System.Collections.Generic.ICollection<Post>));
                 });
         }
     }

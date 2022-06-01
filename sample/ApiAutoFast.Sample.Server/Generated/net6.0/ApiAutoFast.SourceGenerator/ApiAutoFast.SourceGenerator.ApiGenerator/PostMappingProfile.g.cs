@@ -34,6 +34,7 @@ public partial class PostMappingProfile : Mapper<PostCreateCommand, PostResponse
             Description = Description.ConvertFromRequest(command.Description, addValidationError),
             PostType = PostType.ConvertFromRequest(command.PostType, addValidationError),
             LikeCount = LikeCount.ConvertFromRequest(command.LikeCount, addValidationError),
+            BlogId = BlogRelation.ConvertFromRequest(command.BlogId, addValidationError),
             Blog = BlogRelation.ConvertFromRequest(command.Blog, addValidationError),
         };
     }

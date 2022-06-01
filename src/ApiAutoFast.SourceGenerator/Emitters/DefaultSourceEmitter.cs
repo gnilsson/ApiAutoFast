@@ -124,19 +124,25 @@ internal static class DefaultSourceEmitter
                     cfg.Map(poco => poco.ModifiedDateTime, typeof(string));");
             foreach (var definedDomainValue in entity.PropertyConfig.DomainValues)
             {
-                foreach (var propertyName in definedDomainValue.BackingIdentifierPropertyNames)
-                {
-                    sb.Append(@"
-                    cfg.Map(poco => poco.").Append(propertyName).Append(@", typeof(").Append(definedDomainValue.DomainValueDefinition.ResponseType).Append(@"));");
-                }
-
-                if (definedDomainValue.DomainValueDefinition.PropertyRelation.Type is RelationalType.ToMany or RelationalType.ToOne) continue;
-
                 foreach (var property in definedDomainValue.DefinedProperties)
                 {
                     sb.Append(@"
                     cfg.Map(poco => poco.").Append(property.Name).Append(@", typeof(").Append(definedDomainValue.DomainValueDefinition.ResponseType).Append(@"));");
                 }
+
+                //foreach (var propertyName in definedDomainValue.DefinedProperties.Where(x => x.PropertyKind is PropertyKind.Identifier))
+                //{
+                //    sb.Append(@"
+                //    cfg.Map(poco => poco.").Append(propertyName).Append(@", typeof(").Append(definedDomainValue.DomainValueDefinition.ResponseType).Append(@"));");
+                //}
+
+                //if (definedDomainValue.DomainValueDefinition.PropertyRelation.Type is RelationalType.ToMany or RelationalType.ToOne) continue;
+
+                //foreach (var property in definedDomainValue.DefinedProperties)
+                //{
+                //    sb.Append(@"
+                //    cfg.Map(poco => poco.").Append(property.Name).Append(@", typeof(").Append(definedDomainValue.DomainValueDefinition.ResponseType).Append(@"));");
+                //}
 
             }
             sb.Append(@"
@@ -150,35 +156,8 @@ internal static class DefaultSourceEmitter
         return sb.ToString();
     }
 
-
-    //    // note: this does not work currently, it might only work if there is some magic done in before the generator executes
-    ////    internal static string EmitEntityEnum(StringBuilder sb, string @namespace, ImmutableArray<EntityConfig> entityConfigs)
-    ////    {
-    ////        sb.Clear();
-
-    ////        sb.Append(@"
-    ////using System;
-
-    ////namespace ApiAutoFast").Append(@";
-
-    ////[Flags]
-    ////public enum EEntity
-    ////{");
-    ////        var count = 0;
-    ////        foreach (var entity in entityConfigs)
-    ////        {
-    ////            sb.Append(@"
-    ////    ").Append(entity.BaseName).Append(@" = 1 << ").Append(count).Append(@",");
-    ////            count++;
-    ////        }
-    ////        sb.Append(@"
-    ////}");
-    ////        return sb.ToString();
-    ////    }
-
     internal static string EmitEntityModels(StringBuilder sb, string @namespace, EntityConfig entityConfig)
     {
-        //todo: get extra namespaces from config entity
         sb.Clear();
 
         sb.Append(@"
@@ -192,7 +171,8 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity
 {
     public ").Append(entityConfig.BaseName).Append(@"()
     {");
-        foreach (var propertyMetadata in entityConfig.PropertyConfig.Properties[PropertyTarget.Entity])
+        var entities = entityConfig.PropertyConfig.Properties.Where(x => x.Target is PropertyTarget.Entity).ToImmutableArray();
+        foreach (var propertyMetadata in entities)
         {
             if (propertyMetadata.Relation.Type is RelationalType.ToMany)
             {
@@ -209,7 +189,7 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity
     public Identifier Id { get; set; }
     public DateTime CreatedDateTime { get; set; }
     public DateTime ModifiedDateTime { get; set; }");
-        foreach (var propertyMetadata in entityConfig.PropertyConfig.Properties[PropertyTarget.Entity])
+        foreach (var propertyMetadata in entities)
         {
             sb.Append(@"
     ").Append(propertyMetadata.Source);
@@ -310,7 +290,7 @@ public class ").Append(entityConfig.BaseName).Append(modelTarget).Append(@"
 
         if (Enum.TryParse<PropertyTarget>(modelTarget.ToString(), out var propertyTarget))
         {
-            foreach (var property in entityConfig.PropertyConfig.Properties[propertyTarget])
+            foreach (var property in entityConfig.PropertyConfig.Properties.Where(x => x.Target.HasFlag(propertyTarget)))
             {
                 sb.Append(@"
     ").Append(property.Source);
@@ -455,17 +435,17 @@ public partial class ")
             // note: fix
             //            var propertyNames = domainValue.BackingIdentifierPropertyNames.Concat(domainValue.DefinedProperties.Select(x => x.Name));
 
-            //            foreach (var propertyName in propertyNames)
-            //            {
-            //                sb.Append(@"            ")
-            //                    .Append(propertyName)
-            //                    .Append(@" = ")
-            //                    .Append(domainValue.DomainValueDefinition.TypeName)
-            //                    .Append(@".ConvertFromRequest(command.")
-            //                    .Append(propertyName)
-            //                    .Append(@", addValidationError),
+            //foreach (var propertyName in propertyNames)
+            //{
+            //    sb.Append(@"            ")
+            //        .Append(propertyName)
+            //        .Append(@" = ")
+            //        .Append(domainValue.DomainValueDefinition.TypeName)
+            //        .Append(@".ConvertFromRequest(command.")
+            //        .Append(propertyName)
+            //        .Append(@", addValidationError),
             //");
-            //            }
+            //}
 
             foreach (var property in domainValue.DefinedProperties)
             {

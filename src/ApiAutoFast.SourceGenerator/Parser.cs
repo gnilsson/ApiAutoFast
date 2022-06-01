@@ -96,58 +96,54 @@ internal static class Parser
         return new AutoFastEndpointsAttributeArguments(entityName!, endpointTarget);
     }
 
-    private static Dictionary<string, List<(DefinedProperty, DomainValueDefinition)>> YieldDefinedValues(Compilation compilation, ImmutableArray<string> entityNames, EntityConfigSetup entity)
+    private static Dictionary<string, List<PropertySetup>> YieldDefinedValues(Compilation compilation, ImmutableArray<string> entityNames, EntityConfigSetup entity)
     {
         var members = entity.SemanticModel
             .GetDeclaredSymbol(entity.ClassDeclarationSyntax)!
             .GetMembers();
 
-        var values = new Dictionary<string, List<(DefinedProperty, DomainValueDefinition)>>();
+        var values = new Dictionary<string, List<PropertySetup>>();
 
         foreach (var member in members)
         {
             if (member is not IPropertySymbol property) continue;
 
-            if (TryGetDomainValueDefinition(compilation, property, entityNames, out var domainValueDefinition) is false) continue;
+            if (TryGetDomainValueMetadata(compilation, property, entityNames, out var domainValueMetadata) is false) continue;
 
             var basePropertySource = property.ToDisplayString(new SymbolDisplayFormat(
                 propertyStyle: SymbolDisplayPropertyStyle.ShowReadWriteDescriptor,
                 memberOptions: SymbolDisplayMemberOptions.IncludeAccessibility));
 
-            var definedProperty = new DefinedProperty(property.Name, basePropertySource);
+            var propertySetup = new PropertySetup(property.Name, basePropertySource, domainValueMetadata);
 
-            if (values.ContainsKey(domainValueDefinition.TypeName))
+            if (values.ContainsKey(domainValueMetadata.DomainValueDefinition.TypeName))
             {
-                values[domainValueDefinition.TypeName].Add((definedProperty, domainValueDefinition));
+                values[domainValueMetadata.DomainValueDefinition.TypeName].Add(propertySetup);
                 continue;
             }
 
-            values.Add(domainValueDefinition.TypeName, new List<(DefinedProperty, DomainValueDefinition)>
-            {
-                (definedProperty, domainValueDefinition)
-            });
+            values.Add(domainValueMetadata.DomainValueDefinition.TypeName, new List<PropertySetup> { propertySetup });
         }
 
         return values;
     }
 
-    private static IEnumerable<PropertyOutput> YieldPropertySetup2(string entityName, DefinedProperty definedProperty, DomainValueDefinition domainValueDefinition)
+    private static IEnumerable<PropertyOutput> YieldPropertyOutput(string entityName, PropertySetup propertySetup)
     {
-        var firstSpaceIndex = definedProperty.BaseSource.IndexOf(' ');
+        var domainValueDefinition = propertySetup.DomainValueMetadata.DomainValueDefinition;
+        var firstSpaceIndex = propertySetup.BaseSource.IndexOf(' ');
 
         var type = domainValueDefinition.PropertyRelation.Type is RelationalType.None
             ? domainValueDefinition.TypeName
             : domainValueDefinition.EntityType;
 
-        var entitySource = definedProperty.BaseSource.Insert(firstSpaceIndex, $" {type}");
-        var requestSource = definedProperty.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}?");
-        var commandSource = definedProperty.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}");
+        var entitySource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {type}");
+        var requestSource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}?");
+        var commandSource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}");
 
-        var attributes = domainValueDefinition.DomainValueType.GetAttributes();
-
-        if (attributes.Length > 0)
+        if (propertySetup.DomainValueMetadata.AttributeDatas.Length > 0)
         {
-            var includeInCommands = attributes
+            var includeInCommands = propertySetup.DomainValueMetadata.AttributeDatas
                 .FirstOrDefault(x => x.AttributeClass?.Name == TypeText.AttributeText.IncludeInCommand && x.ConstructorArguments.Length > 0)?
                 .ConstructorArguments[0]
                 .Values
@@ -158,21 +154,21 @@ internal static class Parser
             {
                 foreach (var include in includeInCommands)
                 {
-                    yield return new PropertyOutput(include, commandSource, PropertyTarget.CreateCommand, definedProperty.Name, domainValueDefinition.RequestType);
+                    yield return new PropertyOutput(include, commandSource, PropertyTarget.CreateCommand, propertySetup.Name, domainValueDefinition.RequestType);
                 }
             }
         }
 
-        yield return new PropertyOutput(entityName, entitySource, PropertyTarget.Entity, definedProperty.Name, type, domainValueDefinition.PropertyRelation);
+        yield return new PropertyOutput(entityName, entitySource, PropertyTarget.Entity, propertySetup.Name, type, domainValueDefinition.PropertyRelation);
 
-        var propertyName = definedProperty.Name;
+        var propertyName = propertySetup.Name;
 
         if (domainValueDefinition.PropertyRelation.Type is RelationalType.ToOne)
         {
-            var idPropertySource = definedProperty.BaseSource.Insert(firstSpaceIndex, $" {TypeText.Identifier}");
+            var idPropertySource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {TypeText.Identifier}");
             var extendPropertyNameIndex = idPropertySource.IndexOf('{') - 1;
             idPropertySource = idPropertySource.Insert(extendPropertyNameIndex, $"Id");
-            propertyName = $"{definedProperty.Name}Id";
+            propertyName = $"{propertySetup.Name}Id";
 
             yield return new PropertyOutput(entityName, idPropertySource, PropertyTarget.Entity, propertyName, TypeText.Identifier, domainValueDefinition.PropertyRelation, PropertyKind.Identifier);
         }
@@ -180,13 +176,11 @@ internal static class Parser
         if (domainValueDefinition.PropertyRelation.Type is not RelationalType.ToMany)
         {
             yield return new PropertyOutput(entityName, requestSource, PropertyTarget.QueryRequest, propertyName, $"{domainValueDefinition.RequestType}?");
-            // todo: use flags
-            yield return new PropertyOutput(entityName, commandSource, PropertyTarget.CreateCommand, propertyName, domainValueDefinition.RequestType);
-            yield return new PropertyOutput(entityName, commandSource, PropertyTarget.ModifyCommand, propertyName, domainValueDefinition.RequestType);
+            yield return new PropertyOutput(entityName, commandSource, PropertyTarget.CreateCommand | PropertyTarget.ModifyCommand, propertyName, domainValueDefinition.RequestType);
         }
     }
 
-    private static IEnumerable<KeyValuePair<string, Dictionary<string, List<(DefinedProperty, DomainValueDefinition)>>>> YieldPropertyConfigSetup(
+    private static IEnumerable<KeyValuePair<string, Dictionary<string, List<PropertySetup>>>> YieldPropertyConfigSetup(
         Compilation compilation,
         ImmutableArray<EntityConfigSetup> entityConfigSetups)
     {
@@ -196,7 +190,7 @@ internal static class Parser
 
         foreach (var entity in entityConfigSetups)
         {
-            yield return new KeyValuePair<string, Dictionary<string, List<(DefinedProperty, DomainValueDefinition)>>>(
+            yield return new KeyValuePair<string, Dictionary<string, List<PropertySetup>>>(
                 entity.EndpointsAttributeArguments.EntityName,
                 YieldDefinedValues(compilation, entityNames, entity));
         }
@@ -216,8 +210,8 @@ internal static class Parser
             ct.ThrowIfCancellationRequested();
 
             var relationalNavigationNames = propertyConfig
-                .Properties[PropertyTarget.Entity]
-                .Where(x => x.Relation.Type is not RelationalType.None && x.PropertyKind is not PropertyKind.Identifier)
+                .Properties
+                .Where(x => x.Target is PropertyTarget.Entity && x.Relation.Type is not RelationalType.None && x.PropertyKind is not PropertyKind.Identifier)
                 .Select(x => x.Relation.ForeigEntityProperty)
                 .ToImmutableArray();
 
@@ -229,9 +223,9 @@ internal static class Parser
         }
     }
 
-    private static IEnumerable<PropertyConfig> YieldPropertyConfig(ImmutableArray<KeyValuePair<string, Dictionary<string, List<(DefinedProperty, DomainValueDefinition)>>>> entityNameKeyKvps)
+    private static IEnumerable<PropertyConfig> YieldPropertyConfig(ImmutableArray<KeyValuePair<string, Dictionary<string, List<PropertySetup>>>> entityNameKeyKvps)
     {
-        var propertiesCollection = new Dictionary<string, Dictionary<PropertyTarget, List<PropertyOutput>>>();
+        var propertiesCollection = new Dictionary<string, List<PropertyOutput>>();
         var domainValuesCollection = new Dictionary<string, ImmutableArray<DefinedDomainValue>>();
 
         foreach (var kvpDictionaries in entityNameKeyKvps)
@@ -240,39 +234,31 @@ internal static class Parser
 
             foreach (var kvpProperties in kvpDictionaries.Value)
             {
-                var backingIdentifierPropertyNames = new List<string>();
+                var definedProperties = new List<DefinedProperty>();
 
-                foreach (var (definedProperty, definedDomainValue) in kvpProperties.Value)
+                foreach (var propertySetup in kvpProperties.Value)
                 {
-                    foreach (var propertyOutput in YieldPropertySetup2(kvpDictionaries.Key, definedProperty, definedDomainValue))
+                    foreach (var propertyOutput in YieldPropertyOutput(kvpDictionaries.Key, propertySetup))
                     {
-                        if (propertyOutput.PropertyKind is PropertyKind.Identifier && propertyOutput.Name == $"{definedProperty.Name}Id")
+                        if (propertyOutput.PropertyKind is PropertyKind.Identifier && propertyOutput.Name == $"{propertySetup.Name}Id")
                         {
-                            backingIdentifierPropertyNames.Add(propertyOutput.Name);
+                            definedProperties.Add(new DefinedProperty(propertyOutput.Name, PropertyKind.Identifier));
                         }
 
-                        if (propertiesCollection.TryGetValue(propertyOutput.EntityKind, out var propertyDictionary) is false)
+                        if (propertiesCollection.TryGetValue(kvpDictionaries.Key, out var properties))
                         {
-                            propertiesCollection.Add(propertyOutput.EntityKind, new Dictionary<PropertyTarget, List<PropertyOutput>>
-                            {
-                                [propertyOutput.Target] = new List<PropertyOutput> { propertyOutput }
-                            });
+                            properties.Add(propertyOutput);
                             continue;
                         }
 
-                        if (propertyDictionary.TryGetValue(propertyOutput.Target, out var outputs) is false)
-                        {
-                            propertyDictionary.Add(propertyOutput.Target, new List<PropertyOutput> { propertyOutput });
-                            continue;
-                        }
-
-                        outputs.Add(propertyOutput);
+                        propertiesCollection.Add(kvpDictionaries.Key, new List<PropertyOutput> { propertyOutput });
                     }
+
+                    definedProperties.Add(new DefinedProperty(propertySetup.Name, PropertyKind.Domain));
                 }
 
-                var domainValueDefinition = kvpDictionaries.Value[kvpProperties.Key].First().Item2;
-                var definedProperties = kvpProperties.Value.Select(x => x.Item1).ToImmutableArray();
-                definedDomainValues.Add(new DefinedDomainValue(domainValueDefinition, definedProperties, backingIdentifierPropertyNames.ToImmutableArray()));
+                var domainValueDefinition = kvpDictionaries.Value[kvpProperties.Key].First().DomainValueMetadata.DomainValueDefinition;
+                definedDomainValues.Add(new DefinedDomainValue(domainValueDefinition, definedProperties.ToImmutableArray()));
             }
 
             domainValuesCollection.Add(kvpDictionaries.Key, definedDomainValues.ToImmutableArray());
@@ -282,21 +268,19 @@ internal static class Parser
         {
             var domainValues = domainValuesCollection[kvpCollection.Key];
 
-            var properties = kvpCollection.Value
-                .Select(x => (x.Key, Value: x.Value.ToImmutableArray()))
-                .ToImmutableDictionary(x => x.Key, x => x.Value);
+            var properties = kvpCollection.Value.ToImmutableArray();
 
             yield return new PropertyConfig(kvpCollection.Key, properties, domainValues);
         }
     }
 
-    private static bool TryGetDomainValueDefinition(
+    private static bool TryGetDomainValueMetadata(
         Compilation compilation,
         IPropertySymbol property,
         ImmutableArray<string> entityNames,
-        out DomainValueDefinition domainValueDefinition)
+        out DomainValueMetadata domainValueMetadata)
     {
-        domainValueDefinition = default;
+        domainValueMetadata = default;
 
         var domainValueType = compilation.GetTypeByMetadataName(property.Type.ToString());
 
@@ -316,14 +300,11 @@ internal static class Parser
 
             var propertyRelation = GetPropertyRelation(property, entityNames, entityType);
 
-            domainValueDefinition = new DomainValueDefinition(
-                domainValueType,
-                requestType.ToString(),
-                entityType.ToString(),
-                responseType.ToString(),
-                property.Name,
-                property.Type.Name,
-                propertyRelation);
+            var attributes = domainValueType.GetAttributes();
+
+            var domainValueDefinition = new DomainValueDefinition(requestType.ToString(), entityType.ToString(), responseType.ToString(), property.Type.Name, propertyRelation);
+
+            domainValueMetadata = new DomainValueMetadata(domainValueDefinition, attributes);
         }
 
         return success;
@@ -389,46 +370,3 @@ internal static class Parser
         return nameSpace;
     }
 }
-
-//private static IEnumerable<PropertyAttributeMetadata> YieldAttributeMetadata(IPropertySymbol propertyMember)
-//{
-//    foreach (var attributeData in propertyMember.GetAttributes())
-//    {
-//        if (attributeData.AttributeClass is null) continue;
-
-//        var attributeName = GetLastPart(attributeData.AttributeClass.Name).Replace(TypeText.Attribute, "");
-
-//        if (attributeName == TypeText.AttributeText.ExcludeRequestModel)
-//        {
-//            if (attributeData.ConstructorArguments.Length > 0)
-//            {
-//                yield return new PropertyAttributeMetadata(
-//                    AttributeType.Custom,
-//                    attributeName,
-//                    (RequestModelTarget)attributeData.ConstructorArguments[0].Value!);
-
-//                continue;
-//            }
-
-//            yield return new PropertyAttributeMetadata(AttributeType.Custom, attributeName, RequestModelTarget.None);
-//            continue;
-//        }
-
-//        yield return new PropertyAttributeMetadata(AttributeType.Default, attributeName);
-//    }
-//}
-
-//private static RequestModelTarget GetRequestModelTarget(ImmutableArray<PropertyAttributeMetadata> attributes)
-//{
-//    if (attributes.Length > 0)
-//    {
-//        var attriubteMetadata = attributes.FirstOrDefault(x => x.RequestModelTarget is not null);
-
-//        if (attriubteMetadata.RequestModelTarget.HasValue)
-//        {
-//            return attriubteMetadata.RequestModelTarget.Value;
-//        }
-//    }
-
-//    return RequestModelTarget.CreateCommand | RequestModelTarget.ModifyCommand | RequestModelTarget.QueryRequest;
-//}

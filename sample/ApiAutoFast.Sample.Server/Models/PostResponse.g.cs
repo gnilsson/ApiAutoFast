@@ -1,5 +1,3 @@
-using ApiAutoFast.Sample.Server;
-
 namespace ApiAutoFast.Sample.Server
 {
     public partial class PostResponse
@@ -12,7 +10,7 @@ namespace ApiAutoFast.Sample.Server
         public string Description { get; set; }
         public string PostType { get; set; }
         public int LikeCount { get; set; }
-        public BlogResponse Blog { get; set; }
+        public string Blog { get; set; }
         public string BlogId { get; set; }
     }
 }
