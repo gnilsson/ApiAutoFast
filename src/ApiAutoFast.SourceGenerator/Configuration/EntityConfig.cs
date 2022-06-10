@@ -46,11 +46,11 @@ internal readonly struct DomainValueMetadata
 {
     internal DomainValueMetadata(DomainValueDefinition domainValueDefinition, ImmutableArray<AttributeData> attributeDatas)
     {
-        DomainValueDefinition = domainValueDefinition;
+        Definition = domainValueDefinition;
         AttributeDatas = attributeDatas;
     }
 
-    internal readonly DomainValueDefinition DomainValueDefinition { get; }
+    internal readonly DomainValueDefinition Definition { get; }
     internal readonly ImmutableArray<AttributeData> AttributeDatas { get; }
 }
 

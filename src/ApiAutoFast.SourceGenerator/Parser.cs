@@ -116,13 +116,13 @@ internal static class Parser
 
             var propertySetup = new PropertySetup(property.Name, basePropertySource, domainValueMetadata);
 
-            if (values.ContainsKey(domainValueMetadata.DomainValueDefinition.TypeName))
+            if (values.ContainsKey(domainValueMetadata.Definition.TypeName))
             {
-                values[domainValueMetadata.DomainValueDefinition.TypeName].Add(propertySetup);
+                values[domainValueMetadata.Definition.TypeName].Add(propertySetup);
                 continue;
             }
 
-            values.Add(domainValueMetadata.DomainValueDefinition.TypeName, new List<PropertySetup> { propertySetup });
+            values.Add(domainValueMetadata.Definition.TypeName, new List<PropertySetup> { propertySetup });
         }
 
         return values;
@@ -130,7 +130,7 @@ internal static class Parser
 
     private static IEnumerable<PropertyOutput> YieldPropertyOutput(string entityName, PropertySetup propertySetup)
     {
-        var domainValueDefinition = propertySetup.DomainValueMetadata.DomainValueDefinition;
+        var domainValueDefinition = propertySetup.DomainValueMetadata.Definition;
         var firstSpaceIndex = propertySetup.BaseSource.IndexOf(' ');
 
         var type = domainValueDefinition.PropertyRelation.Type is RelationalType.None
@@ -257,7 +257,7 @@ internal static class Parser
                     definedProperties.Add(new DefinedProperty(propertySetup.Name, PropertyKind.Domain));
                 }
 
-                var domainValueDefinition = kvpDictionaries.Value[kvpProperties.Key].First().DomainValueMetadata.DomainValueDefinition;
+                var domainValueDefinition = kvpDictionaries.Value[kvpProperties.Key].First().DomainValueMetadata.Definition;
                 definedDomainValues.Add(new DefinedDomainValue(domainValueDefinition, definedProperties.ToImmutableArray()));
             }
 
@@ -357,10 +357,7 @@ internal static class Parser
             nameSpace = namespaceParent.Name.ToString();
             while (true)
             {
-                if (namespaceParent.Parent is not NamespaceDeclarationSyntax parent)
-                {
-                    break;
-                }
+                if (namespaceParent.Parent is not NamespaceDeclarationSyntax parent) break;
 
                 namespaceParent = parent;
                 nameSpace = $"{namespaceParent.Name}.{nameSpace}";
