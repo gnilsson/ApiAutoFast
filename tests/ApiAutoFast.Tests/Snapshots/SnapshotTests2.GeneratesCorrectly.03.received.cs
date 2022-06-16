@@ -1,17 +1,21 @@
-﻿//HintName: EndpointTargetEnum.g.cs
+﻿//HintName: Blog.g.cs
 
-using System;
+using ApiAutoFast;
+using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
-namespace ApiAutoFast;
+namespace ApiAutoFast.Sample.Server.Database;
 
-[Flags]
-internal enum EndpointTargetType
+public class Blog : IEntity
 {
-    None = 0,
-    Get = 1,
-    GetById = 2,
-    Create = 4,
-    Update = 8,
-    Delete = 16,
-    All = Get | Create | Update | GetById | Delete
+    public Blog()
+    {
+        this.Posts = new HashSet<Post>();
+    }
+
+    public Identifier Id { get; set; }
+    public DateTime CreatedDateTime { get; set; }
+    public DateTime ModifiedDateTime { get; set; }
+    public ICollection<Post> Posts { get; set; }
+    public Title Title { get; set; }
 }

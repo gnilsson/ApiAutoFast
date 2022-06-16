@@ -1,7 +1,8 @@
-﻿
+﻿//HintName: PostMappingProfile.g.cs
+
 using FastEndpoints;
 
-namespace ApiAutoFast.Sample.Server;
+namespace ApiAutoFast.Sample.Server.Database;
 
 public partial class PostMappingProfile : Mapper<PostCreateCommand, PostResponse, Post>
 {
@@ -29,12 +30,12 @@ public partial class PostMappingProfile : Mapper<PostCreateCommand, PostResponse
     {
         return new Post
         {
-            Title = Title.ConvertFromRequest(command.Title, addValidationError),
+            LikeCount = LikeCount.ConvertFromRequest(command.LikeCount, addValidationError),
+            BlogId = Identifier.ConvertFromRequest(command.BlogId, addValidationError),
+            Tit = Title.ConvertFromRequest(command.Tit, addValidationError),
             PublicationDateTime = PublicationDateTime.ConvertFromRequest(command.PublicationDateTime, addValidationError),
             Description = Description.ConvertFromRequest(command.Description, addValidationError),
             PostType = PostType.ConvertFromRequest(command.PostType, addValidationError),
-            LikeCount = LikeCount.ConvertFromRequest(command.LikeCount, addValidationError),
-            BlogId = Identifier.ConvertFromRequest(command.BlogId, addValidationError),
         };
     }
 }

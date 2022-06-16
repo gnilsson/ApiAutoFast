@@ -129,21 +129,6 @@ internal static class DefaultSourceEmitter
                     sb.Append(@"
                     cfg.Map(poco => poco.").Append(property.Name).Append(@", typeof(").Append(definedDomainValue.DomainValueDefinition.ResponseType).Append(@"));");
                 }
-
-                //foreach (var propertyName in definedDomainValue.DefinedProperties.Where(x => x.PropertyKind is PropertyKind.Identifier))
-                //{
-                //    sb.Append(@"
-                //    cfg.Map(poco => poco.").Append(propertyName).Append(@", typeof(").Append(definedDomainValue.DomainValueDefinition.ResponseType).Append(@"));");
-                //}
-
-                //if (definedDomainValue.DomainValueDefinition.PropertyRelation.Type is RelationalType.ToMany or RelationalType.ToOne) continue;
-
-                //foreach (var property in definedDomainValue.DefinedProperties)
-                //{
-                //    sb.Append(@"
-                //    cfg.Map(poco => poco.").Append(property.Name).Append(@", typeof(").Append(definedDomainValue.DomainValueDefinition.ResponseType).Append(@"));");
-                //}
-
             }
             sb.Append(@"
                 })");
@@ -172,14 +157,14 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity
     public ").Append(entityConfig.BaseName).Append(@"()
     {");
         var entities = entityConfig.PropertyConfig.Properties.Where(x => x.Target is PropertyTarget.Entity).ToImmutableArray();
-        foreach (var propertyMetadata in entities)
+        foreach (var propertyOutput in entities)
         {
-            if (propertyMetadata.Relation.Type is RelationalType.ToMany)
+            if (propertyOutput.Relation.Type is RelationalType.ToMany)
             {
                 sb.Append(@"
-        this.").Append(propertyMetadata.Relation.ForeigEntityProperty)
+        this.").Append(propertyOutput.Relation.ForeigEntityProperty)
                 .Append(@" = new HashSet<")
-                .Append(propertyMetadata.Relation.ForeignEntityName)
+                .Append(propertyOutput.Relation.ForeignEntityName)
                 .Append(@">();");
             }
         }
@@ -189,88 +174,17 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity
     public Identifier Id { get; set; }
     public DateTime CreatedDateTime { get; set; }
     public DateTime ModifiedDateTime { get; set; }");
-        foreach (var propertyMetadata in entities)
+        foreach (var propertyOutput in entities)
         {
+            // note: perhaps include attributes?
             sb.Append(@"
-    ").Append(propertyMetadata.Source);
+    ").Append(propertyOutput.Source);
         }
         sb.Append(@"
 }
 ");
         return sb.ToString();
     }
-
-    //    //        foreach (var attributeMetadata in propertyMetadata.AttributeMetadatas)
-    //    //        {
-    //    //            if (attributeMetadata.AttributeType is AttributeType.Default)
-    //    //            {
-    //    //                sb.Append(@"
-    //    //[").Append(attributeMetadata.Name).Append(@"]");
-    //    //            }
-    //    //        }
-    //    //        if (propertyMetadata.Relation.Type is RelationalType.ToOne)
-    //    //        {
-    //    //            sb.Append(@"
-    //    //public Identifier ").Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.IdPropertyName).Append(@" { get; set; }");
-    //    //        }
-
-
-    //    internal static string EmitEntityModels(StringBuilder sb, string @namespace, EntityConfig entityConfig)
-    //    {
-    //        //todo: get extra namespaces from config entity
-    //        sb.Clear();
-
-    //        sb.Append(@"
-    //using ApiAutoFast;
-    //using System.ComponentModel.DataAnnotations;
-    //using Microsoft.EntityFrameworkCore;
-
-    //namespace ").Append(@namespace).Append(@";
-
-    //public class ").Append(entityConfig.BaseName).Append(@" : IEntity
-    //{
-    //    public ").Append(entityConfig.BaseName).Append(@"()
-    //    {");
-    //        foreach (var propertyMetadata in entityConfig.Properties)
-    //        {
-    //            if (propertyMetadata.DomainValueDefiniton.PropertyRelation.RelationalType is RelationalType.ToMany)
-    //            {
-    //                sb.Append(@"
-    //        this.").Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.ForeigEntityProperty)
-    //                .Append(@" = new HashSet<")
-    //                .Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.ForeignEntityName)
-    //                .Append(@">();");
-    //            }
-    //        }
-    //        sb.Append(@"
-    //    }
-
-    //    public Identifier Id { get; set; }
-    //    public DateTime CreatedDateTime { get; set; }
-    //    public DateTime ModifiedDateTime { get; set; }");
-    //        foreach (var propertyMetadata in entityConfig.Properties)
-    //        {
-    //            foreach (var attributeMetadata in propertyMetadata.AttributeMetadatas)
-    //            {
-    //                if (attributeMetadata.AttributeType is AttributeType.Default)
-    //                {
-    //                    sb.Append(@"
-    //    [").Append(attributeMetadata.Name).Append(@"]");
-    //                }
-    //            }
-    //            if (propertyMetadata.DomainValueDefiniton.PropertyRelation.RelationalType is RelationalType.ToOne)
-    //            {
-    //                sb.Append(@"
-    //    public Identifier ").Append(propertyMetadata.DomainValueDefiniton.PropertyRelation.IdPropertyName).Append(@" { get; set; }");
-    //            }
-    //            sb.Append(@"
-    //    ").Append(propertyMetadata.EntitySource);
-    //        }
-    //        sb.Append(@"
-    //}
-    //");
-    //        return sb.ToString();
-    //    }
 
     internal static string EmitRequestModel(StringBuilder sb, string @namespace, EntityConfig entityConfig, RequestModelTarget modelTarget)
     {
@@ -408,51 +322,14 @@ public partial class ")
         return new ").Append(entityConfig.BaseName).Append(@"
         {
 ");
-        //        foreach (var property in entityConfig.PropertyConfig.Properties[PropertyTarget.CreateCommand])
-        //        {
-        //            // note: temporary check
-        //            if (property.Relation.Type is RelationalType.ToMany) continue;
-
-        //            //var propertyName = property.DomainValueDefiniton.PropertyRelation.RelationalType is RelationalType.ToOne
-        //            //    ? property.DomainValueDefiniton.PropertyRelation.IdPropertyName
-        //            //    : property.DomainValueDefiniton.PropertyName;
-
-        //            sb.Append(@"            ")
-        //                .Append(property.Name)
-        //                .Append(@" = ")
-        //                .Append(property.Type)
-        //                .Append(@".ConvertFromRequest(command.")
-        //                .Append(property.Name)
-        //                .Append(@", addValidationError),
-        //");
-        //        }
-
-        foreach (var domainValue in entityConfig.PropertyConfig.DomainValues)
+        foreach (var definedProperties in entityConfig.PropertyConfig.DomainValues.Select(x => x.DefinedProperties))
         {
-            // note: temporary check
-            if (domainValue.DomainValueDefinition.PropertyRelation.Type is RelationalType.ToMany) continue;
-
-            // note: fix
-            //            var propertyNames = domainValue.BackingIdentifierPropertyNames.Concat(domainValue.DefinedProperties.Select(x => x.Name));
-
-            //foreach (var propertyName in propertyNames)
-            //{
-            //    sb.Append(@"            ")
-            //        .Append(propertyName)
-            //        .Append(@" = ")
-            //        .Append(domainValue.DomainValueDefinition.TypeName)
-            //        .Append(@".ConvertFromRequest(command.")
-            //        .Append(propertyName)
-            //        .Append(@", addValidationError),
-            //");
-            //}
-
-            foreach (var property in domainValue.DefinedProperties)
+            foreach (var property in definedProperties)
             {
                 sb.Append(@"            ")
                     .Append(property.Name)
                     .Append(@" = ")
-                    .Append(domainValue.DomainValueDefinition.TypeName)
+                    .Append(property.Type)
                     .Append(@".ConvertFromRequest(command.")
                     .Append(property.Name)
                     .Append(@", addValidationError),

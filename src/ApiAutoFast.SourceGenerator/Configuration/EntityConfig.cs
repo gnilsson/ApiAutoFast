@@ -71,14 +71,16 @@ internal readonly struct PropertySetup
 
 internal readonly struct DefinedProperty
 {
-    public DefinedProperty(string name, PropertyKind propertyKind)
+    public DefinedProperty(string name, PropertyKind propertyKind, string type)
     {
         Name = name;
         PropertyKind = propertyKind;
+        Type = type;
     }
 
     internal readonly string Name { get; }
     internal readonly PropertyKind PropertyKind { get; }
+    internal readonly string Type { get; }
 }
 
 internal readonly struct DefinedDomainValue
@@ -154,7 +156,7 @@ internal readonly struct Property
         Relation = relation;
     }
 
-  //  public string Entity { get; }
+    //  public string Entity { get; }
     public string Name { get; }
     public ImmutableArray<PropertyOutput> PropertyOutputs { get; }
     public PropertyRelation Relation { get; }
