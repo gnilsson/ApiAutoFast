@@ -1,74 +1,25 @@
-﻿//HintName: DeletePostEndpoint.g.cs
+﻿//HintName: Post.g.cs
 
 using ApiAutoFast;
-using ApiAutoFast.EntityFramework;
-using FastEndpoints;
-using FluentValidation.Results;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Linq.Expressions;
 
 namespace ApiAutoFast.Sample.Server.Database;
 
-public partial class DeletePostEndpoint : Endpoint<PostDeleteCommand, PostResponse, PostMappingProfile>
+public class Post : IEntity
 {
-    partial void ExtendConfigure();
-    private readonly AutoFastSampleDbContext _dbContext;
-    private bool _overrideConfigure = false;
-    private readonly QueryExecutor<Post> _queryExecutor;
-
-
-    public DeletePostEndpoint(AutoFastSampleDbContext dbContext)
+    public Post()
     {
-        _dbContext = dbContext;
     }
 
-    public override void Configure()
-    {
-        if (_overrideConfigure is false)
-        {
-            Verbs(Http.DELETE);
-            Routes("/posts/{id}");
-            // note: temporarily allow anonymous
-            AllowAnonymous();
-        }
-
-        ExtendConfigure();
-    }
-
-    public override async Task HandleAsync(PostDeleteCommand req, CancellationToken ct)
-    {
-        var identifier = Identifier.ConvertFromRequest(req.Id, AddError);
-
-        if (HasError())
-        {
-            await SendErrorsAsync(400, ct);
-            return;
-        }
-
-        var result = await _dbContext.Posts.FindAsync(new object?[] { identifier }, cancellationToken: ct);
-
-        if (result is null)
-        {
-            await SendNotFoundAsync(ct);
-            return;
-        }
-
-        _dbContext.Posts.Remove(result);
-
-        await _dbContext.SaveChangesAsync(ct);
-
-        await SendOkAsync(ct);
-    }
-
-    private void AddError(string property, string message)
-    {
-        ValidationFailures.Add(new ValidationFailure(property, message));
-    }
-
-    private bool HasError()
-    {
-        return ValidationFailures.Count > 0;
-    }
+    public Identifier Id { get; set; }
+    public DateTime CreatedDateTime { get; set; }
+    public DateTime ModifiedDateTime { get; set; }
+    public LikeCount LikeCount { get; set; }
+    public Blog Blog { get; set; }
+    public Identifier BlogId { get; set; }
+    public Title Tit { get; set; }
+    public PublicationDateTime PublicationDateTime { get; set; }
+    public Description Description { get; set; }
+    public PostType PostType { get; set; }
 }

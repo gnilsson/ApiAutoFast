@@ -5,7 +5,7 @@ using ApiAutoFast;
 
 namespace ApiAutoFast.Sample.Server;
 
-public class PostModifyCommand
+public partial class PostModifyCommand
 {
     public string Id { get; set; }
     public string Title { get; set; }

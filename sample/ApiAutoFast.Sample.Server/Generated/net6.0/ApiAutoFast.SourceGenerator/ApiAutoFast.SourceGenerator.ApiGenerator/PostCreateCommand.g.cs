@@ -5,7 +5,7 @@ using ApiAutoFast;
 
 namespace ApiAutoFast.Sample.Server;
 
-public class PostCreateCommand
+public partial class PostCreateCommand
 {
     public string Title { get; set; }
     public string PublicationDateTime { get; set; }

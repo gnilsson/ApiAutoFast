@@ -1,74 +1,87 @@
-﻿//HintName: DeleteBlogEndpoint.g.cs
+﻿//HintName: MappingRegister.g.cs
 
+using Mapster;
 using ApiAutoFast;
-using ApiAutoFast.EntityFramework;
-using FastEndpoints;
-using FluentValidation.Results;
-using Microsoft.EntityFrameworkCore;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Linq.Expressions;
 
 namespace ApiAutoFast.Sample.Server.Database;
 
-public partial class DeleteBlogEndpoint : Endpoint<BlogDeleteCommand, BlogResponse, BlogMappingProfile>
+public partial class MappingRegister : ICodeGenerationRegister
 {
-    partial void ExtendConfigure();
-    private readonly AutoFastSampleDbContext _dbContext;
-    private bool _overrideConfigure = false;
-    private readonly QueryExecutor<Blog> _queryExecutor;
+    private bool _overrideRegisterResponses = false;
+    private bool _extendRegisterResponses = false;
 
+    static partial void OnOverrideRegisterResponses(AdaptAttributeBuilder aab);
+    static partial void OnExtendRegisterResponses(AdaptAttributeBuilder aab);
+    static partial void ExtendRegister(CodeGenerationConfig config);
+    static partial void RegisterMappers(CodeGenerationConfig config);
 
-    public DeleteBlogEndpoint(AutoFastSampleDbContext dbContext)
+    public void Register(CodeGenerationConfig config)
     {
-        _dbContext = dbContext;
-    }
+        var aab = config.AdaptTo("[name]Response");
 
-    public override void Configure()
-    {
-        if (_overrideConfigure is false)
+        if (_overrideRegisterResponses)
         {
-            Verbs(Http.DELETE);
-            Routes("/blogs/{id}");
-            // note: temporarily allow anonymous
-            AllowAnonymous();
+            OnOverrideRegisterResponses(aab);
+        }
+        else if (_extendRegisterResponses)
+        {
+            aab.ForTypeDefaultValues();
+
+            OnExtendRegisterResponses(aab);
+        }
+        else
+        {
+            aab.ForTypeDefaultValues();
         }
 
-        ExtendConfigure();
-    }
+        TypeAdapterConfig.GlobalSettings.Default.PreserveReference(true);
+        TypeAdapterConfig.GlobalSettings.Default.MaxDepth(2);
+        TypeAdapterConfig.GlobalSettings.Default.ShallowCopyForSameType(true);
+        TypeAdapterConfig.GlobalSettings.Default.EnumMappingStrategy(EnumMappingStrategy.ByName);
+        TypeAdapterConfig.GlobalSettings.Default.AddDestinationTransform(DestinationTransform.EmptyCollectionIfNull);
 
-    public override async Task HandleAsync(BlogDeleteCommand req, CancellationToken ct)
-    {
-        var identifier = Identifier.ConvertFromRequest(req.Id, AddError);
+        TypeAdapterConfig.GlobalSettings
+            .When((src, dest, map) => src.GetInterface(nameof(IEntity)) is not null)
+            .Map(nameof(IEntity.CreatedDateTime), (IEntity e) => e.CreatedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"))
+            .Map(nameof(IEntity.ModifiedDateTime), (IEntity e) => e.ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"));
+            TypeAdapterConfig<Title, string>.NewConfig().MapWith(x => x.EntityValue);
+            TypeAdapterConfig<LikeCount, int>.NewConfig().MapWith(x => x.EntityValue);
+            TypeAdapterConfig<Title, string>.NewConfig().MapWith(x => x.EntityValue);
+            TypeAdapterConfig<PublicationDateTime, string>.NewConfig().MapWith(x => x.ToString());
+            TypeAdapterConfig<Description, string>.NewConfig().MapWith(x => x.EntityValue);
+            TypeAdapterConfig<PostType, string>.NewConfig().MapWith(x => x.ToString());
 
-        if (HasError())
-        {
-            await SendErrorsAsync(400, ct);
-            return;
+            ExtendRegister(config);
+
+            config.GenerateMapper("[name]Mapper")
+                .ForType<Blog>()
+                .ForType<Post>();
         }
-
-        var result = await _dbContext.Blogs.FindAsync(new object?[] { identifier }, cancellationToken: ct);
-
-        if (result is null)
-        {
-            await SendNotFoundAsync(ct);
-            return;
-        }
-
-        _dbContext.Blogs.Remove(result);
-
-        await _dbContext.SaveChangesAsync(ct);
-
-        await SendOkAsync(ct);
     }
 
-    private void AddError(string property, string message)
+public static class AdaptAttributeBuilderExtensions
+{
+    public static AdaptAttributeBuilder ForTypeDefaultValues(this AdaptAttributeBuilder aab)
     {
-        ValidationFailures.Add(new ValidationFailure(property, message));
-    }
-
-    private bool HasError()
-    {
-        return ValidationFailures.Count > 0;
+        return aab
+                .ForType<Blog>(cfg =>
+                {
+                    cfg.Map(poco => poco.Id, typeof(string));
+                    cfg.Map(poco => poco.CreatedDateTime, typeof(string));
+                    cfg.Map(poco => poco.ModifiedDateTime, typeof(string));
+                    cfg.Map(poco => poco.Title, typeof(string));
+                })
+                .ForType<Post>(cfg =>
+                {
+                    cfg.Map(poco => poco.Id, typeof(string));
+                    cfg.Map(poco => poco.CreatedDateTime, typeof(string));
+                    cfg.Map(poco => poco.ModifiedDateTime, typeof(string));
+                    cfg.Map(poco => poco.LikeCount, typeof(int));
+                    cfg.Map(poco => poco.BlogId, typeof(string));
+                    cfg.Map(poco => poco.Tit, typeof(string));
+                    cfg.Map(poco => poco.PublicationDateTime, typeof(string));
+                    cfg.Map(poco => poco.Description, typeof(string));
+                    cfg.Map(poco => poco.PostType, typeof(string));
+                });
     }
 }

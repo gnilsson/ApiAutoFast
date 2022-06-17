@@ -163,20 +163,39 @@ internal static class Parser
 
         if (propertySetup.DomainValueMetadata.AttributeDatas.Length > 0)
         {
-            var includeInCommands = propertySetup.DomainValueMetadata.AttributeDatas
-                .FirstOrDefault(x => x.AttributeClass?.Name == TypeText.AttributeText.IncludeInCommand && x.ConstructorArguments.Length > 0)?
-                .ConstructorArguments[0]
-                .Values
-                .Select(x => (x.Value as Type)!.Name)
-                .ToImmutableArray();
+            //var includeInCommands = propertySetup.DomainValueMetadata.AttributeDatas
+            //    .FirstOrDefault(x => x.AttributeClass?.Name == TypeText.IncludeInCommandAttribute && x.ConstructorArguments.Length > 0)?
+            //    .ConstructorArguments[0]
+            //    .Values
+            //    .Select(x => (x.Value as Type)!.Name)
+            //    .ToImmutableArray();
 
-            if (includeInCommands?.Length > 0)
+            var s = propertySetup.DomainValueMetadata.AttributeDatas
+                .FirstOrDefault(x => x.AttributeClass?.Name == TypeText.IncludeInCommandAttribute && x.ConstructorArguments.Length > 0)?.ConstructorArguments[0];
+
+            if (s!.Value.Kind is TypedConstantKind.Array)
             {
-                foreach (var include in includeInCommands)
+                foreach (var value in s.Value.Values)
                 {
-                    yield return new PropertyOutput(include, commandSource, PropertyTarget.CreateCommand, propertySetup.Name, domainValueDefinition.RequestType);
+                    var sn = (value.Value as INamedTypeSymbol)!.Name;
+                    yield return new PropertyOutput(sn, commandSource, PropertyTarget.CreateCommand, propertySetup.Name, domainValueDefinition.RequestType);
                 }
             }
+            else
+            {
+                var sn = (s.Value.Value as INamedTypeSymbol)!.Name;
+                yield return new PropertyOutput(sn, commandSource, PropertyTarget.CreateCommand, propertySetup.Name, domainValueDefinition.RequestType);
+            }
+
+            //yield return new PropertyOutput(n, commandSource, PropertyTarget.CreateCommand, propertySetup.Name, domainValueDefinition.RequestType);
+
+            //if (includeInCommands?.Length > 0)
+            //{
+            //    foreach (var include in includeInCommands)
+            //    {
+            //        yield return new PropertyOutput(include, commandSource, PropertyTarget.CreateCommand, propertySetup.Name, domainValueDefinition.RequestType);
+            //    }
+            //}
         }
 
         yield return new PropertyOutput(entityName, entitySource, PropertyTarget.Entity, propertySetup.Name, type, domainValueDefinition.PropertyRelation);
@@ -267,13 +286,13 @@ internal static class Parser
                             definedProperties.Add(new DefinedProperty(propertyOutput.Name, PropertyKind.Identifier, TypeText.Identifier));
                         }
 
-                        if (propertiesCollection.TryGetValue(kvpDictionaries.Key, out var properties))
+                        if (propertiesCollection.TryGetValue(propertyOutput.EntityKind, out var properties))
                         {
                             properties.Add(propertyOutput);
                             continue;
                         }
 
-                        propertiesCollection.Add(kvpDictionaries.Key, new List<PropertyOutput> { propertyOutput });
+                        propertiesCollection.Add(propertyOutput.EntityKind, new List<PropertyOutput> { propertyOutput });
                     }
 
                     if (propertySetup.DomainValueMetadata.Definition.PropertyRelation.Type is RelationalType.None)
@@ -281,6 +300,30 @@ internal static class Parser
                         definedProperties.Add(new DefinedProperty(propertySetup.Name, PropertyKind.Domain, domainValueDefinition.TypeName));
                     }
                 }
+
+                //foreach (var propertySetup in kvpProperties.Value)
+                //{
+                //    foreach (var propertyOutput in YieldPropertyOutput(kvpDictionaries.Key, propertySetup))
+                //    {
+                //        if (propertyOutput.PropertyKind is PropertyKind.Identifier && propertyOutput.Name == $"{propertySetup.Name}Id")
+                //        {
+                //            definedProperties.Add(new DefinedProperty(propertyOutput.Name, PropertyKind.Identifier, TypeText.Identifier));
+                //        }
+
+                //        if (propertiesCollection.TryGetValue(kvpDictionaries.Key, out var properties))
+                //        {
+                //            properties.Add(propertyOutput);
+                //            continue;
+                //        }
+
+                //        propertiesCollection.Add(kvpDictionaries.Key, new List<PropertyOutput> { propertyOutput });
+                //    }
+
+                //    if (propertySetup.DomainValueMetadata.Definition.PropertyRelation.Type is RelationalType.None)
+                //    {
+                //        definedProperties.Add(new DefinedProperty(propertySetup.Name, PropertyKind.Domain, domainValueDefinition.TypeName));
+                //    }
+                //}
 
                 definedDomainValues.Add(new DefinedDomainValue(domainValueDefinition, definedProperties.ToImmutableArray()));
             }

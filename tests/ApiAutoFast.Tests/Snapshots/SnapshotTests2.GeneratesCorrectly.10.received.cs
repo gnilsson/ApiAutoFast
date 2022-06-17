@@ -1,73 +1,21 @@
-﻿//HintName: CreateBlogEndpoint.g.cs
+﻿//HintName: ExcludeRequestModelAttribute.g.cs
 
-using ApiAutoFast;
-using ApiAutoFast.EntityFramework;
-using FastEndpoints;
-using FluentValidation.Results;
-using Microsoft.EntityFrameworkCore;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Linq.Expressions;
+using System;
 
-namespace ApiAutoFast.Sample.Server.Database;
+namespace ApiAutoFast;
 
-public partial class CreateBlogEndpoint : Endpoint<BlogCreateCommand, BlogResponse, BlogMappingProfile>
+/// <summary>
+/// Attribute to exclude property from request model.
+/// <param name="includeRequestModelTarget">If not applied, property is per default included in
+/// RequestModelTarget.CreateCommand | RequestModelTarget.ModifyCommand | RequestModelTarget.QueryRequest</param>
+/// </summary>
+[AttributeUsage(AttributeTargets.Class)]
+public class ExcludeRequestModelAttribute : Attribute
 {
-    partial void ExtendConfigure();
-    private readonly AutoFastSampleDbContext _dbContext;
-    private bool _overrideConfigure = false;
-    private readonly QueryExecutor<Blog> _queryExecutor;
-    private bool _saveChanges = true;
-    private Blog _entity;
-
-
-    public CreateBlogEndpoint(AutoFastSampleDbContext dbContext)
+    public ExcludeRequestModelAttribute(RequestModelTarget includeRequestModelTarget = RequestModelTarget.None)
     {
-        _dbContext = dbContext;
+        IncludeRequestModelTarget = includeRequestModelTarget;
     }
 
-    public override void Configure()
-    {
-        if (_overrideConfigure is false)
-        {
-            Verbs(Http.POST);
-            Routes("/blogs");
-            // note: temporarily allow anonymous
-            AllowAnonymous();
-        }
-
-        ExtendConfigure();
-    }
-
-    public override async Task HandleAsync(BlogCreateCommand req, CancellationToken ct)
-    {
-        _entity = Map.ToDomainEntity(req, AddError);
-
-        if (HasError())
-        {
-            await SendErrorsAsync(400, ct);
-            return;
-        }
-
-        await _dbContext.AddAsync(_entity, ct);
-
-        if (_saveChanges)
-        {
-            await _dbContext.SaveChangesAsync(ct);
-        }
-
-        var response = Map.FromEntity(_entity);
-
-        await SendCreatedAtAsync<GetByIdBlogEndpoint>(new { Id = _entity.Id }, response, generateAbsoluteUrl: true, cancellation: ct);
-    }
-
-    private void AddError(string property, string message)
-    {
-        ValidationFailures.Add(new ValidationFailure(property, message));
-    }
-
-    private bool HasError()
-    {
-        return ValidationFailures.Count > 0;
-    }
+    public RequestModelTarget IncludeRequestModelTarget { get; }
 }

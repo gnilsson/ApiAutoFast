@@ -1,14 +1,17 @@
-﻿//HintName: BlogQueryRequest.g.cs
+﻿//HintName: EndpointTargetEnum.g.cs
 
- #nullable enable
+using System;
 
-using ApiAutoFast;
+namespace ApiAutoFast;
 
-namespace ApiAutoFast.Sample.Server.Database;
-
-public class BlogQueryRequest
+[Flags]
+internal enum EndpointTargetType
 {
-    public string? CreatedDateTime { get; set; }
-    public string? ModifiedDateTime { get; set; }
-    public string? Title { get; set; }
+    None = 0,
+    Get = 1,
+    GetById = 2,
+    Create = 4,
+    Update = 8,
+    Delete = 16,
+    All = Get | Create | Update | GetById | Delete
 }

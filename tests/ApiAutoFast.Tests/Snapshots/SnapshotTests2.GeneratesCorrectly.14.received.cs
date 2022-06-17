@@ -1,17 +1,17 @@
-﻿//HintName: EndpointTargetEnum.g.cs
+﻿//HintName: PostCreateCommand.g.cs
 
-using System;
+ #nullable enable
 
-namespace ApiAutoFast;
+using ApiAutoFast;
 
-[Flags]
-internal enum EndpointTargetType
+namespace ApiAutoFast.Sample.Server.Database;
+
+public partial class PostCreateCommand
 {
-    None = 0,
-    Get = 1,
-    GetById = 2,
-    Create = 4,
-    Update = 8,
-    Delete = 16,
-    All = Get | Create | Update | GetById | Delete
+    public int LikeCount { get; set; }
+    public string BlogId { get; set; }
+    public string Tit { get; set; }
+    public string PublicationDateTime { get; set; }
+    public string Description { get; set; }
+    public ApiAutoFast.Sample.Server.Database.EPostType PostType { get; set; }
 }

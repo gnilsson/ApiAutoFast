@@ -5,7 +5,7 @@ using ApiAutoFast;
 
 namespace ApiAutoFast.Sample.Server;
 
-public class BlogQueryRequest
+public partial class BlogQueryRequest
 {
     public string? CreatedDateTime { get; set; }
     public string? ModifiedDateTime { get; set; }

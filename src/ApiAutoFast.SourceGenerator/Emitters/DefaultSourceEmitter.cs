@@ -22,65 +22,64 @@ internal static class DefaultSourceEmitter
         sb.Clear();
 
         sb.Append(@"
-    using Mapster;
-    using ApiAutoFast;
+using Mapster;
+using ApiAutoFast;
 
-    namespace ").Append(generationConfig.Namespace).Append(@";
+namespace ").Append(generationConfig.Namespace).Append(@";
 
-    public partial class MappingRegister : ICodeGenerationRegister
+public partial class MappingRegister : ICodeGenerationRegister
+{
+    private bool _overrideRegisterResponses = false;
+    private bool _extendRegisterResponses = false;
+
+    static partial void OnOverrideRegisterResponses(AdaptAttributeBuilder aab);
+    static partial void OnExtendRegisterResponses(AdaptAttributeBuilder aab);
+    static partial void ExtendRegister(CodeGenerationConfig config);
+    static partial void RegisterMappers(CodeGenerationConfig config);
+
+    public void Register(CodeGenerationConfig config)
     {
-        private bool _overrideRegisterResponses = false;
-        private bool _extendRegisterResponses = false;
+        var aab = config.AdaptTo(""[name]Response"");
 
-        static partial void OnOverrideRegisterResponses(AdaptAttributeBuilder aab);
-        static partial void OnExtendRegisterResponses(AdaptAttributeBuilder aab);
-        static partial void ExtendRegister(CodeGenerationConfig config);
-        static partial void RegisterMappers(CodeGenerationConfig config);
-
-        public void Register(CodeGenerationConfig config)
+        if (_overrideRegisterResponses)
         {
-            var aab = config.AdaptTo(""[name]Response"");
-
-            if (_overrideRegisterResponses)
-            {
-                OnOverrideRegisterResponses(aab);
-            }
-            else if (_extendRegisterResponses)
-            {
-                aab.ForTypeDefaultValues();
-
-                OnExtendRegisterResponses(aab);
-            }
-            else
-            {
-                aab.ForTypeDefaultValues();
-            }
-
-            TypeAdapterConfig.GlobalSettings.Default.PreserveReference(true);
-            TypeAdapterConfig.GlobalSettings.Default.MaxDepth(2);
-            TypeAdapterConfig.GlobalSettings.Default.ShallowCopyForSameType(true);
-            TypeAdapterConfig.GlobalSettings.Default.EnumMappingStrategy(EnumMappingStrategy.ByName);
-            TypeAdapterConfig.GlobalSettings.Default.AddDestinationTransform(DestinationTransform.EmptyCollectionIfNull);
-
-            TypeAdapterConfig.GlobalSettings
-                .When((src, dest, map) => src.GetInterface(nameof(IEntity)) is not null)
-                .Map(nameof(IEntity.CreatedDateTime), (IEntity e) => e.CreatedDateTime.ToString(""dddd, dd MMMM yyyy HH:mm""))
-                .Map(nameof(IEntity.ModifiedDateTime), (IEntity e) => e.ModifiedDateTime.ToString(""dddd, dd MMMM yyyy HH:mm""));
-    ");
-
-        var definedDomainValues = generationConfig.EntityConfigs.SelectMany(x => x.PropertyConfig.DomainValues);
-
-        foreach (var domainValue in definedDomainValues)
+            OnOverrideRegisterResponses(aab);
+        }
+        else if (_extendRegisterResponses)
         {
-            if (domainValue.DomainValueDefinition.PropertyRelation.Type is not RelationalType.None) continue;
+            aab.ForTypeDefaultValues();
 
-            if (domainValue.DomainValueDefinition.ResponseType == domainValue.DomainValueDefinition.EntityType)
+            OnExtendRegisterResponses(aab);
+        }
+        else
+        {
+            aab.ForTypeDefaultValues();
+        }
+
+        TypeAdapterConfig.GlobalSettings.Default.PreserveReference(true);
+        TypeAdapterConfig.GlobalSettings.Default.MaxDepth(2);
+        TypeAdapterConfig.GlobalSettings.Default.ShallowCopyForSameType(true);
+        TypeAdapterConfig.GlobalSettings.Default.EnumMappingStrategy(EnumMappingStrategy.ByName);
+        TypeAdapterConfig.GlobalSettings.Default.AddDestinationTransform(DestinationTransform.EmptyCollectionIfNull);
+
+        TypeAdapterConfig.GlobalSettings
+            .When((src, dest, map) => src.GetInterface(nameof(IEntity)) is not null)
+            .Map(nameof(IEntity.CreatedDateTime), (IEntity e) => e.CreatedDateTime.ToString(""dddd, dd MMMM yyyy HH:mm""))
+            .Map(nameof(IEntity.ModifiedDateTime), (IEntity e) => e.ModifiedDateTime.ToString(""dddd, dd MMMM yyyy HH:mm""));");
+
+        foreach (var definedDomainValue in generationConfig.EntityConfigs
+            .SelectMany(x => x.PropertyConfig.DomainValues)
+            .Distinct())
+        {
+            if (definedDomainValue.DomainValueDefinition.PropertyRelation.Type is not RelationalType.None) continue;
+
+            if (definedDomainValue.DomainValueDefinition.ResponseType == definedDomainValue.DomainValueDefinition.EntityType)
             {
                 sb.Append(@"
             TypeAdapterConfig<")
-                    .Append(domainValue.DomainValueDefinition.TypeName)
+                    .Append(definedDomainValue.DomainValueDefinition.TypeName)
                     .Append(@", ")
-                    .Append(domainValue.DomainValueDefinition.ResponseType)
+                    .Append(definedDomainValue.DomainValueDefinition.ResponseType)
                     .Append(@">.NewConfig().MapWith(x => x.EntityValue);");
 
                 continue;
@@ -88,9 +87,9 @@ internal static class DefaultSourceEmitter
 
             sb.Append(@"
             TypeAdapterConfig<")
-                .Append(domainValue.DomainValueDefinition.TypeName)
+                .Append(definedDomainValue.DomainValueDefinition.TypeName)
                 .Append(@", ")
-                .Append(domainValue.DomainValueDefinition.ResponseType)
+                .Append(definedDomainValue.DomainValueDefinition.ResponseType)
                 .Append(@">.NewConfig().MapWith(x => x.ToString());");
         }
 
@@ -108,11 +107,11 @@ internal static class DefaultSourceEmitter
         }
     }
 
-    public static class AdaptAttributeBuilderExtensions
+public static class AdaptAttributeBuilderExtensions
+{
+    public static AdaptAttributeBuilder ForTypeDefaultValues(this AdaptAttributeBuilder aab)
     {
-        public static AdaptAttributeBuilder ForTypeDefaultValues(this AdaptAttributeBuilder aab)
-        {
-            return aab");
+        return aab");
 
         foreach (var entity in generationConfig.EntityConfigs)
         {
@@ -135,9 +134,9 @@ internal static class DefaultSourceEmitter
         }
 
         sb.Append(@";
-        }
     }
-    ");
+}
+");
         return sb.ToString();
     }
 
@@ -198,7 +197,7 @@ using ApiAutoFast;
 namespace ").Append(@namespace).Append(@";
 ");
         sb.Append(@"
-public class ").Append(entityConfig.BaseName).Append(modelTarget).Append(@"
+public partial class ").Append(entityConfig.BaseName).Append(modelTarget).Append(@"
 {");
         sb.Append(_getModelTargetSource(modelTarget));
 

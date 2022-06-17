@@ -76,10 +76,13 @@ public class Description : DomainValue<string, Description>
 public class PostType : DomainValue<EPostType, EPostType, string, PostType>
 { }
 
-[IncludeInCommand(typeof(Blog))]
+[IncludeInCommand(new Type[] { typeof(Blog) })]
 public class LikeCount : DomainValue<int, LikeCount>
 { }
 
+//[IncludeInCommand(typeof(Blog), typeof(Post))]
+//public class Outsider : DomainValue<string, Outsider>
+//{ }
 
 [AutoFastContext]
 public partial class AutoFastSampleDbContext : DbContext

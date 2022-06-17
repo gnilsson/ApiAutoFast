@@ -6,7 +6,8 @@ using ApiAutoFast;
 
 namespace ApiAutoFast.Sample.Server.Database;
 
-public class BlogCreateCommand
+public partial class BlogCreateCommand
 {
     public string Title { get; set; }
+    public int LikeCount { get; set; }
 }
