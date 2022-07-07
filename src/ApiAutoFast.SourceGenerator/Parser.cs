@@ -67,6 +67,38 @@ internal static class Parser
             new ContextGenerationConfig(namedTypeSymbol.Name));
     }
 
+    private static IEnumerable<EntityConfig> YieldEntityConfig(
+        Compilation compilation,
+        ImmutableArray<ClassDeclarationSyntax> entityClassDeclarations,
+        CancellationToken ct)
+    {
+        var entityConfigSetups = YieldEntityConfigSetup(compilation, entityClassDeclarations).ToImmutableArray();
+
+        var propertyConfigSetups = YieldPropertyConfigSetup(compilation, entityConfigSetups).ToImmutableArray();
+
+        foreach (var propertyConfig in YieldPropertyConfig(propertyConfigSetups))
+        {
+            ct.ThrowIfCancellationRequested();
+
+            var relationalNavigationNames = propertyConfig
+                .Properties
+                .Where(x => x.Target is PropertyTarget.Entity && x.Relation.Type is not RelationalType.None && x.PropertyKind is not PropertyKind.Identifier)
+                .Select(x => x.Relation.ForeigEntityProperty)
+                .ToImmutableArray();
+
+            var endpointsAttributeArguments = entityConfigSetups
+                .First(x => x.EndpointsAttributeArguments.EntityName == propertyConfig.EntityName)
+                .EndpointsAttributeArguments;
+
+            var stringEntityProperties = propertyConfig.DomainValues
+                .Where(x => x.DomainValueDefinition.EntityType == "string")
+                .Select(x => x.DomainValueDefinition.TypeName)
+                .ToImmutableArray();
+
+            yield return new EntityConfig(endpointsAttributeArguments, relationalNavigationNames, propertyConfig, stringEntityProperties);
+        }
+    }
+
     private static IEnumerable<EntityConfigSetup> YieldEntityConfigSetup(
         Compilation compilation,
         ImmutableArray<ClassDeclarationSyntax> entityClassDeclarations)
@@ -94,6 +126,22 @@ internal static class Parser
         var endpointTarget = (EndpointTargetType)endpointsAttribute.ConstructorArguments[1].Value!;
 
         return new AutoFastEndpointsAttributeArguments(entityName!, endpointTarget);
+    }
+
+    private static IEnumerable<KeyValuePair<string, Dictionary<string, List<PropertySetup>>>> YieldPropertyConfigSetup(
+        Compilation compilation,
+        ImmutableArray<EntityConfigSetup> entityConfigSetups)
+    {
+        var entityNames = entityConfigSetups
+            .Select(x => x.EndpointsAttributeArguments.EntityName)
+            .ToImmutableArray();
+
+        foreach (var entity in entityConfigSetups)
+        {
+            yield return new KeyValuePair<string, Dictionary<string, List<PropertySetup>>>(
+                entity.EndpointsAttributeArguments.EntityName,
+                YieldDefinedValues(compilation, entityNames, entity));
+        }
     }
 
     private static Dictionary<string, List<PropertySetup>> YieldDefinedValues(Compilation compilation, ImmutableArray<string> entityNames, EntityConfigSetup entity)
@@ -128,143 +176,40 @@ internal static class Parser
         return values;
     }
 
-    private static IEnumerable<PropertyOutput> YieldPropertyOutput(string entityName, PropertySetup propertySetup)
-    {
-        var domainValueDefinition = propertySetup.DomainValueMetadata.Definition;
-        var firstSpaceIndex = propertySetup.BaseSource.IndexOf(' ');
-
-        var type = string.Empty;
-        var entitySource = string.Empty;
-        var requestSource = string.Empty;
-        var commandSource = string.Empty;
-
-        if (domainValueDefinition.PropertyRelation.Type is RelationalType.None)
-        {
-            type = domainValueDefinition.TypeName;
-
-            requestSource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}?");
-            commandSource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}");
-        }
-        else
-        {
-            type = domainValueDefinition.EntityType;
-
-            if (domainValueDefinition.PropertyRelation.Type is RelationalType.ToOne)
-            {
-                var endOfPropertyNameIndex = propertySetup.BaseSource.IndexOf('{') - 1;
-                var baseSource = propertySetup.BaseSource.Insert(endOfPropertyNameIndex, "Id");
-
-                requestSource = baseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}?");
-                commandSource = baseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}");
-            }
-        }
-
-        entitySource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {type}");
-
-        if (propertySetup.DomainValueMetadata.AttributeDatas.Length > 0)
-        {
-            //var includeInCommands = propertySetup.DomainValueMetadata.AttributeDatas
-            //    .FirstOrDefault(x => x.AttributeClass?.Name == TypeText.IncludeInCommandAttribute && x.ConstructorArguments.Length > 0)?
-            //    .ConstructorArguments[0]
-            //    .Values
-            //    .Select(x => (x.Value as Type)!.Name)
-            //    .ToImmutableArray();
-
-            var s = propertySetup.DomainValueMetadata.AttributeDatas
-                .FirstOrDefault(x => x.AttributeClass?.Name == TypeText.IncludeInCommandAttribute && x.ConstructorArguments.Length > 0)?.ConstructorArguments[0];
-
-            if (s!.Value.Kind is TypedConstantKind.Array)
-            {
-                foreach (var value in s.Value.Values)
-                {
-                    var sn = (value.Value as INamedTypeSymbol)!.Name;
-                    yield return new PropertyOutput(sn, commandSource, PropertyTarget.CreateCommand, propertySetup.Name, domainValueDefinition.RequestType);
-                }
-            }
-            else
-            {
-                var sn = (s.Value.Value as INamedTypeSymbol)!.Name;
-                yield return new PropertyOutput(sn, commandSource, PropertyTarget.CreateCommand, propertySetup.Name, domainValueDefinition.RequestType);
-            }
-
-            //yield return new PropertyOutput(n, commandSource, PropertyTarget.CreateCommand, propertySetup.Name, domainValueDefinition.RequestType);
-
-            //if (includeInCommands?.Length > 0)
-            //{
-            //    foreach (var include in includeInCommands)
-            //    {
-            //        yield return new PropertyOutput(include, commandSource, PropertyTarget.CreateCommand, propertySetup.Name, domainValueDefinition.RequestType);
-            //    }
-            //}
-        }
-
-        yield return new PropertyOutput(entityName, entitySource, PropertyTarget.Entity, propertySetup.Name, type, domainValueDefinition.PropertyRelation);
-
-        var propertyName = propertySetup.Name;
-
-        if (domainValueDefinition.PropertyRelation.Type is RelationalType.ToOne)
-        {
-            var idPropertySource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {TypeText.Identifier}");
-            var extendPropertyNameIndex = idPropertySource.IndexOf('{') - 1;
-            idPropertySource = idPropertySource.Insert(extendPropertyNameIndex, $"Id");
-            propertyName = $"{propertySetup.Name}Id";
-
-            yield return new PropertyOutput(entityName, idPropertySource, PropertyTarget.Entity, propertyName, TypeText.Identifier, domainValueDefinition.PropertyRelation, PropertyKind.Identifier);
-        }
-
-        if (domainValueDefinition.PropertyRelation.Type is not RelationalType.ToMany)
-        {
-            yield return new PropertyOutput(entityName, requestSource, PropertyTarget.QueryRequest, propertyName, $"{domainValueDefinition.RequestType}?");
-            yield return new PropertyOutput(entityName, commandSource, PropertyTarget.CreateCommand | PropertyTarget.ModifyCommand, propertyName, domainValueDefinition.RequestType);
-        }
-    }
-
-    private static IEnumerable<KeyValuePair<string, Dictionary<string, List<PropertySetup>>>> YieldPropertyConfigSetup(
+    private static bool TryGetDomainValueMetadata(
         Compilation compilation,
-        ImmutableArray<EntityConfigSetup> entityConfigSetups)
+        IPropertySymbol property,
+        ImmutableArray<string> entityNames,
+        out DomainValueMetadata domainValueMetadata)
     {
-        var entityNames = entityConfigSetups
-            .Select(x => x.EndpointsAttributeArguments.EntityName)
-            .ToImmutableArray();
+        domainValueMetadata = default;
 
-        foreach (var entity in entityConfigSetups)
+        var domainValueType = compilation.GetTypeByMetadataName(property.Type.ToString());
+
+        var success = domainValueType?.BaseType?.TypeArguments.Length > 0;
+
+        if (success)
         {
-            yield return new KeyValuePair<string, Dictionary<string, List<PropertySetup>>>(
-                entity.EndpointsAttributeArguments.EntityName,
-                YieldDefinedValues(compilation, entityNames, entity));
+            var requestType = domainValueType!.BaseType!.TypeArguments[0];
+
+            var entityType = domainValueType.BaseType.TypeArguments.Length == 2
+                ? requestType
+                : domainValueType.BaseType.TypeArguments[1];
+
+            var responseType = domainValueType.BaseType.TypeArguments.Length == 4
+                ? domainValueType.BaseType.TypeArguments[2]
+                : requestType;
+
+            var propertyRelation = GetPropertyRelation(property, entityNames, entityType);
+
+            var attributes = domainValueType.GetAttributes();
+
+            var domainValueDefinition = new DomainValueDefinition(requestType.ToString(), entityType.ToString(), responseType.ToString(), property.Type.Name, propertyRelation);
+
+            domainValueMetadata = new DomainValueMetadata(domainValueDefinition, attributes);
         }
-    }
 
-    private static IEnumerable<EntityConfig> YieldEntityConfig(
-        Compilation compilation,
-        ImmutableArray<ClassDeclarationSyntax> entityClassDeclarations,
-        CancellationToken ct)
-    {
-        var entityConfigSetups = YieldEntityConfigSetup(compilation, entityClassDeclarations).ToImmutableArray();
-
-        var propertyConfigSetups = YieldPropertyConfigSetup(compilation, entityConfigSetups).ToImmutableArray();
-
-        foreach (var propertyConfig in YieldPropertyConfig(propertyConfigSetups))
-        {
-            ct.ThrowIfCancellationRequested();
-
-            var relationalNavigationNames = propertyConfig
-                .Properties
-                .Where(x => x.Target is PropertyTarget.Entity && x.Relation.Type is not RelationalType.None && x.PropertyKind is not PropertyKind.Identifier)
-                .Select(x => x.Relation.ForeigEntityProperty)
-                .ToImmutableArray();
-
-            var endpointsAttributeArguments = entityConfigSetups
-                .First(x => x.EndpointsAttributeArguments.EntityName == propertyConfig.EntityName)
-                .EndpointsAttributeArguments;
-
-            var stringEntityProperties = propertyConfig.DomainValues
-                .Where(x => x.DomainValueDefinition.EntityType == "string")
-                .Select(x => x.DomainValueDefinition.TypeName)
-                .ToImmutableArray();
-
-            yield return new EntityConfig(endpointsAttributeArguments, relationalNavigationNames, propertyConfig, stringEntityProperties);
-        }
+        return success;
     }
 
     private static IEnumerable<PropertyConfig> YieldPropertyConfig(ImmutableArray<KeyValuePair<string, Dictionary<string, List<PropertySetup>>>> entityNameKeyKvps)
@@ -306,30 +251,6 @@ internal static class Parser
                     }
                 }
 
-                //foreach (var propertySetup in kvpProperties.Value)
-                //{
-                //    foreach (var propertyOutput in YieldPropertyOutput(kvpDictionaries.Key, propertySetup))
-                //    {
-                //        if (propertyOutput.PropertyKind is PropertyKind.Identifier && propertyOutput.Name == $"{propertySetup.Name}Id")
-                //        {
-                //            definedProperties.Add(new DefinedProperty(propertyOutput.Name, PropertyKind.Identifier, TypeText.Identifier));
-                //        }
-
-                //        if (propertiesCollection.TryGetValue(kvpDictionaries.Key, out var properties))
-                //        {
-                //            properties.Add(propertyOutput);
-                //            continue;
-                //        }
-
-                //        propertiesCollection.Add(kvpDictionaries.Key, new List<PropertyOutput> { propertyOutput });
-                //    }
-
-                //    if (propertySetup.DomainValueMetadata.Definition.PropertyRelation.Type is RelationalType.None)
-                //    {
-                //        definedProperties.Add(new DefinedProperty(propertySetup.Name, PropertyKind.Domain, domainValueDefinition.TypeName));
-                //    }
-                //}
-
                 definedDomainValues.Add(new DefinedDomainValue(domainValueDefinition, definedProperties.ToImmutableArray()));
             }
 
@@ -346,40 +267,76 @@ internal static class Parser
         }
     }
 
-    private static bool TryGetDomainValueMetadata(
-        Compilation compilation,
-        IPropertySymbol property,
-        ImmutableArray<string> entityNames,
-        out DomainValueMetadata domainValueMetadata)
+    private static IEnumerable<PropertyOutput> YieldPropertyOutput(string entityName, PropertySetup propertySetup)
     {
-        domainValueMetadata = default;
+        var domainValueDefinition = propertySetup.DomainValueMetadata.Definition;
 
-        var domainValueType = compilation.GetTypeByMetadataName(property.Type.ToString());
+        var propertySource = GetPropertySource(propertySetup, domainValueDefinition);
 
-        var success = domainValueType?.BaseType?.TypeArguments.Length > 0;
-
-        if (success)
+        if (propertySetup.DomainValueMetadata.AttributeDatas.Length > 0)
         {
-            var requestType = domainValueType!.BaseType!.TypeArguments[0];
+            var typedConstant = propertySetup.DomainValueMetadata.AttributeDatas
+                .FirstOrDefault(x => x.AttributeClass?.Name == TypeText.IncludeInCommandAttribute && x.ConstructorArguments.Length > 0)?.ConstructorArguments[0];
 
-            var entityType = domainValueType.BaseType.TypeArguments.Length == 2
-                ? requestType
-                : domainValueType.BaseType.TypeArguments[1];
-
-            var responseType = domainValueType.BaseType.TypeArguments.Length == 4
-                ? domainValueType.BaseType.TypeArguments[2]
-                : requestType;
-
-            var propertyRelation = GetPropertyRelation(property, entityNames, entityType);
-
-            var attributes = domainValueType.GetAttributes();
-
-            var domainValueDefinition = new DomainValueDefinition(requestType.ToString(), entityType.ToString(), responseType.ToString(), property.Type.Name, propertyRelation);
-
-            domainValueMetadata = new DomainValueMetadata(domainValueDefinition, attributes);
+            if (typedConstant!.Value.Kind is TypedConstantKind.Array)
+            {
+                foreach (var value in typedConstant.Value.Values)
+                {
+                    var newEntityName = (value.Value as INamedTypeSymbol)!.Name;
+                    yield return new PropertyOutput(newEntityName, propertySource.Command, PropertyTarget.CreateCommand, propertySetup.Name, domainValueDefinition.RequestType);
+                }
+            }
+            else
+            {
+                var newEntityName = (typedConstant.Value.Value as INamedTypeSymbol)!.Name;
+                yield return new PropertyOutput(newEntityName, propertySource.Command, PropertyTarget.CreateCommand, propertySetup.Name, domainValueDefinition.RequestType);
+            }
         }
 
-        return success;
+        yield return new PropertyOutput(entityName, propertySource.Entity, PropertyTarget.Entity, propertySetup.Name, propertySource.MetadataType, domainValueDefinition.PropertyRelation);
+
+        if (domainValueDefinition.PropertyRelation.Type is RelationalType.ToOne)
+        {
+            yield return new PropertyOutput(entityName, propertySource.Id, PropertyTarget.Entity, $"{propertySetup.Name}Id", TypeText.Identifier, domainValueDefinition.PropertyRelation, PropertyKind.Identifier);
+        }
+
+        if (domainValueDefinition.PropertyRelation.Type is not RelationalType.ToMany)
+        {
+            yield return new PropertyOutput(entityName, propertySource.Request, PropertyTarget.QueryRequest, propertySetup.Name, $"{domainValueDefinition.RequestType}?");
+            yield return new PropertyOutput(entityName, propertySource.Command, PropertyTarget.CreateCommand | PropertyTarget.ModifyCommand, propertySetup.Name, domainValueDefinition.RequestType);
+        }
+    }
+
+    private static PropertySource GetPropertySource(PropertySetup propertySetup, DomainValueDefinition domainValueDefinition)
+    {
+        var firstSpaceIndex = propertySetup.BaseSource.IndexOf(' ');
+
+        if (domainValueDefinition.PropertyRelation.Type is RelationalType.None)
+        {
+            var entitySource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.TypeName}");
+            var requestSource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}?");
+            var commandSource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}");
+            return new PropertySource(entitySource, requestSource, commandSource, string.Empty, domainValueDefinition.TypeName);
+        }
+
+        if (domainValueDefinition.PropertyRelation.Type is RelationalType.ToOne)
+        {
+            var endOfPropertyNameIndex = propertySetup.BaseSource.IndexOf('{') - 1;
+            var baseSource = propertySetup.BaseSource.Insert(endOfPropertyNameIndex, "Id");
+            var entitySource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.EntityType}");
+            var requestSource = baseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}?");
+            var commandSource = baseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}");
+            var idSource = baseSource.Insert(firstSpaceIndex, $" {TypeText.Identifier}");
+            return new PropertySource(entitySource, requestSource, commandSource, idSource, domainValueDefinition.EntityType);
+        }
+
+        if (domainValueDefinition.PropertyRelation.Type is RelationalType.ToMany)
+        {
+            var entitySource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.EntityType}");
+            return new PropertySource(entitySource, domainValueDefinition.EntityType);
+        }
+
+        return default!;
     }
 
     private static PropertyRelation GetPropertyRelation(IPropertySymbol property, ImmutableArray<string> entityNames, ITypeSymbol entityType)

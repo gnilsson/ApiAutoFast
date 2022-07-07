@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 using VerifyXunit;
 using Xunit;
 
@@ -8,7 +9,7 @@ namespace ApiAutoFast.Tests;
 public class SnapshotTests
 {
     [Fact]
-    public Task GeneratesContextCorrectly()
+    public Task GeneratesCorrectly()
     {
         var source = @"
 using System;
@@ -18,103 +19,85 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ApiAutoFast.Sample.Server.Database;
 
+
+[AutoFastEndpoints]
+public class BlogEntity
+{
+    public PostsRelation Posts { get; set; } = default!;
+    public Title Title { get; set; } = default!;
+}
+
+[AutoFastEndpoints]
+public class PostEntity
+{
+    public LikeCount LikeCount { get; set; } = default!;
+    public BlogRelation Blog { get; set; } = default!;
+    public Title Tit { get; set; } = default!;
+    public PublicationDateTime PublicationDateTime { get; set; } = default!;
+    public Description Description { get; set; } = default!;
+    public PostType PostType { get; set; } = default!;
+}
+
+
+
+public class PostsRelation : DomainValue<ICollection<Post>, PostsRelation>
+{
+
+}
+
+public class BlogRelation : DomainValue<string, Blog, BlogRelation>
+{ }
+
+public class PublicationDateTime : DomainValue<string, DateTime, PublicationDateTime>
+{
+    protected override bool TryValidateRequestConversion(string? requestValue, out DateTime entityValue)
+    {
+        entityValue = default!;
+        return requestValue is not null && DateTime.TryParse(requestValue, out entityValue);
+    }
+
+    public override string ToString() => EntityValue.ToLongDateString();
+}
+
+public class Title : DomainValue<string, Title>
+{
+    private const string RegexPattern = "";
+
+    protected override bool TryValidateRequestConversion(string? requestValue, out string entityValue)
+    {
+        entityValue = requestValue!;
+        return requestValue is not null && Regex.IsMatch(requestValue, RegexPattern);
+    }
+}
+
+public class Description : DomainValue<string, Description>
+{ }
+
+public class PostType : DomainValue<EPostType, EPostType, string, PostType>
+{ }
+
+[IncludeInCommand(new Type[] { typeof(Blog) })]
+public class LikeCount : DomainValue<int, LikeCount>
+{ }
+
+//[IncludeInCommand(typeof(Blog), typeof(Post))]
+//public class Outsider : DomainValue<string, Outsider>
+//{ }
+
 [AutoFastContext]
 public partial class AutoFastSampleDbContext : DbContext
 {
+
 }
 
-public enum ProfessionCategory
+public enum EPostType
 {
-    None = 0,
-    Unemployed,
-    Programmer,
-    CoalmineWorker,
-    Botanist,
-    SpacestationArchitect,
-    Dragon
+    Text = 0,
+    Lyric,
+    Haiku,
 }
-
-[AutoFastEndpoints(""Abc"", EndpointTargetType.Get)]
-public class AuthorConfig
-{
-    internal class Properties
-    {
-        [ExcludeRequestModel]
-        public string? FirstName { get; set; }
-        [ExcludeRequestModel(RequestModelTarget.CreateCommand | RequestModelTarget.DeleteCommand)]
-        public string? LastName { get; set; }
-        public ProfessionCategory? Profession { get; set; }
-       // public ICollection<BlogConfig>? Blogs { get; set; }
-    }
-}
-
-//[AutoFastEndpoints]
-//public class BlogConfig
-//{
-//    internal class Properties
-//    {
-//        public string? Title { get; set; }
-//        public AuthorConfig? Author { get; set; }
-//        public Identifier AuthorId { get; set; }
-//    }
-//}
-
-
 ";
-
-        //";
-        //var (diagnostics, output) = TestHelper.GetGeneratedOutput<ApiGenerator>(source);
-
-        //return Verifier
-        //    .Verify(output)
-        //    .UseDirectory("Snapshots");
 
         return TestHelper.Verify(source);
     }
-
-    [Fact]
-    public Task GeneratesEntitiesCorrectly()
-    {
-        var source = @"
-using ApiAutoFast;
-using System.ComponentModel.DataAnnotations;
-
-namespace ApiAutoFast.Sample.Server.Database;
-
-[AutoFastEndpoints]
-public class CarCategoryConfig
-{
-    internal class Properties
-    {
-        public string Name { get; set; } = default!;
-        public PricingModel PricingModel { get; set; } = default!;
-        public ICollection<CarModelConfig>? CarModels { get; set; }
-    }
-}
-
-[AutoFastEndpoints]
-public class CarConfig
-{
-    internal class Properties
-    {
-        public CarModelConfig CarModel { get; set; } = default!;
-        public string LicensePlateNumber { get; set; } = default!;
-    }
-}
-
-[AutoFastEndpoints]
-public class CarModelConfig
-{
-    internal class Properties
-    {
-        public string Name { get; set; } = default!;
-        public CarCategoryConfig CarCategory { get; set; } = default!;
-        public ICollection<CarConfig>? Cars { get; set; }
-        public decimal KilometerPrice { get; set; }
-    }
-}
-";
-        return TestHelper.Verify(source);
-    }
-
 }
