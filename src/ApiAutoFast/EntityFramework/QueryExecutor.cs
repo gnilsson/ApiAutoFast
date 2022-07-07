@@ -17,7 +17,7 @@ public sealed class QueryExecutor<TEntity> where TEntity : class, IEntity
         [QueryParameterText.Last] = KeysetPaginationDirection.Backward
     };
 
-    private static readonly ImmutableArray<string> _paginationReferenceParams = new()
+    private static readonly string[] _paginationReferenceParams = new[]
     {
         QueryParameterText.Before,
         QueryParameterText.After,
