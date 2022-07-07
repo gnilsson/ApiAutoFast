@@ -32,8 +32,7 @@ public class Description : DomainValue<string, Description>
 public class PostType : DomainValue<EPostType, EPostType, string, PostType>
 { }
 
-//[IncludeInCommand(EEntity.Post)]
-[IncludeInCommand(new[] { typeof(Blog) })]
+[IncludeInCommand(typeof(Blog))] // ?
 public class LikeCount : DomainValue<int, LikeCount>
 { }
 

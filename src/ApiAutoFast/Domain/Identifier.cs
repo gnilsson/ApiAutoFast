@@ -46,22 +46,16 @@ public readonly struct Identifier
     {
         if (TryParse(request, out var identifier)) return identifier;
 
-        addError(typeof(Identifier).Name, "Error when parsing identifier.");
+        addError(nameof(Identifier), "Error when parsing identifier.");
 
         return Empty;
     }
 
     public static bool TryParse(string? valueToParse, [NotNullWhen(true)] out Identifier identifier)
     {
-        identifier = Empty;
+        var success = string.IsNullOrEmpty(valueToParse) is false && Regex.IsMatch(valueToParse, Base64RegexPattern, RegexOptions.Compiled);
 
-        var success = string.IsNullOrEmpty(valueToParse) is false
-            && Regex.IsMatch(valueToParse, Base64RegexPattern, RegexOptions.Compiled);
-
-        if (success)
-        {
-            identifier = new Identifier(valueToParse!);
-        }
+        identifier = success ? new Identifier(valueToParse!) : Empty;
 
         return success;
     }
@@ -76,7 +70,7 @@ public readonly struct Identifier
 
         Span<char> finalChars = stackalloc char[22];
 
-        for (int i = 0; i < 22; i++)
+        for (var i = 0; i < 22; i++)
         {
             finalChars[i] = base64Bytes[i] switch
             {
@@ -93,7 +87,7 @@ public readonly struct Identifier
     {
         Span<char> base64Chars = stackalloc char[24];
 
-        for (int i = 0; i < 22; i++)
+        for (var i = 0; i < 22; i++)
         {
             base64Chars[i] = id[i] switch
             {

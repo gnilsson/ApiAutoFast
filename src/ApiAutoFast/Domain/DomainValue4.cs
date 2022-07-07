@@ -31,12 +31,7 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
 
     protected virtual bool TryValidateRequestConversion(TRequest? requestValue, [NotNullWhen(true)] out TEntity entityValue)
     {
-        entityValue = default!;
-
-        if (requestValue is TEntity entityRequestValue)
-        {
-            entityValue = entityRequestValue;
-        }
+        entityValue = requestValue is TEntity entityRequestValue ? entityRequestValue : default!;
 
         return requestValue is not null;
     }
