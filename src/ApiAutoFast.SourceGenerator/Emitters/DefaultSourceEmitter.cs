@@ -175,7 +175,6 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity
     public DateTime ModifiedDateTime { get; set; }");
         foreach (var propertyOutput in entities)
         {
-            // note: perhaps include attributes?
             sb.Append(@"
     ").Append(propertyOutput.Source);
         }
@@ -303,15 +302,6 @@ public partial class ")
             return originalEntity;
         }
 ");
-        // todo: implement
-        //foreach (var propertyMetadata in entityConfig.PropertyConfig.DomainValues)
-        //{
-        //    if (propertyMetadata.AttributeMetadatas.Any(x => x.Name is nameof(RequestModelTarget.ModifyCommand)))
-        //    {
-        //        sb.Append(@"
-        //originalEntity.").Append(propertyMetadata.DomainValueDefiniton.PropertyName).Append(@" = e.").Append(propertyMetadata.DomainValueDefiniton.PropertyName).Append(';');
-        //    }
-        //}
         sb.Append(@"
         return originalEntity;
     }

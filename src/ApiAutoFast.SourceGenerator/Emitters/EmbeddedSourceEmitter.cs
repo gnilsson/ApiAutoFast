@@ -79,30 +79,6 @@ public class ExcludeRequestModelAttribute : Attribute
     }
     ";
 
-    // note: pin this idea for now
-    //    public const string IncludeInCommandAttribute = @"
-    //using System;
-
-    //namespace ApiAutoFast;
-
-    ///// <summary>
-    ///// Attribute to include property in another entity command.
-    ///// <param name=""otherEntityType"">The other entity</param>
-    ///// </summary>
-    //[AttributeUsage(AttributeTargets.Class)]
-    //public class IncludeInCommandAttribute : Attribute
-    //{
-    //    public IncludeInCommandAttribute(EEntity eentity)
-    //    {
-    //        EEntity = eentity;
-    //    }
-
-    //    public EEntity EEntity { get; }
-    //}
-    //";
-
-
-
     public const string RequestModelTargetEnum = @"
 using System;
 
