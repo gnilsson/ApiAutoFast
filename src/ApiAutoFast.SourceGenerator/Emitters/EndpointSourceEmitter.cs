@@ -18,7 +18,7 @@ internal static class EndpointSourceEmitter
 
         await SendOkAsync(new Paginated<").Append(endpointConfig.Response).Append(@"> { Data = response }, ct);
 
-        async IAsyncEnumerable<").Append(endpointConfig.Response).Append(@"> YieldResponse(IAsyncEnumerable<").Append(endpointConfig.Entity).Append(@"> entities)
+        static async IAsyncEnumerable<").Append(endpointConfig.Response).Append(@"> YieldResponse(IAsyncEnumerable<").Append(endpointConfig.Entity).Append(@"> entities)
         {
             await foreach (var entity in entities)
             {
@@ -146,7 +146,13 @@ internal static class EndpointSourceEmitter
         }
     };
 
-    internal static string EmitEndpoint(StringBuilder sb, string @namespace, EndpointConfig endpointConfig, string contextName, ImmutableArray<string> relationalNavigationNames)
+    internal static string EmitEndpoint(
+        StringBuilder sb,
+        string @namespace,
+        EndpointConfig endpointConfig,
+        string contextName,
+        ImmutableArray<string> relationalNavigationNames,
+        ImmutableArray<string> stringEntityProperties)
     {
         sb.Clear();
 
@@ -190,7 +196,7 @@ public partial class ")
             sb.Append(@"
     private static readonly Dictionary<string, Func<string, Expression<Func<").Append(endpointConfig.Entity).Append(@", bool>>>> _stringMethods = new()
     {");
-            foreach (var propertyName in endpointConfig.StringEntityProperties)
+            foreach (var propertyName in stringEntityProperties)
             {
                 sb.Append(@"
         [""").Append(propertyName).Append(@"""] = static query => entity => ((string)entity.").Append(propertyName).Append(@").Contains(query),");

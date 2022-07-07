@@ -18,6 +18,8 @@ public partial class GetPostEndpoint : Endpoint<PostQueryRequest, Paginated<Post
     private readonly QueryExecutor<Post> _queryExecutor;
     private static readonly Dictionary<string, Func<string, Expression<Func<Post, bool>>>> _stringMethods = new()
     {
+        ["Title"] = static query => entity => ((string)entity.Title).Contains(query),
+        ["Description"] = static query => entity => ((string)entity.Description).Contains(query),
     };
     private static readonly string[] _relationalNavigationNames = new string[]
     {
@@ -52,7 +54,7 @@ public partial class GetPostEndpoint : Endpoint<PostQueryRequest, Paginated<Post
 
         await SendOkAsync(new Paginated<PostResponse> { Data = response }, ct);
 
-        async IAsyncEnumerable<PostResponse> YieldResponse(IAsyncEnumerable<Post> entities)
+        static async IAsyncEnumerable<PostResponse> YieldResponse(IAsyncEnumerable<Post> entities)
         {
             await foreach (var entity in entities)
             {

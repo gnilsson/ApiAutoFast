@@ -258,7 +258,12 @@ internal static class Parser
                 .First(x => x.EndpointsAttributeArguments.EntityName == propertyConfig.EntityName)
                 .EndpointsAttributeArguments;
 
-            yield return new EntityConfig(endpointsAttributeArguments, relationalNavigationNames, propertyConfig);
+            var stringEntityProperties = propertyConfig.DomainValues
+                .Where(x => x.DomainValueDefinition.EntityType == "string")
+                .Select(x => x.DomainValueDefinition.TypeName)
+                .ToImmutableArray();
+
+            yield return new EntityConfig(endpointsAttributeArguments, relationalNavigationNames, propertyConfig, stringEntityProperties);
         }
     }
 

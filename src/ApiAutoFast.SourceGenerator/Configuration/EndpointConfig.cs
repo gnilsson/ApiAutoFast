@@ -22,10 +22,6 @@ internal readonly struct EndpointConfig
         Response = entityConfig.Response;
         Request = $"{entityConfig.BaseName}{requestEndpointPair.RequestModel}";
         RequestEndpointPair = requestEndpointPair;
-        StringEntityProperties = entityConfig.PropertyConfig.Properties
-            .Where(x => x.Target is PropertyTarget.Entity && x.Type == "string")
-            .Select(x => x.Name)
-            .ToImmutableArray();
     }
 
     internal readonly string Endpoint { get; }
@@ -35,5 +31,4 @@ internal readonly struct EndpointConfig
     internal readonly string Route { get; }
     internal readonly string MappingProfile { get; }
     internal readonly RequestEndpointPair RequestEndpointPair { get; }
-    internal readonly ImmutableArray<string> StringEntityProperties { get; }
 }

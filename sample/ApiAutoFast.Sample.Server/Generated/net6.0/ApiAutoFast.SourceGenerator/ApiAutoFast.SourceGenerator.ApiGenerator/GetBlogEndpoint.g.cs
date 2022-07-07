@@ -18,6 +18,7 @@ public partial class GetBlogEndpoint : Endpoint<BlogQueryRequest, Paginated<Blog
     private readonly QueryExecutor<Blog> _queryExecutor;
     private static readonly Dictionary<string, Func<string, Expression<Func<Blog, bool>>>> _stringMethods = new()
     {
+        ["Title"] = static query => entity => ((string)entity.Title).Contains(query),
     };
     private static readonly string[] _relationalNavigationNames = new string[]
     {
@@ -52,7 +53,7 @@ public partial class GetBlogEndpoint : Endpoint<BlogQueryRequest, Paginated<Blog
 
         await SendOkAsync(new Paginated<BlogResponse> { Data = response }, ct);
 
-        async IAsyncEnumerable<BlogResponse> YieldResponse(IAsyncEnumerable<Blog> entities)
+        static async IAsyncEnumerable<BlogResponse> YieldResponse(IAsyncEnumerable<Blog> entities)
         {
             await foreach (var entity in entities)
             {
