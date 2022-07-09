@@ -1,14 +1,12 @@
 ﻿using System.Buffers.Text;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using MassTransit;
 
 namespace ApiAutoFast;
 
 public readonly struct Identifier
 {
-    public static readonly Identifier Empty = default;
+    public static readonly Identifier Empty = new(Guid.Empty);
 
     private const char EqualsChar = '=';
     private const char Hyphen = '-';
@@ -17,7 +15,7 @@ public readonly struct Identifier
     private const char Slash = '/';
     private const byte PlusByte = (byte)Plus;
     private const byte SlashByte = (byte)Slash;
-    private const string Base64RegexPattern = "^([A-Za-z0-9_-]{4})*([A-Za-z0-9_-]{3}=|[A-Za-z0-9_-]{2})?$";
+    private const string UrlFriendlyBase64RegexPattern = "^(?=(.{22})$)[A-Za-z0-9_-]*([AQgw]==|[AEIMQUYcgkosw048]=)?$";
 
     private readonly Guid _guidValue;
     private readonly string _base64Value;
@@ -40,24 +38,51 @@ public readonly struct Identifier
         _base64Value = base64Value;
     }
 
-    public static Identifier New() => new(NewId.NextGuid());
+    public Identifier(in Guid guidValue, in string base64Value)
+    {
+        _guidValue = guidValue;
+        _base64Value = base64Value;
+    }
+
+    public static Identifier New() => new(Guid.NewGuid());
 
     public static Identifier ConvertFromRequest(string request, Action<string, string> addError)
     {
         if (TryParse(request, out var identifier)) return identifier;
 
-        addError(nameof(Identifier), "Error when parsing identifier.");
+        addError(nameof(Identifier), "Error while parsing.");
 
-        return Empty;
+        return default;
     }
 
-    public static bool TryParse(string? valueToParse, [NotNullWhen(true)] out Identifier identifier)
+    public static bool TryParse(string? valueToParse, out Identifier identifier)
     {
-        var success = string.IsNullOrEmpty(valueToParse) is false && Regex.IsMatch(valueToParse, Base64RegexPattern, RegexOptions.Compiled);
+        if (string.IsNullOrEmpty(valueToParse) is false
+            && Regex.IsMatch(valueToParse, UrlFriendlyBase64RegexPattern, RegexOptions.Compiled)
+            && TryToIdentifier(valueToParse!, out identifier))
+        {
+            return true;
+        }
 
-        identifier = success ? new Identifier(valueToParse!) : Empty;
+        identifier = default;
+        return false;
+    }
 
-        return success;
+    public Guid ToGuid() => _guidValue;
+
+    private static bool TryToIdentifier(string value, out Identifier identifier)
+    {
+        try
+        {
+            identifier = new Identifier(value);
+        }
+        catch
+        {
+            identifier = default;
+            return false;
+        }
+
+        return true;
     }
 
     private static string ToIdentifierString(Guid id)
