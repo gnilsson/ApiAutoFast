@@ -68,7 +68,8 @@ public readonly struct Identifier
         return false;
     }
 
-    public Guid ToGuid() => _guidValue;
+    public Guid GuidValue => _guidValue;
+    public string StringValue => _base64Value;
 
     private static bool TryToIdentifier(string value, out Identifier identifier)
     {
