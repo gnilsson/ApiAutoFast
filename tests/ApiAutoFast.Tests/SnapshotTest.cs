@@ -23,27 +23,33 @@ namespace ApiAutoFast.Sample.Server.Database;
 [AutoFastEndpoints]
 public class BlogEntity
 {
-    public PostsRelation Posts { get; set; } = default!;
-    public Title Title { get; set; } = default!;
+   // public PostsRelation Posts { get; set; } = default!;
+    public Title2 Title { get; set; } = default!;
 }
 
-[AutoFastEndpoints]
-public class PostEntity
-{
-    public LikeCount LikeCount { get; set; } = default!;
-    public BlogRelation Blog { get; set; } = default!;
-    public Title Tit { get; set; } = default!;
-    public PublicationDateTime PublicationDateTime { get; set; } = default!;
-    public Description Description { get; set; } = default!;
-    public PostType PostType { get; set; } = default!;
-}
-
-
-
-public class PostsRelation : DomainValue<ICollection<Post>, PostsRelation>
+public class Title2 : StringDomainValue<Title2>
 {
 
 }
+
+
+//[AutoFastEndpoints]
+//public class PostEntity
+//{
+//    public LikeCount LikeCount { get; set; } = default!;
+//    public BlogRelation Blog { get; set; } = default!;
+//    public Title Tit { get; set; } = default!;
+//    public PublicationDateTime PublicationDateTime { get; set; } = default!;
+//    public Description Description { get; set; } = default!;
+//    public PostType PostType { get; set; } = default!;
+//}
+
+
+
+//public class PostsRelation : DomainValue<ICollection<Post>, PostsRelation>
+//{
+
+//}
 
 public class BlogRelation : DomainValue<string, Blog, BlogRelation>
 { }

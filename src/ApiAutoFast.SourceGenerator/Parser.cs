@@ -41,7 +41,7 @@ internal static class Parser
 
     internal static GenerationConfig? GetGenerationConfig(Compilation compilation, ImmutableArray<SemanticTargetInformation> semanticTargetInformations, CancellationToken ct)
     {
-        if (semanticTargetInformations.Where(x => x.Target is AutoFastEndpointsAttribute) is null) return GenerationConfig.Empty;
+        if (semanticTargetInformations.Any(x => x.Target is AutoFastEndpointsAttribute) is false) return GenerationConfig.Empty;
 
         var entityClassDeclarations = semanticTargetInformations
             .Where(x => x.Target is AutoFastEndpointsAttribute && x.ClassDeclarationSyntax is not null)
@@ -91,8 +91,8 @@ internal static class Parser
                 .EndpointsAttributeArguments;
 
             var stringEntityProperties = propertyConfig.DomainValues
-                .Where(x => x.DomainValueDefinition.EntityType == "string")
-                .Select(x => x.DomainValueDefinition.TypeName)
+                .Where(x => x.DomainValueDefinition.EntityType == TypeText.String)
+                .SelectMany(x => x.DefinedProperties.Select(x => x.Name))
                 .ToImmutableArray();
 
             yield return new EntityConfig(endpointsAttributeArguments, relationalNavigationNames, propertyConfig, stringEntityProperties);
@@ -186,9 +186,35 @@ internal static class Parser
 
         var domainValueType = compilation.GetTypeByMetadataName(property.Type.ToString());
 
-        var success = domainValueType?.BaseType?.TypeArguments.Length > 0;
+        if (domainValueType is null) return false;
 
-        if (success)
+        var domainValueDefinition = GetDomainValueDefinition(domainValueType, property, entityNames);
+
+        if (domainValueDefinition.HasValue is false) return false;
+
+        var attributes = domainValueType.GetAttributes();
+
+        domainValueMetadata = new DomainValueMetadata(domainValueDefinition.Value, attributes);
+
+        return true;
+    }
+
+    private static DomainValueDefinition? GetDomainValueDefinition(
+        INamedTypeSymbol domainValueType,
+        IPropertySymbol property,
+        ImmutableArray<string> entityNames)
+    {
+        if (domainValueType.BaseType?.Name is TypeText.StringDomainValue)
+        {
+            return new DomainValueDefinition(
+                TypeText.String,
+                TypeText.String,
+                TypeText.String,
+                property.Type.Name,
+                PropertyRelation.None);
+        }
+
+        if (domainValueType.BaseType?.TypeArguments.Length > 0)
         {
             var requestType = domainValueType!.BaseType!.TypeArguments[0];
 
@@ -202,14 +228,15 @@ internal static class Parser
 
             var propertyRelation = GetPropertyRelation(property, entityNames, entityType);
 
-            var attributes = domainValueType.GetAttributes();
-
-            var domainValueDefinition = new DomainValueDefinition(requestType.ToString(), entityType.ToString(), responseType.ToString(), property.Type.Name, propertyRelation);
-
-            domainValueMetadata = new DomainValueMetadata(domainValueDefinition, attributes);
+            return new DomainValueDefinition(
+                requestType.ToString(),
+                entityType.ToString(),
+                responseType.ToString(),
+                property.Type.Name,
+                propertyRelation);
         }
 
-        return success;
+        return null;
     }
 
     private static IEnumerable<PropertyConfig> YieldPropertyConfig(ImmutableArray<KeyValuePair<string, Dictionary<string, List<PropertySetup>>>> entityNameKeyKvps)

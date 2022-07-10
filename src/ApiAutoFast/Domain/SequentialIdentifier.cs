@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 namespace ApiAutoFast;
 
 public readonly struct SequentialIdentifier :
-        IEquatable<SequentialIdentifier>,
+        IIdentifier,
         IComparable<SequentialIdentifier>,
         IComparable,
         IFormattable
@@ -64,6 +64,7 @@ public readonly struct SequentialIdentifier :
     }
 
     public bool Equals(SequentialIdentifier other) => _identifier.Equals(other._identifier);
+    public bool Equals(Identifier other) => _identifier.Equals(other);
     public string ToString(string? format, IFormatProvider? formatProvider) => _identifier.ToString(null, formatProvider);
     public int CompareTo(SequentialIdentifier other) => _newId.CompareTo(other._newId);
     public int CompareTo(object? obj)

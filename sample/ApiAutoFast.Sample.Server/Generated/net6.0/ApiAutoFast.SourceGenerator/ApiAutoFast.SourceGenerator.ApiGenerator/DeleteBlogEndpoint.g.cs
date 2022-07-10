@@ -14,8 +14,10 @@ public partial class DeleteBlogEndpoint : Endpoint<BlogDeleteCommand, BlogRespon
 {
     partial void ExtendConfigure();
     private readonly AutoFastSampleDbContext _dbContext;
+    private readonly IQueryExecutor<Blog> _queryExecutor;
     private bool _overrideConfigure = false;
-    private readonly QueryExecutor<Blog> _queryExecutor;
+    private bool _saveChanges = true;
+    private bool _terminateHandler = false;
 
 
     public DeleteBlogEndpoint(AutoFastSampleDbContext dbContext)
@@ -38,6 +40,8 @@ public partial class DeleteBlogEndpoint : Endpoint<BlogDeleteCommand, BlogRespon
 
     public override async Task HandleAsync(BlogDeleteCommand req, CancellationToken ct)
     {
+        if(_terminateHandler) return;
+
         var identifier = Identifier.ConvertFromRequest(req.Id, AddError);
 
         if (HasError())

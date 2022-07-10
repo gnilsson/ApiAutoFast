@@ -14,11 +14,12 @@ public partial class GetByIdBlogEndpoint : Endpoint<BlogGetByIdRequest, BlogResp
 {
     partial void ExtendConfigure();
     private readonly AutoFastSampleDbContext _dbContext;
+    private readonly IQueryExecutor<Blog> _queryExecutor;
     private bool _overrideConfigure = false;
-    private readonly QueryExecutor<Blog> _queryExecutor;
+    private bool _saveChanges = true;
+    private bool _terminateHandler = false;
     private static readonly string[] _relationalNavigationNames = new string[]
     {
-        "Posts",
     };
 
 
@@ -42,6 +43,8 @@ public partial class GetByIdBlogEndpoint : Endpoint<BlogGetByIdRequest, BlogResp
 
     public override async Task HandleAsync(BlogGetByIdRequest req, CancellationToken ct)
     {
+        if(_terminateHandler) return;
+
         var identifier = Identifier.ConvertFromRequest(req.Id, AddError);
 
         if (HasError())

@@ -5,6 +5,27 @@ using System.Reflection;
 
 namespace ApiAutoFast;
 
+// q: what about this?
+public abstract class StringDomainValue<TDomain> : DomainValue<string, TDomain> where TDomain : DomainValue<string, TDomain>, new()
+{
+    public StringDomainValue()
+    {
+    }
+
+    //public override StringDomainValue ConvertFromRequest(string? request, Action<string, string> addError)
+    //{
+
+    //    var a = base.ConvertFromRequest(request, addError);
+    //}
+    public bool Contains(string value)
+    {
+        return EntityValue.Contains(value);
+    }
+
+    public static implicit operator string(StringDomainValue<TDomain> domain) => domain.EntityValue;
+}
+
+
 // note: maybe there should be a seperate class called ForeignDomainValue
 public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : DomainValue<TRequest, TEntity, TResponse, TDomain>, new()
 {
@@ -41,7 +62,7 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
         throw new NotImplementedException($"{TypeText.DomainValue4} needs an overriden {nameof(ToResponse)} method.");
     }
 
-    public static TDomain ConvertFromRequest(TRequest? request, Action<string, string> addError)
+    public static TDomain? ConvertFromRequest(TRequest? request, Action<string, string> addError)
     {
         var domain = _factory();
 
@@ -54,6 +75,22 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
         addError(typeof(TDomain).Name, domain.MessageOnFailedValidation ?? "Error when converting request.");
         return default!;
     }
+
+
+    public static T? ConvertFromRequest<T>(TRequest? request, Action<string, string> addError) where T : TDomain
+    {
+        var domain = _factory();
+
+        if (domain.TryValidateRequestConversion(request, out var entityValue))
+        {
+            domain.EntityValue = entityValue;
+            return (T)domain;
+        }
+
+        addError(typeof(TDomain).Name, domain.MessageOnFailedValidation ?? "Error when converting request.");
+        return default!;
+    }
+
 
     public static implicit operator DomainValue<TRequest, TEntity, TResponse, TDomain>(TEntity entityValue) => From(entityValue);
 

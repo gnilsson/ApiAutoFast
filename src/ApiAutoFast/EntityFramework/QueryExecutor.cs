@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 
 namespace ApiAutoFast.EntityFramework;
 
-public sealed class QueryExecutor<TEntity> where TEntity : class, IEntity
+public sealed class QueryExecutor<TEntity> : IQueryExecutor<TEntity> where TEntity : class, IEntity<Identifier>
 {
     private static readonly Dictionary<string, KeysetPaginationDirection> _paginationDirectionParams = new()
     {
@@ -41,9 +41,9 @@ public sealed class QueryExecutor<TEntity> where TEntity : class, IEntity
     {
         var queryParameters = queryCollection.ToDictionary(x => x.Key, x => x.Value);
 
-        Expression<Func<TEntity, bool>> predicate = p => true;
-        KeysetPaginationDirection? direction = null!;
-        var referenceId = Identifier.Empty;
+        Expression<Func<TEntity, bool>>? predicate = null;
+        KeysetPaginationDirection? direction = null;
+        Identifier? referenceId = null;
 
         if (queryParameters.Count > 0)
         {
@@ -57,21 +57,24 @@ public sealed class QueryExecutor<TEntity> where TEntity : class, IEntity
                     direction = dir;
                 }
                 else if (_paginationReferenceParams.Contains(param.Key)
-                    && referenceId == Identifier.Empty
+                    && referenceId is null
                     && Identifier.TryParse(param.Value, out var identifier))
                 {
                     referenceId = identifier;
                 }
                 else if (_stringMethods.TryGetValue(param.Key, out var func))
                 {
-                    predicate = ExpressionUtility.AndAlso(predicate, func(param.Value));
+                    predicate = predicate is null
+                        ? func(param.Value)
+                        : ExpressionUtility.AndAlso(predicate, func(param.Value));
                 }
             }
         }
 
         var baseQuery = _dbSet
             .AsNoTracking()
-            .Where(predicate);
+            .Where(predicate ?? (x => true));
+         //   .FixQuery();
 
         foreach (var relationalNavigationName in _relationalNavigationNames)
         {
@@ -83,7 +86,7 @@ public sealed class QueryExecutor<TEntity> where TEntity : class, IEntity
             .KeysetPaginateQuery(
         builder => builder.Descending(x => x.Id),
         direction ?? KeysetPaginationDirection.Forward,
-        referenceId == Identifier.Empty ? null : await _dbSet.FindAsync(new object?[] { referenceId }, cancellationToken: ct))
+        referenceId is null ? null : await _dbSet.FindAsync(new object?[] { referenceId }, cancellationToken: ct))
             .AsAsyncEnumerable();
 
         await foreach (var entity in query.WithCancellation(ct))

@@ -8,3 +8,10 @@ public class DomainValueConverter<TRequest, TEntity, TResponse, TDomain> : Value
     public DomainValueConverter() : base(s => s.EntityValue, t => (TDomain)t)
     { }
 }
+
+//public class StringDomainValueConverter : ValueConverter<StringDomainValue, string>
+//{
+//    public StringDomainValueConverter() : base(s => s.EntityValue, t => (StringDomainValue)t)
+//    { }
+//}
+

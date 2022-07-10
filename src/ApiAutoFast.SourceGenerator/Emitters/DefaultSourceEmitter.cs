@@ -63,9 +63,9 @@ public partial class MappingRegister : ICodeGenerationRegister
         TypeAdapterConfig.GlobalSettings.Default.AddDestinationTransform(DestinationTransform.EmptyCollectionIfNull);
 
         TypeAdapterConfig.GlobalSettings
-            .When((src, dest, map) => src.GetInterface(nameof(IEntity)) is not null)
-            .Map(nameof(IEntity.CreatedDateTime), (IEntity e) => e.CreatedDateTime.ToString(""dddd, dd MMMM yyyy HH:mm""))
-            .Map(nameof(IEntity.ModifiedDateTime), (IEntity e) => e.ModifiedDateTime.ToString(""dddd, dd MMMM yyyy HH:mm""));");
+            .When((src, dest, map) => src.GetInterface(nameof(IEntity<IIdentifier>)) is not null)
+            .Map(nameof(IEntity<IIdentifier>.CreatedDateTime), (IEntity<IIdentifier> e) => e.CreatedDateTime.ToString(""dddd, dd MMMM yyyy HH:mm""))
+            .Map(nameof(IEntity<IIdentifier>.ModifiedDateTime), (IEntity<IIdentifier> e) => e.ModifiedDateTime.ToString(""dddd, dd MMMM yyyy HH:mm""));");
 
         foreach (var definedDomainValue in generationConfig.EntityConfigs
             .SelectMany(x => x.PropertyConfig.DomainValues)
@@ -151,11 +151,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ").Append(@namespace).Append(@";
 
-public class ").Append(entityConfig.BaseName).Append(@" : IEntity
+public class ").Append(entityConfig.BaseName).Append(@" : IEntity<Identifier>
 {
     public ").Append(entityConfig.BaseName).Append(@"()
     {");
-        var entities = entityConfig.PropertyConfig.Properties.Where(x => x.Target is PropertyTarget.Entity).ToImmutableArray();
+
+        var entities = entityConfig.PropertyConfig.Properties
+            .Where(x => x.Target is PropertyTarget.Entity)
+            .ToImmutableArray();
+
         foreach (var propertyOutput in entities)
         {
             if (propertyOutput.Relation.Type is RelationalType.ToMany)
@@ -319,7 +323,9 @@ public partial class ")
                     .Append(property.Name)
                     .Append(@" = ")
                     .Append(property.Type)
-                    .Append(@".ConvertFromRequest(command.")
+                    .Append(@".ConvertFromRequest<")
+                    .Append(property.Type)
+                    .Append(@">(command.")
                     .Append(property.Name)
                     .Append(@", addValidationError),
 ");

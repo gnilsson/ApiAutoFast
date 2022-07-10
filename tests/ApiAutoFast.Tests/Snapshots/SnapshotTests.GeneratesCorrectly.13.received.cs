@@ -1,25 +1,16 @@
-﻿//HintName: Post.g.cs
+﻿//HintName: RequestModelTargetEnum.g.cs
 
-using ApiAutoFast;
-using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
+using System;
 
-namespace ApiAutoFast.Sample.Server.Database;
+namespace ApiAutoFast;
 
-public class Post : IEntity
+[Flags]
+public enum RequestModelTarget
 {
-    public Post()
-    {
-    }
-
-    public Identifier Id { get; set; }
-    public DateTime CreatedDateTime { get; set; }
-    public DateTime ModifiedDateTime { get; set; }
-    public LikeCount LikeCount { get; set; }
-    public Blog Blog { get; set; }
-    public Identifier Blog { get; set; }
-    public Title Tit { get; set; }
-    public PublicationDateTime PublicationDateTime { get; set; }
-    public Description Description { get; set; }
-    public PostType PostType { get; set; }
+    None = 0,
+    CreateCommand = 1,
+    ModifyCommand = 2,
+    QueryRequest = 4,
+    GetByIdRequest = 8,
+    DeleteCommand = 16,
 }

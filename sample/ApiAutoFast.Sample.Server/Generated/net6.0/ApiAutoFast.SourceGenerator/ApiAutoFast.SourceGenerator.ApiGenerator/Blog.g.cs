@@ -5,16 +5,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ApiAutoFast.Sample.Server;
 
-public class Blog : IEntity
+public class Blog : IEntity<Identifier>
 {
     public Blog()
     {
-        this.Posts = new HashSet<Post>();
     }
 
     public Identifier Id { get; set; }
     public DateTime CreatedDateTime { get; set; }
     public DateTime ModifiedDateTime { get; set; }
-    public Title Title { get; set; }
-    public System.Collections.Generic.ICollection<Post> Posts { get; set; }
+    public Title2 Title { get; set; }
 }

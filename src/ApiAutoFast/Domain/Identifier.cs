@@ -5,8 +5,13 @@ using System.Text.RegularExpressions;
 
 namespace ApiAutoFast;
 
+public interface IIdentifier : IEquatable<Identifier>
+{
+
+}
+
 public readonly struct Identifier :
-        IEquatable<Identifier>,
+        IIdentifier,
         IFormattable
 {
     public static readonly Identifier Empty = new(Guid.Empty);

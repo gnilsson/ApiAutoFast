@@ -181,29 +181,35 @@ public partial class ")
             .Append(endpointConfig.MappingProfile)
             .Append(@">
 {
-    partial void ExtendConfigure();
-    private readonly ").Append(contextName).Append(@" _dbContext;
-    private bool _overrideConfigure = false;
-    private readonly QueryExecutor<").Append(endpointConfig.Entity).Append(@"> _queryExecutor;");
-        if (endpointConfig.RequestEndpointPair.EndpointTarget is EndpointTargetType.Create)
-        {
-            sb.Append(@"
-    private bool _saveChanges = true;
-    private ").Append(endpointConfig.Entity).Append(@" _entity;");
-        }
-        else if (endpointConfig.RequestEndpointPair.EndpointTarget is EndpointTargetType.Get)
+    partial void ExtendConfigure();");
+
+        if (endpointConfig.RequestEndpointPair.EndpointTarget is EndpointTargetType.Get)
         {
             sb.Append(@"
     private static readonly Dictionary<string, Func<string, Expression<Func<").Append(endpointConfig.Entity).Append(@", bool>>>> _stringMethods = new()
     {");
             foreach (var propertyName in stringEntityProperties)
             {
+                //        sb.Append(@" 
+                //[""").Append(propertyName).Append(@"""] = static query => entity => entity.").Append(propertyName).Append(@".Contains(query),");
                 sb.Append(@"
-        [""").Append(propertyName).Append(@"""] = static query => entity => ((string)entity.").Append(propertyName).Append(@").Contains(query),");
+                [""").Append(propertyName).Append(@"""] = static query => entity => ((string)entity.").Append(propertyName).Append(@").Contains(query),");
             }
             sb.Append(@"
     };");
         }
+        sb.Append(@"
+    private readonly ").Append(contextName).Append(@" _dbContext;
+    private readonly IQueryExecutor<").Append(endpointConfig.Entity).Append(@"> _queryExecutor;");
+        if (endpointConfig.RequestEndpointPair.EndpointTarget is EndpointTargetType.Create)
+        {
+            sb.Append(@"
+    private ").Append(endpointConfig.Entity).Append(@" _entity;");
+        }
+        sb.Append(@"
+    private bool _overrideConfigure = false;
+    private bool _saveChanges = true;
+    private bool _terminateHandler = false;");
 
         if (endpointConfig.RequestEndpointPair.EndpointTarget is EndpointTargetType.Get or EndpointTargetType.GetById)
         {
@@ -247,7 +253,9 @@ public partial class ")
 ");
         sb.Append(@"
     public override async Task HandleAsync(").Append(endpointConfig.Request).Append(@" req, CancellationToken ct)
-    {");
+    {
+        if(_terminateHandler) return;
+");
         sb = GetEndpointSource(endpointConfig.RequestEndpointPair.EndpointTarget)(sb, endpointConfig).Append(@"
     }
 

@@ -9,5 +9,4 @@ namespace ApiAutoFast.Sample.Server.Database;
 public partial class BlogCreateCommand
 {
     public string Title { get; set; }
-    public int LikeCount { get; set; }
 }

@@ -14,10 +14,11 @@ public partial class CreateBlogEndpoint : Endpoint<BlogCreateCommand, BlogRespon
 {
     partial void ExtendConfigure();
     private readonly AutoFastSampleDbContext _dbContext;
-    private bool _overrideConfigure = false;
-    private readonly QueryExecutor<Blog> _queryExecutor;
-    private bool _saveChanges = true;
+    private readonly IQueryExecutor<Blog> _queryExecutor;
     private Blog _entity;
+    private bool _overrideConfigure = false;
+    private bool _saveChanges = true;
+    private bool _terminateHandler = false;
 
 
     public CreateBlogEndpoint(AutoFastSampleDbContext dbContext)
@@ -40,6 +41,8 @@ public partial class CreateBlogEndpoint : Endpoint<BlogCreateCommand, BlogRespon
 
     public override async Task HandleAsync(BlogCreateCommand req, CancellationToken ct)
     {
+        if(_terminateHandler) return;
+
         _entity = Map.ToDomainEntity(req, AddError);
 
         if (HasError())

@@ -41,21 +41,15 @@ public partial class MappingRegister : ICodeGenerationRegister
         TypeAdapterConfig.GlobalSettings.Default.AddDestinationTransform(DestinationTransform.EmptyCollectionIfNull);
 
         TypeAdapterConfig.GlobalSettings
-            .When((src, dest, map) => src.GetInterface(nameof(IEntity)) is not null)
-            .Map(nameof(IEntity.CreatedDateTime), (IEntity e) => e.CreatedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"))
-            .Map(nameof(IEntity.ModifiedDateTime), (IEntity e) => e.ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"));
+            .When((src, dest, map) => src.GetInterface(nameof(IEntity<IIdentifier>)) is not null)
+            .Map(nameof(IEntity<IIdentifier>.CreatedDateTime), (IEntity<IIdentifier> e) => e.CreatedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"))
+            .Map(nameof(IEntity<IIdentifier>.ModifiedDateTime), (IEntity<IIdentifier> e) => e.ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"));
             TypeAdapterConfig<Title, string>.NewConfig().MapWith(x => x.EntityValue);
-            TypeAdapterConfig<LikeCount, int>.NewConfig().MapWith(x => x.EntityValue);
-            TypeAdapterConfig<Title, string>.NewConfig().MapWith(x => x.EntityValue);
-            TypeAdapterConfig<PublicationDateTime, string>.NewConfig().MapWith(x => x.ToString());
-            TypeAdapterConfig<Description, string>.NewConfig().MapWith(x => x.EntityValue);
-            TypeAdapterConfig<PostType, string>.NewConfig().MapWith(x => x.ToString());
 
             ExtendRegister(config);
 
             config.GenerateMapper("[name]Mapper")
-                .ForType<Blog>()
-                .ForType<Post>();
+                .ForType<Blog>();
         }
     }
 
@@ -70,18 +64,6 @@ public static class AdaptAttributeBuilderExtensions
                     cfg.Map(poco => poco.CreatedDateTime, typeof(string));
                     cfg.Map(poco => poco.ModifiedDateTime, typeof(string));
                     cfg.Map(poco => poco.Title, typeof(string));
-                })
-                .ForType<Post>(cfg =>
-                {
-                    cfg.Map(poco => poco.Id, typeof(string));
-                    cfg.Map(poco => poco.CreatedDateTime, typeof(string));
-                    cfg.Map(poco => poco.ModifiedDateTime, typeof(string));
-                    cfg.Map(poco => poco.LikeCount, typeof(int));
-                    cfg.Map(poco => poco.BlogId, typeof(string));
-                    cfg.Map(poco => poco.Tit, typeof(string));
-                    cfg.Map(poco => poco.PublicationDateTime, typeof(string));
-                    cfg.Map(poco => poco.Description, typeof(string));
-                    cfg.Map(poco => poco.PostType, typeof(string));
                 });
     }
 }
