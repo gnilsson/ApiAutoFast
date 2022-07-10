@@ -20,6 +20,10 @@ public readonly struct Identifier
     private readonly Guid _guidValue;
     private readonly string _base64Value;
 
+    public Guid GuidValue => _guidValue;
+
+    public string StringValue => _base64Value;
+
     public Identifier(in Guid guidValue)
     {
         _guidValue = guidValue;
@@ -46,7 +50,7 @@ public readonly struct Identifier
 
     public static Identifier New() => new(Guid.NewGuid());
 
-    public static Identifier ConvertFromRequest(string request, Action<string, string> addError)
+    public static Identifier ConvertFromRequest(in string request, in Action<string, string> addError)
     {
         if (TryParse(request, out var identifier)) return identifier;
 
@@ -55,9 +59,9 @@ public readonly struct Identifier
         return default;
     }
 
-    public static bool TryParse(string? valueToParse, out Identifier identifier)
+    public static bool TryParse(in string? valueToParse, out Identifier identifier)
     {
-        if (string.IsNullOrEmpty(valueToParse) is false
+        if (valueToParse is not null
             && Regex.IsMatch(valueToParse, UrlFriendlyBase64RegexPattern, RegexOptions.Compiled)
             && TryToIdentifier(valueToParse!, out identifier))
         {
@@ -68,10 +72,7 @@ public readonly struct Identifier
         return false;
     }
 
-    public Guid GuidValue => _guidValue;
-    public string StringValue => _base64Value;
-
-    private static bool TryToIdentifier(string value, out Identifier identifier)
+    private static bool TryToIdentifier(in string value, out Identifier identifier)
     {
         try
         {
@@ -109,7 +110,7 @@ public readonly struct Identifier
         return new string(finalChars);
     }
 
-    private static Guid ToIdentifierGuid(ReadOnlySpan<char> id)
+    private static Guid ToIdentifierGuid(in ReadOnlySpan<char> id)
     {
         Span<char> base64Chars = stackalloc char[24];
 
@@ -137,12 +138,12 @@ public readonly struct Identifier
     public override int GetHashCode() => base.GetHashCode();
     public override string ToString() => _base64Value;
 
-    public static implicit operator Identifier(Guid guidValue) => new(guidValue);
-    public static implicit operator string(Identifier identifier) => identifier._base64Value;
-    public static implicit operator Guid(Identifier identifier) => identifier._guidValue;
+    public static implicit operator Identifier(in Guid guidValue) => new(guidValue);
+    public static implicit operator string(in Identifier identifier) => identifier._base64Value;
+    public static implicit operator Guid(in Identifier identifier) => identifier._guidValue;
 
-    public static bool operator ==(Identifier id1, Identifier id2) => id1._guidValue.Equals(id2._guidValue);
-    public static bool operator !=(Identifier id1, Identifier id2) => !id1._guidValue.Equals(id2._guidValue);
-    public static bool operator ==(Guid id1, Identifier id2) => id1.Equals(id2._guidValue);
-    public static bool operator !=(Guid id1, Identifier id2) => !id1.Equals(id2._guidValue);
+    public static bool operator ==(in Identifier id1, in Identifier id2) => id1._guidValue.Equals(id2._guidValue);
+    public static bool operator !=(in Identifier id1, in Identifier id2) => !id1._guidValue.Equals(id2._guidValue);
+    public static bool operator ==(in Guid id1, in Identifier id2) => id1.Equals(id2._guidValue);
+    public static bool operator !=(in Guid id1, in Identifier id2) => !id1.Equals(id2._guidValue);
 }
