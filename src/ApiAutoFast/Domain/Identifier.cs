@@ -1,10 +1,13 @@
 ﻿using System.Buffers.Text;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
 namespace ApiAutoFast;
 
-public readonly struct Identifier
+public readonly struct Identifier :
+        IEquatable<Identifier>,
+        IFormattable
 {
     public static readonly Identifier Empty = new(Guid.Empty);
 
@@ -19,10 +22,6 @@ public readonly struct Identifier
 
     private readonly Guid _guidValue;
     private readonly string _base64Value;
-
-    public Guid GuidValue => _guidValue;
-
-    public string StringValue => _base64Value;
 
     public Identifier(in Guid guidValue)
     {
@@ -48,9 +47,10 @@ public readonly struct Identifier
         _base64Value = base64Value;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Identifier New() => new(Guid.NewGuid());
 
-    public static Identifier ConvertFromRequest(in string request, in Action<string, string> addError)
+    public static Identifier ConvertFromRequest(in string? request, in Action<string, string> addError)
     {
         if (TryParse(request, out var identifier)) return identifier;
 
@@ -134,6 +134,9 @@ public readonly struct Identifier
         return new Guid(idBytes);
     }
 
+    public bool Equals(Identifier other) => _guidValue == other._guidValue;
+    public string ToString(string? format, IFormatProvider? formatProvider) => _base64Value.ToString(formatProvider);
+    public Guid ToGuid() => _guidValue;
     public override bool Equals(object? obj) => base.Equals(obj);
     public override int GetHashCode() => base.GetHashCode();
     public override string ToString() => _base64Value;
@@ -141,7 +144,6 @@ public readonly struct Identifier
     public static implicit operator Identifier(in Guid guidValue) => new(guidValue);
     public static implicit operator string(in Identifier identifier) => identifier._base64Value;
     public static implicit operator Guid(in Identifier identifier) => identifier._guidValue;
-
     public static bool operator ==(in Identifier id1, in Identifier id2) => id1._guidValue.Equals(id2._guidValue);
     public static bool operator !=(in Identifier id1, in Identifier id2) => !id1._guidValue.Equals(id2._guidValue);
     public static bool operator ==(in Guid id1, in Identifier id2) => id1.Equals(id2._guidValue);
