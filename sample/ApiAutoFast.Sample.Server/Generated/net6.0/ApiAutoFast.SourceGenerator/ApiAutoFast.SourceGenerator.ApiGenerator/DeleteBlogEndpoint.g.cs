@@ -21,14 +21,12 @@ public abstract class DeleteBlogEndpoint : EndpointBase<BlogDeleteCommand, BlogR
 
     public override void Configure()
     {
-        Verbs(Http.DELETE);
-        Routes("/blogs/{id}");
+        MapRoute("/blogs/{id}",HttpVerb.Delete);
         AllowAnonymous();
     }
 
     public override async Task HandleRequestAsync(BlogDeleteCommand req, CancellationToken ct)
     {
-
         var identifier = Identifier.ConvertFromRequest(req.Id, AddError);
 
         if (HasError())

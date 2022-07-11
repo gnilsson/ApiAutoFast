@@ -25,14 +25,12 @@ public abstract class GetByIdBlogEndpoint : EndpointBase<BlogGetByIdRequest, Blo
 
     public override void Configure()
     {
-        Verbs(Http.GET);
-        Routes("/blogs/{id}");
+        MapRoute("/blogs/{id}",HttpVerb.Get);
         AllowAnonymous();
     }
 
     public override async Task HandleRequestAsync(BlogGetByIdRequest req, CancellationToken ct)
     {
-
         var identifier = Identifier.ConvertFromRequest(req.Id, AddError);
 
         if (HasError())

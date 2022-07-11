@@ -18,11 +18,11 @@ public class ApiGenerator : IIncrementalGenerator
         _requestEndpointPairs = ImmutableArray.Create(new RequestEndpointPair[]
         {
             // note: propertytarget not currently used here
-            new (RequestModelTarget.GetByIdRequest, PropertyTarget.None, EndpointTargetType.GetById, "Http.GET"),
-            new (RequestModelTarget.DeleteCommand,  PropertyTarget.None, EndpointTargetType.Delete,  "Http.DELETE"),
-            new (RequestModelTarget.ModifyCommand,  PropertyTarget.ModifyCommand, EndpointTargetType.Update,  "Http.PUT"),
-            new (RequestModelTarget.CreateCommand,  PropertyTarget.CreateCommand, EndpointTargetType.Create,  "Http.POST"),
-            new (RequestModelTarget.QueryRequest,   PropertyTarget.QueryRequest, EndpointTargetType.Get,     "Http.GET"),
+            new (RequestModelTarget.GetByIdRequest, PropertyTarget.None, EndpointTargetType.GetById, "HttpVerb.Get"),
+            new (RequestModelTarget.DeleteCommand,  PropertyTarget.None, EndpointTargetType.Delete,  "HttpVerb.Delete"),
+            new (RequestModelTarget.ModifyCommand,  PropertyTarget.ModifyCommand, EndpointTargetType.Update,  "HttpVerb.Put"),
+            new (RequestModelTarget.CreateCommand,  PropertyTarget.CreateCommand, EndpointTargetType.Create,  "HttpVerb.Post"),
+            new (RequestModelTarget.QueryRequest,   PropertyTarget.QueryRequest, EndpointTargetType.Get,     "HttpVerb.Get"),
         });
     }
 

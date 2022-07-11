@@ -21,14 +21,12 @@ public abstract class UpdateBlogEndpoint : EndpointBase<BlogModifyCommand, BlogR
 
     public override void Configure()
     {
-        Verbs(Http.PUT);
-        Routes("/blogs/{id}");
+        MapRoute("/blogs/{id}",HttpVerb.Put);
         AllowAnonymous();
     }
 
     public override async Task HandleRequestAsync(BlogModifyCommand req, CancellationToken ct)
     {
-
         var identifier = Identifier.ConvertFromRequest(req.Id, AddError);
 
         if (HasError())

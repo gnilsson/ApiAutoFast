@@ -257,8 +257,7 @@ public ").Append(keyWord)
 
     public override void Configure()
     {
-        Verbs(").Append(endpointConfig.RequestEndpointPair.HttpVerb).Append(@");
-        Routes(""").Append(endpointConfig.Route).Append(@""");
+        MapRoute(""").Append(endpointConfig.Route).Append(@""",").Append(endpointConfig.RequestEndpointPair.HttpVerb).Append(@");
         AllowAnonymous();
     }
 ");
@@ -273,8 +272,7 @@ public ").Append(keyWord)
         }
         sb.Append(@"
     public override async Task HandleRequestAsync(").Append(endpointConfig.Request).Append(@" req, CancellationToken ct)
-    {
-");
+    {");
         sb = GetEndpointHandlerSource(endpointConfig.RequestEndpointPair.EndpointTarget)(sb, endpointConfig).Append(@"
     }
 }

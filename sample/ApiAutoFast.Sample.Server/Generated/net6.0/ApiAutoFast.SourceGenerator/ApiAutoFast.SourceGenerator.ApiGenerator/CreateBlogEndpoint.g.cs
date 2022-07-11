@@ -21,14 +21,12 @@ public abstract class CreateBlogEndpoint : EndpointBase<BlogCreateCommand, BlogR
 
     public override void Configure()
     {
-        Verbs(Http.POST);
-        Routes("/blogs");
+        MapRoute("/blogs",HttpVerb.Post);
         AllowAnonymous();
     }
 
     public override async Task HandleRequestAsync(BlogCreateCommand req, CancellationToken ct)
     {
-
         var entity = Map.ToDomainEntity(req, AddError);
 
         if (HasError())

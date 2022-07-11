@@ -30,14 +30,12 @@ public abstract class GetBlogEndpoint : EndpointBase<BlogQueryRequest, Paginated
 
     public override void Configure()
     {
-        Verbs(Http.GET);
-        Routes("/blogs");
+        MapRoute("/blogs",HttpVerb.Get);
         AllowAnonymous();
     }
 
     public override async Task HandleRequestAsync(BlogQueryRequest req, CancellationToken ct)
     {
-
         var response = YieldResponse(_queryExecutor.ExecuteAsync(HttpContext.Request.Query, ct));
 
         // return no content
