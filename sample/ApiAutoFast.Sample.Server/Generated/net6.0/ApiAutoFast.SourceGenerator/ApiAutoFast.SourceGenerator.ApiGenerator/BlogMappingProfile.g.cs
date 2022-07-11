@@ -29,7 +29,7 @@ public partial class BlogMappingProfile : Mapper<BlogCreateCommand, BlogResponse
     {
         return new Blog
         {
-            Title = Title2.ConvertFromRequest<Title2>(command.Title, addValidationError),
+            Title = Title.ConvertFromRequest<Title>(command.Title, addValidationError),
         };
     }
 }

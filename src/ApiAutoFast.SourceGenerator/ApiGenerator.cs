@@ -31,7 +31,7 @@ public class ApiGenerator : IIncrementalGenerator
         context.RegisterPostInitializationOutput(ctx =>
         {
             ctx.AddSource("EndpointTargetEnum.g.cs", SourceText.From(EmbeddedSourceEmitter.EndpointTargetEnum, Encoding.UTF8));
-            ctx.AddSource("AutoFastEndpointsAttribute.g.cs", SourceText.From(EmbeddedSourceEmitter.AutoFastEndpointsAttribute, Encoding.UTF8));
+            ctx.AddSource("AutoFastEntityAttribute.g.cs", SourceText.From(EmbeddedSourceEmitter.AutoFastEntityAttribute, Encoding.UTF8));
             ctx.AddSource("AutoFastContextAttribute.g.cs", SourceText.From(EmbeddedSourceEmitter.AutoFastContextAttribute, Encoding.UTF8));
             ctx.AddSource("AutoFastEndpointAttribute.g.cs", SourceText.From(EmbeddedSourceEmitter.AutoFastEndpointAttribute, Encoding.UTF8));
             ctx.AddSource("RequestModelTargetEnum.g.cs", SourceText.From(EmbeddedSourceEmitter.RequestModelTargetEnum, Encoding.UTF8));

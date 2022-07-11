@@ -8,9 +8,9 @@ namespace ApiAutoFast;
 /// <param name="entityName">Name of the entity to generate, will default to current class name and remove "Entity"</param>
 /// </summary>
 [AttributeUsage(AttributeTargets.Class)]
-internal class AutoFastEndpointsAttribute : Attribute
+internal class AutoFastEntityAttribute : Attribute
 {
-    internal AutoFastEndpointsAttribute(string? entityName = null, EndpointTargetType includeEndpointTarget = EndpointTargetType.All)
+    internal AutoFastEntityAttribute(string? entityName = null, EndpointTargetType includeEndpointTarget = EndpointTargetType.All)
     {
         EntityName = entityName;
         IncludeEndpointTarget = includeEndpointTarget;

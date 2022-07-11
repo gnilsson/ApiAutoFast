@@ -3,14 +3,6 @@ using FluentValidation.Results;
 
 namespace ApiAutoFast;
 
-public enum HttpVerb
-{
-    Get,
-    Post,
-    Put,
-    Delete,
-}
-
 public abstract class EndpointBase<TRequest, TResponse, TMapping> : Endpoint<TRequest, TResponse, TMapping>
     where TRequest : notnull, new()
     where TResponse : notnull, new()
@@ -21,13 +13,21 @@ public abstract class EndpointBase<TRequest, TResponse, TMapping> : Endpoint<TRe
         _handleRequestAsync = HandleRequestAsync;
     }
 
+    private static PairCollection<Http, HttpVerb> _pairs = new()
+    {
+        new Pair<Http, HttpVerb>(Http.GET, HttpVerb.Get),
+        new Pair<Http, HttpVerb>(Http.POST, HttpVerb.Post),
+        new Pair<Http, HttpVerb>(Http.PUT, HttpVerb.Put),
+        new Pair<Http, HttpVerb>(Http.DELETE, HttpVerb.Delete),
+    };
+
     private bool _saveChanges;
     public void SkipSaveChanges() => _saveChanges = false;
     public bool ShouldSave() => _saveChanges;
     public void MapRoute(string route, HttpVerb verb)
     {
         Routes(route);
-        Verbs(Enum.Parse<Http>(verb.ToString()));
+        Verbs(_pairs[verb]);
     }
 
     public bool HasError() => ValidationFailures.Count > 0;

@@ -121,6 +121,19 @@
 
 //namespace ApiAutoFast.Sample.Server;
 
+//[AutoFastEndpoint]
+//public class CreateBlogEndpointExt : CreateBlogEndpoint5
+//{
+//    public CreateBlogEndpointExt(AutoFastSampleDbContext dbContext) : base(dbContext)
+//    {
+//    }
+
+//    public override void Configure()
+//    {
+//        base.Configure();
+//    }
+//}
+
 //public abstract class CreateBlogEndpoint5 : EndpointBase<BlogCreateCommand, BlogResponse, BlogMappingProfile>
 //{
 //    private readonly AutoFastSampleDbContext _dbContext;
@@ -138,7 +151,6 @@
 
 //    public override async Task HandleRequestAsync(BlogCreateCommand req, CancellationToken ct)
 //    {
-
 //        var entity = Map.ToDomainEntity(req, AddError);
 
 //        if (HasError())

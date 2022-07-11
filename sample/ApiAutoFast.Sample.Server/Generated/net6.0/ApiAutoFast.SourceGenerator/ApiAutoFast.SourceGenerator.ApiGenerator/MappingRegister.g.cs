@@ -43,7 +43,7 @@ public partial class MappingRegister : ICodeGenerationRegister
             .When((src, dest, map) => src.GetInterface(nameof(IEntity<IIdentifier>)) is not null)
             .Map(nameof(IEntity<IIdentifier>.CreatedDateTime), (IEntity<IIdentifier> e) => e.CreatedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"))
             .Map(nameof(IEntity<IIdentifier>.ModifiedDateTime), (IEntity<IIdentifier> e) => e.ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"));
-            TypeAdapterConfig<Title2, string>.NewConfig().MapWith(x => x.EntityValue);
+            TypeAdapterConfig<Title, string>.NewConfig().MapWith(x => x.EntityValue);
 
             ExtendRegister(config);
 

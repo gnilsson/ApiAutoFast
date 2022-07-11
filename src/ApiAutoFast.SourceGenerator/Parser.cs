@@ -10,7 +10,7 @@ namespace ApiAutoFast.SourceGenerator;
 
 internal static class Parser
 {
-    private const string AutoFastEndpointsAttribute = "ApiAutoFast.AutoFastEndpointsAttribute";
+    private const string AutoFastEntityAttribute = "ApiAutoFast.AutoFastEntityAttribute";
     private const string AutoFastContextAttribute = "ApiAutoFast.AutoFastContextAttribute";
     private const string AutoFastEndpointAttribute = "ApiAutoFast.AutoFastEndpointAttribute";
 
@@ -26,7 +26,7 @@ internal static class Parser
 
                 var fullName = attributeSymbol.ContainingType.ToDisplayString();
 
-                if (fullName is AutoFastEndpointsAttribute or AutoFastContextAttribute or AutoFastEndpointAttribute)
+                if (fullName is AutoFastEntityAttribute or AutoFastContextAttribute or AutoFastEndpointAttribute)
                 {
                     return new SemanticTargetInformation(classDeclarationSyntax, fullName);
                 }
@@ -40,10 +40,10 @@ internal static class Parser
 
     internal static GenerationConfig? GetGenerationConfig(Compilation compilation, ImmutableArray<SemanticTargetInformation> semanticTargetInformations, CancellationToken ct)
     {
-        if (semanticTargetInformations.Any(x => x.Target is AutoFastEndpointsAttribute) is false) return null;
+        if (semanticTargetInformations.Any(x => x.Target is AutoFastEntityAttribute) is false) return null;
 
         var entityClassDeclarations = semanticTargetInformations
-            .Where(x => x.Target is AutoFastEndpointsAttribute && x.ClassDeclarationSyntax is not null)
+            .Where(x => x.Target is AutoFastEntityAttribute && x.ClassDeclarationSyntax is not null)
             .Select(x => x.ClassDeclarationSyntax)
             .ToImmutableArray();
 
@@ -56,6 +56,7 @@ internal static class Parser
             .Select(x => x.ClassDeclarationSyntax)
             .ToImmutableArray();
 
+        // ..
 
         var semanticTarget = semanticTargetInformations.FirstOrDefault(x => x.Target == AutoFastContextAttribute);
 
