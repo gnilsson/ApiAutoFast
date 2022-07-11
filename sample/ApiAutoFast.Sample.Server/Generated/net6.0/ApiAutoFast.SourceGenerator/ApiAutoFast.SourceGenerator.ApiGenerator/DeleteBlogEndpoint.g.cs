@@ -10,7 +10,7 @@ using System.Linq.Expressions;
 
 namespace ApiAutoFast.Sample.Server;
 
-public abstract class DeleteBlogEndpoint : EndpointBase<BlogDeleteCommand, BlogResponse, BlogMappingProfile>
+public partial class DeleteBlogEndpoint : EndpointBase<BlogDeleteCommand, BlogResponse, BlogMappingProfile>
 {
     private readonly AutoFastSampleDbContext _dbContext;
 
@@ -21,8 +21,13 @@ public abstract class DeleteBlogEndpoint : EndpointBase<BlogDeleteCommand, BlogR
 
     public override void Configure()
     {
-        MapRoute("/blogs/{id}",HttpVerb.Delete);
+        MapRoute("/blogs/{id}", HttpVerb.Delete);
         AllowAnonymous();
+    }
+
+    public override Task HandleAsync(BlogDeleteCommand req, CancellationToken ct)
+    {
+        return HandleRequestAsync(req, ct);
     }
 
     public override async Task HandleRequestAsync(BlogDeleteCommand req, CancellationToken ct)

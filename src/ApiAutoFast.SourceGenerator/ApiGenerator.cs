@@ -96,7 +96,10 @@ public class ApiGenerator : IIncrementalGenerator
             {
                 if (entityConfig.EndpointsAttributeArguments.EndpointTargetType.HasFlag(requestEndpointPair.EndpointTarget))
                 {
-                    var endpointConfig = new EndpointConfig(entityConfig, requestEndpointPair, true, entityConfig.RelationalNavigationNames, entityConfig.StringEntityProperties, contextConfig.Name);
+                    var endpoint = $"{requestEndpointPair.EndpointTarget}{entityConfig.BaseName}Endpoint";
+                    var isTargetedEndpoint = entityGenerationConfig.TargetedEndpointNames.Contains(endpoint);
+                    var endpointConfig = new EndpointConfig(endpoint, entityConfig, requestEndpointPair, isTargetedEndpoint, entityConfig.RelationalNavigationNames, entityConfig.StringEntityProperties, contextConfig.Name);
+
                     var requestModelsResult = EndpointSourceEmitter.EmitEndpoint(sb, entityGenerationConfig.Namespace, endpointConfig);
                     context.AddSource($"{endpointConfig.Endpoint}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
                 }

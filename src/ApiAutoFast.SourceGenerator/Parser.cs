@@ -42,6 +42,8 @@ internal static class Parser
     {
         if (semanticTargetInformations.Any(x => x.Target is AutoFastEntityAttribute) is false) return null;
 
+        ct.ThrowIfCancellationRequested();
+
         var entityClassDeclarations = semanticTargetInformations
             .Where(x => x.Target is AutoFastEntityAttribute && x.ClassDeclarationSyntax is not null)
             .Select(x => x.ClassDeclarationSyntax)
@@ -49,14 +51,17 @@ internal static class Parser
 
         if (entityClassDeclarations.Length == 0) return null;
 
-        var entityConfigs = YieldEntityConfig(compilation, entityClassDeclarations, ct).ToImmutableArray();
+        var entityConfigSetups = YieldEntityConfigSetup(compilation, entityClassDeclarations).ToImmutableArray();
 
-        var endpointClassDeclarations = semanticTargetInformations
-            .Where(x => x.Target is AutoFastEndpointAttribute && x.ClassDeclarationSyntax is not null)
-            .Select(x => x.ClassDeclarationSyntax)
+        var entityNames = entityConfigSetups
+            .Select(x => x.EndpointsAttributeArguments.EntityName)
             .ToImmutableArray();
 
-        // ..
+        var targetedEndpointNames = YieldAutoFastEndpointBaseName(compilation, semanticTargetInformations, entityNames).ToImmutableArray();
+
+        var propertyConfigSetups = YieldPropertyConfigSetup(compilation, entityNames, entityConfigSetups).ToImmutableArray();
+
+        var entityConfigs = YieldEntityConfig(entityConfigSetups, propertyConfigSetups, ct).ToImmutableArray();
 
         var semanticTarget = semanticTargetInformations.FirstOrDefault(x => x.Target == AutoFastContextAttribute);
 
@@ -65,23 +70,74 @@ internal static class Parser
             .GetDeclaredSymbol(semanticTarget.ClassDeclarationSyntax!) is not INamedTypeSymbol namedTypeSymbol)
         {
             return new GenerationConfig(
-                new EntityGenerationConfig(entityConfigs, GetNamespace(entityClassDeclarations.First())));
+                new EntityGenerationConfig(entityConfigs, GetNamespace(entityClassDeclarations.First()), targetedEndpointNames.ToImmutableArray()));
         }
 
         return new GenerationConfig(
-            new EntityGenerationConfig(entityConfigs, GetNamespace(semanticTarget.ClassDeclarationSyntax)),
+            new EntityGenerationConfig(entityConfigs, GetNamespace(semanticTarget.ClassDeclarationSyntax), targetedEndpointNames.ToImmutableArray()),
             new ContextGenerationConfig(namedTypeSymbol.Name));
     }
 
-    private static IEnumerable<EntityConfig> YieldEntityConfig(
+    //private static IEnumerable<KeyValuePair<string, string>> YieldAutoFastEndpointBaseName(
+    //    Compilation compilation,
+    //    ImmutableArray<SemanticTargetInformation> semanticTargetInformations,
+    //    ImmutableArray<string> entityNames)
+    //{
+    //    var endpointClassDeclarations = semanticTargetInformations
+    //        .Where(x => x.Target is AutoFastEndpointAttribute && x.ClassDeclarationSyntax is not null)
+    //        .Select(x => x.ClassDeclarationSyntax);
+
+    //    foreach (var classDeclaration in endpointClassDeclarations)
+    //    {
+    //        var endpointTarget = compilation
+    //            .GetSemanticModel(classDeclaration.SyntaxTree)
+    //            .GetDeclaredSymbol(classDeclaration)?.BaseType?.Name;
+
+    //        if (endpointTarget is null) continue;
+
+    //        var endpoints = entityNames.Select(x => $"{x}Endpoint").ToArray();
+
+    //        if (endpoints.Any(x => endpointTarget.Contains(x)))
+    //        {
+    //            var entity = entityNames.FirstOrDefault(x => endpointTarget.Contains(x));
+
+    //            yield return new(endpointTarget, entity!);
+    //        }
+    //    }
+    //}
+
+
+    private static IEnumerable<string> YieldAutoFastEndpointBaseName(
         Compilation compilation,
-        ImmutableArray<ClassDeclarationSyntax> entityClassDeclarations,
+        ImmutableArray<SemanticTargetInformation> semanticTargetInformations,
+        ImmutableArray<string> entityNames)
+    {
+        var endpointClassDeclarations = semanticTargetInformations
+            .Where(x => x.Target is AutoFastEndpointAttribute && x.ClassDeclarationSyntax is not null)
+            .Select(x => x.ClassDeclarationSyntax);
+
+        foreach (var classDeclaration in endpointClassDeclarations)
+        {
+            var endpointTarget = compilation
+                .GetSemanticModel(classDeclaration.SyntaxTree)
+                .GetDeclaredSymbol(classDeclaration)?.BaseType?.Name;
+
+            if (endpointTarget is null) continue;
+
+            var endpoints = entityNames.Select(x => $"{x}Endpoint").ToArray();
+
+            if (endpoints.Any(x => endpointTarget.Contains(x)))
+            {
+                yield return endpointTarget;
+            }
+        }
+    }
+
+    private static IEnumerable<EntityConfig> YieldEntityConfig(
+        ImmutableArray<EntityConfigSetup> entityConfigSetups,
+        ImmutableArray<KeyValuePair<string, Dictionary<string, List<PropertySetup>>>> propertyConfigSetups,
         CancellationToken ct)
     {
-        var entityConfigSetups = YieldEntityConfigSetup(compilation, entityClassDeclarations).ToImmutableArray();
-
-        var propertyConfigSetups = YieldPropertyConfigSetup(compilation, entityConfigSetups).ToImmutableArray();
-
         foreach (var propertyConfig in YieldPropertyConfig(propertyConfigSetups))
         {
             ct.ThrowIfCancellationRequested();
@@ -136,12 +192,9 @@ internal static class Parser
 
     private static IEnumerable<KeyValuePair<string, Dictionary<string, List<PropertySetup>>>> YieldPropertyConfigSetup(
         Compilation compilation,
+        ImmutableArray<string> entityNames,
         ImmutableArray<EntityConfigSetup> entityConfigSetups)
     {
-        var entityNames = entityConfigSetups
-            .Select(x => x.EndpointsAttributeArguments.EntityName)
-            .ToImmutableArray();
-
         foreach (var entity in entityConfigSetups)
         {
             yield return new KeyValuePair<string, Dictionary<string, List<PropertySetup>>>(

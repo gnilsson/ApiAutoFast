@@ -10,7 +10,7 @@ using System.Linq.Expressions;
 
 namespace ApiAutoFast.Sample.Server;
 
-public abstract class GetByIdBlogEndpoint : EndpointBase<BlogGetByIdRequest, BlogResponse, BlogMappingProfile>
+public partial class GetByIdBlogEndpoint : EndpointBase<BlogGetByIdRequest, BlogResponse, BlogMappingProfile>
 {
     private readonly AutoFastSampleDbContext _dbContext;
 
@@ -25,8 +25,13 @@ public abstract class GetByIdBlogEndpoint : EndpointBase<BlogGetByIdRequest, Blo
 
     public override void Configure()
     {
-        MapRoute("/blogs/{id}",HttpVerb.Get);
+        MapRoute("/blogs/{id}", HttpVerb.Get);
         AllowAnonymous();
+    }
+
+    public override Task HandleAsync(BlogGetByIdRequest req, CancellationToken ct)
+    {
+        return HandleRequestAsync(req, ct);
     }
 
     public override async Task HandleRequestAsync(BlogGetByIdRequest req, CancellationToken ct)

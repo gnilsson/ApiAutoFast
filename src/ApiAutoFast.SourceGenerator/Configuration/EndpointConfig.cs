@@ -6,6 +6,7 @@ namespace ApiAutoFast.SourceGenerator.Configuration;
 internal readonly struct EndpointConfig
 {
     internal EndpointConfig(
+        string endpoint,
         EntityConfig entityConfig,
         RequestEndpointPair requestEndpointPair,
         bool isTargetForGeneration,
@@ -13,8 +14,7 @@ internal readonly struct EndpointConfig
         ImmutableArray<string> stringEntityProperties,
         string contextName)
     {
-        var endpointTarget = requestEndpointPair.EndpointTarget.ToString();
-        Endpoint = $"{endpointTarget}{entityConfig.BaseName}Endpoint";
+        Endpoint = endpoint;
         Entity = entityConfig.BaseName;
         MappingProfile = entityConfig.MappingProfile;
         Route = requestEndpointPair.EndpointTarget switch

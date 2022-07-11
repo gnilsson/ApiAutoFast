@@ -1,5 +1,4 @@
 ﻿using ApiAutoFast.SourceGenerator.Configuration.Enums;
-using Microsoft.CodeAnalysis;
 using System.Collections.Immutable;
 
 namespace ApiAutoFast.SourceGenerator.Configuration;

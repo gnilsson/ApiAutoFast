@@ -21,7 +21,7 @@ public abstract class CreateBlogEndpoint : EndpointBase<BlogCreateCommand, BlogR
 
     public override void Configure()
     {
-        MapRoute("/blogs",HttpVerb.Post);
+        MapRoute("/blogs", HttpVerb.Post);
         AllowAnonymous();
     }
 

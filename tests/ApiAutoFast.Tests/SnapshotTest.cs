@@ -20,16 +20,29 @@ using System.ComponentModel.DataAnnotations;
 namespace ApiAutoFast.Sample.Server.Database;
 
 
-[AutoFastEndpoints]
+[AutoFastEntity]
 public class BlogEntity
 {
    // public PostsRelation Posts { get; set; } = default!;
-    public Title2 Title { get; set; } = default!;
+    public Title Title { get; set; } = default!;
 }
 
 public class Title2 : StringDomainValue<Title2>
 {
 
+}
+
+[AutoFastEndpoint]
+public class CreateBlogEndpointExt : CreateBlogEndpoint
+{
+    public CreateBlogEndpointExt(AutoFastSampleDbContext dbContext) : base(dbContext)
+    {
+    }
+
+    public override async Task HandleAsync(BlogCreateCommand req, CancellationToken ct)
+    {
+        await _handleRequestAsync(req, ct);
+    }
 }
 
 
@@ -86,9 +99,6 @@ public class PostType : DomainValue<EPostType, EPostType, string, PostType>
 public class LikeCount : DomainValue<int, LikeCount>
 { }
 
-//[IncludeInCommand(typeof(Blog), typeof(Post))]
-//public class Outsider : DomainValue<string, Outsider>
-//{ }
 
 [AutoFastContext]
 public partial class AutoFastSampleDbContext : DbContext

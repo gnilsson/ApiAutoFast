@@ -8,18 +8,18 @@ public abstract class EndpointBase<TRequest, TResponse, TMapping> : Endpoint<TRe
     where TResponse : notnull, new()
     where TMapping : notnull, IEntityMapper, new()
 {
-    public EndpointBase()
-    {
-        _handleRequestAsync = HandleRequestAsync;
-    }
-
-    private static PairCollection<Http, HttpVerb> _pairs = new()
+    private static readonly PairCollection<Http, HttpVerb> _pairs = new()
     {
         new Pair<Http, HttpVerb>(Http.GET, HttpVerb.Get),
         new Pair<Http, HttpVerb>(Http.POST, HttpVerb.Post),
         new Pair<Http, HttpVerb>(Http.PUT, HttpVerb.Put),
         new Pair<Http, HttpVerb>(Http.DELETE, HttpVerb.Delete),
     };
+
+    public EndpointBase()
+    {
+        _handleRequestAsync = HandleRequestAsync;
+    }
 
     private bool _saveChanges;
     public void SkipSaveChanges() => _saveChanges = false;
@@ -29,12 +29,9 @@ public abstract class EndpointBase<TRequest, TResponse, TMapping> : Endpoint<TRe
         Routes(route);
         Verbs(_pairs[verb]);
     }
-
     public bool HasError() => ValidationFailures.Count > 0;
-
     public void AddError(string property, string message) => ValidationFailures.Add(new ValidationFailure(property, message));
+    public abstract Task HandleRequestAsync(TRequest req, CancellationToken ct);
 
     protected readonly Func<TRequest, CancellationToken, Task> _handleRequestAsync;
-
-    public abstract Task HandleRequestAsync(TRequest req, CancellationToken ct);
 }

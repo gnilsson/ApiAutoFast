@@ -257,7 +257,7 @@ public ").Append(keyWord)
 
     public override void Configure()
     {
-        MapRoute(""").Append(endpointConfig.Route).Append(@""",").Append(endpointConfig.RequestEndpointPair.HttpVerb).Append(@");
+        MapRoute(""").Append(endpointConfig.Route).Append(@""", ").Append(endpointConfig.RequestEndpointPair.HttpVerb).Append(@");
         AllowAnonymous();
     }
 ");
