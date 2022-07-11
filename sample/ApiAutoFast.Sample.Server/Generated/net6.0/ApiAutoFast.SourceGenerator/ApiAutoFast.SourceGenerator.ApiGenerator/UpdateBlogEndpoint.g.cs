@@ -10,15 +10,9 @@ using System.Linq.Expressions;
 
 namespace ApiAutoFast.Sample.Server;
 
-public partial class UpdateBlogEndpoint : Endpoint<BlogModifyCommand, BlogResponse, BlogMappingProfile>
+public abstract class UpdateBlogEndpoint : EndpointBase<BlogModifyCommand, BlogResponse, BlogMappingProfile>
 {
-    partial void ExtendConfigure();
     private readonly AutoFastSampleDbContext _dbContext;
-    private readonly IQueryExecutor<Blog> _queryExecutor;
-    private bool _overrideConfigure = false;
-    private bool _saveChanges = true;
-    private bool _terminateHandler = false;
-
 
     public UpdateBlogEndpoint(AutoFastSampleDbContext dbContext)
     {
@@ -27,20 +21,13 @@ public partial class UpdateBlogEndpoint : Endpoint<BlogModifyCommand, BlogRespon
 
     public override void Configure()
     {
-        if (_overrideConfigure is false)
-        {
-            Verbs(Http.PUT);
-            Routes("/blogs/{id}");
-            // note: temporarily allow anonymous
-            AllowAnonymous();
-        }
-
-        ExtendConfigure();
+        Verbs(Http.PUT);
+        Routes("/blogs/{id}");
+        AllowAnonymous();
     }
 
-    public override async Task HandleAsync(BlogModifyCommand req, CancellationToken ct)
+    public override async Task HandleRequestAsync(BlogModifyCommand req, CancellationToken ct)
     {
-        if(_terminateHandler) return;
 
         var identifier = Identifier.ConvertFromRequest(req.Id, AddError);
 
@@ -63,15 +50,5 @@ public partial class UpdateBlogEndpoint : Endpoint<BlogModifyCommand, BlogRespon
         var response = Map.FromEntity(entity);
 
         await SendOkAsync(response, ct);
-    }
-
-    private void AddError(string property, string message)
-    {
-        ValidationFailures.Add(new ValidationFailure(property, message));
-    }
-
-    private bool HasError()
-    {
-        return ValidationFailures.Count > 0;
     }
 }

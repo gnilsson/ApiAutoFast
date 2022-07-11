@@ -10,16 +10,9 @@ using System.Linq.Expressions;
 
 namespace ApiAutoFast.Sample.Server;
 
-public partial class CreateBlogEndpoint : Endpoint<BlogCreateCommand, BlogResponse, BlogMappingProfile>
+public abstract class CreateBlogEndpoint : EndpointBase<BlogCreateCommand, BlogResponse, BlogMappingProfile>
 {
-    partial void ExtendConfigure();
     private readonly AutoFastSampleDbContext _dbContext;
-    private readonly IQueryExecutor<Blog> _queryExecutor;
-    private Blog _entity;
-    private bool _overrideConfigure = false;
-    private bool _saveChanges = true;
-    private bool _terminateHandler = false;
-
 
     public CreateBlogEndpoint(AutoFastSampleDbContext dbContext)
     {
@@ -28,22 +21,15 @@ public partial class CreateBlogEndpoint : Endpoint<BlogCreateCommand, BlogRespon
 
     public override void Configure()
     {
-        if (_overrideConfigure is false)
-        {
-            Verbs(Http.POST);
-            Routes("/blogs");
-            // note: temporarily allow anonymous
-            AllowAnonymous();
-        }
-
-        ExtendConfigure();
+        Verbs(Http.POST);
+        Routes("/blogs");
+        AllowAnonymous();
     }
 
-    public override async Task HandleAsync(BlogCreateCommand req, CancellationToken ct)
+    public override async Task HandleRequestAsync(BlogCreateCommand req, CancellationToken ct)
     {
-        if(_terminateHandler) return;
 
-        _entity = Map.ToDomainEntity(req, AddError);
+        var entity = Map.ToDomainEntity(req, AddError);
 
         if (HasError())
         {
@@ -51,25 +37,15 @@ public partial class CreateBlogEndpoint : Endpoint<BlogCreateCommand, BlogRespon
             return;
         }
 
-        await _dbContext.AddAsync(_entity, ct);
+        await _dbContext.AddAsync(entity, ct);
 
-        if (_saveChanges)
+        if (ShouldSave())
         {
             await _dbContext.SaveChangesAsync(ct);
         }
 
-        var response = Map.FromEntity(_entity);
+        var response = Map.FromEntity(entity);
 
-        await SendCreatedAtAsync<GetByIdBlogEndpoint>(new { Id = _entity.Id }, response, generateAbsoluteUrl: true, cancellation: ct);
-    }
-
-    private void AddError(string property, string message)
-    {
-        ValidationFailures.Add(new ValidationFailure(property, message));
-    }
-
-    private bool HasError()
-    {
-        return ValidationFailures.Count > 0;
+        await SendCreatedAtAsync<GetByIdBlogEndpoint>(new { Id = entity.Id }, response, generateAbsoluteUrl: true, cancellation: ct);
     }
 }

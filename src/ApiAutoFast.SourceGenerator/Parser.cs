@@ -12,22 +12,21 @@ internal static class Parser
 {
     private const string AutoFastEndpointsAttribute = "ApiAutoFast.AutoFastEndpointsAttribute";
     private const string AutoFastContextAttribute = "ApiAutoFast.AutoFastContextAttribute";
+    private const string AutoFastEndpointAttribute = "ApiAutoFast.AutoFastEndpointAttribute";
 
     internal static SemanticTargetInformation? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
     {
-        var classDeclarationSyntax = (ClassDeclarationSyntax)context.Node;
+        var classDeclarationSyntax = context.Node as ClassDeclarationSyntax;
 
-        foreach (var attributeListSyntax in classDeclarationSyntax.AttributeLists)
+        foreach (var attributeListSyntax in classDeclarationSyntax!.AttributeLists)
         {
             foreach (var attributeSyntax in attributeListSyntax.Attributes)
             {
                 if (context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol is not IMethodSymbol attributeSymbol) continue;
 
-                var attributeContainingTypeSymbol = attributeSymbol.ContainingType;
+                var fullName = attributeSymbol.ContainingType.ToDisplayString();
 
-                var fullName = attributeContainingTypeSymbol.ToDisplayString();
-
-                if (fullName is AutoFastEndpointsAttribute or AutoFastContextAttribute)
+                if (fullName is AutoFastEndpointsAttribute or AutoFastContextAttribute or AutoFastEndpointAttribute)
                 {
                     return new SemanticTargetInformation(classDeclarationSyntax, fullName);
                 }
@@ -41,16 +40,22 @@ internal static class Parser
 
     internal static GenerationConfig? GetGenerationConfig(Compilation compilation, ImmutableArray<SemanticTargetInformation> semanticTargetInformations, CancellationToken ct)
     {
-        if (semanticTargetInformations.Any(x => x.Target is AutoFastEndpointsAttribute) is false) return GenerationConfig.Empty;
+        if (semanticTargetInformations.Any(x => x.Target is AutoFastEndpointsAttribute) is false) return null;
 
         var entityClassDeclarations = semanticTargetInformations
             .Where(x => x.Target is AutoFastEndpointsAttribute && x.ClassDeclarationSyntax is not null)
-            .Select(x => x.ClassDeclarationSyntax!)
+            .Select(x => x.ClassDeclarationSyntax)
             .ToImmutableArray();
 
-        if (entityClassDeclarations.Length == 0) return GenerationConfig.Empty;
+        if (entityClassDeclarations.Length == 0) return null;
 
         var entityConfigs = YieldEntityConfig(compilation, entityClassDeclarations, ct).ToImmutableArray();
+
+        var endpointClassDeclarations = semanticTargetInformations
+            .Where(x => x.Target is AutoFastEndpointAttribute && x.ClassDeclarationSyntax is not null)
+            .Select(x => x.ClassDeclarationSyntax)
+            .ToImmutableArray();
+
 
         var semanticTarget = semanticTargetInformations.FirstOrDefault(x => x.Target == AutoFastContextAttribute);
 
@@ -95,7 +100,7 @@ internal static class Parser
                 .SelectMany(x => x.DefinedProperties.Select(x => x.Name))
                 .ToImmutableArray();
 
-            yield return new EntityConfig(endpointsAttributeArguments, relationalNavigationNames, propertyConfig, stringEntityProperties);
+            yield return new EntityConfig(endpointsAttributeArguments, propertyConfig, relationalNavigationNames, stringEntityProperties);
         }
     }
 
@@ -140,17 +145,17 @@ internal static class Parser
         {
             yield return new KeyValuePair<string, Dictionary<string, List<PropertySetup>>>(
                 entity.EndpointsAttributeArguments.EntityName,
-                YieldDefinedValues(compilation, entityNames, entity));
+                GetPropertySetups(compilation, entityNames, entity));
         }
     }
 
-    private static Dictionary<string, List<PropertySetup>> YieldDefinedValues(Compilation compilation, ImmutableArray<string> entityNames, EntityConfigSetup entity)
+    private static Dictionary<string, List<PropertySetup>> GetPropertySetups(Compilation compilation, ImmutableArray<string> entityNames, EntityConfigSetup entity)
     {
         var members = entity.SemanticModel
             .GetDeclaredSymbol(entity.ClassDeclarationSyntax)!
             .GetMembers();
 
-        var values = new Dictionary<string, List<PropertySetup>>();
+        var propertySetupDictionary = new Dictionary<string, List<PropertySetup>>();
 
         foreach (var member in members)
         {
@@ -164,16 +169,16 @@ internal static class Parser
 
             var propertySetup = new PropertySetup(property.Name, basePropertySource, domainValueMetadata);
 
-            if (values.ContainsKey(domainValueMetadata.Definition.TypeName))
+            if (propertySetupDictionary.ContainsKey(domainValueMetadata.Definition.TypeName))
             {
-                values[domainValueMetadata.Definition.TypeName].Add(propertySetup);
+                propertySetupDictionary[domainValueMetadata.Definition.TypeName].Add(propertySetup);
                 continue;
             }
 
-            values.Add(domainValueMetadata.Definition.TypeName, new List<PropertySetup> { propertySetup });
+            propertySetupDictionary.Add(domainValueMetadata.Definition.TypeName, new List<PropertySetup> { propertySetup });
         }
 
-        return values;
+        return propertySetupDictionary;
     }
 
     private static bool TryGetDomainValueMetadata(
@@ -204,6 +209,7 @@ internal static class Parser
         IPropertySymbol property,
         ImmutableArray<string> entityNames)
     {
+        // note: attempt for default domain values.. for great benefit?
         if (domainValueType.BaseType?.Name is TypeText.StringDomainValue)
         {
             return new DomainValueDefinition(

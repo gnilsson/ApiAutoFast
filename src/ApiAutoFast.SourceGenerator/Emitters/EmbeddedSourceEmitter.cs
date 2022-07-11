@@ -36,6 +36,18 @@ internal class AutoFastContextAttribute : Attribute
 }
 ";
 
+    public const string AutoFastEndpointAttribute = @"
+using System;
+
+namespace ApiAutoFast;
+
+[AttributeUsage(AttributeTargets.Class)]
+internal class AutoFastEndpointAttribute : Attribute
+{
+}
+";
+
+
     public const string ExcludeRequestModelAttribute = @"
 using System;
 

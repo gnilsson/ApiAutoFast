@@ -10,23 +10,18 @@ using System.Linq.Expressions;
 
 namespace ApiAutoFast.Sample.Server;
 
-public partial class GetBlogEndpoint : Endpoint<BlogQueryRequest, Paginated<BlogResponse>, BlogMappingProfile>
+public abstract class GetBlogEndpoint : EndpointBase<BlogQueryRequest, Paginated <BlogResponse>, BlogMappingProfile>
 {
-    partial void ExtendConfigure();
+    private readonly AutoFastSampleDbContext _dbContext;
+
     private static readonly Dictionary<string, Func<string, Expression<Func<Blog, bool>>>> _stringMethods = new()
     {
                 ["Title"] = static query => entity => ((string)entity.Title).Contains(query),
     };
-    private readonly AutoFastSampleDbContext _dbContext;
-    private readonly IQueryExecutor<Blog> _queryExecutor;
-    private bool _overrideConfigure = false;
-    private bool _saveChanges = true;
-    private bool _terminateHandler = false;
     private static readonly string[] _relationalNavigationNames = new string[]
     {
     };
-
-
+    private readonly IQueryExecutor<Blog> _queryExecutor;
     public GetBlogEndpoint(AutoFastSampleDbContext dbContext)
     {
         _dbContext = dbContext;
@@ -35,20 +30,13 @@ public partial class GetBlogEndpoint : Endpoint<BlogQueryRequest, Paginated<Blog
 
     public override void Configure()
     {
-        if (_overrideConfigure is false)
-        {
-            Verbs(Http.GET);
-            Routes("/blogs");
-            // note: temporarily allow anonymous
-            AllowAnonymous();
-        }
-
-        ExtendConfigure();
+        Verbs(Http.GET);
+        Routes("/blogs");
+        AllowAnonymous();
     }
 
-    public override async Task HandleAsync(BlogQueryRequest req, CancellationToken ct)
+    public override async Task HandleRequestAsync(BlogQueryRequest req, CancellationToken ct)
     {
-        if(_terminateHandler) return;
 
         var response = YieldResponse(_queryExecutor.ExecuteAsync(HttpContext.Request.Query, ct));
 
@@ -63,15 +51,5 @@ public partial class GetBlogEndpoint : Endpoint<BlogQueryRequest, Paginated<Blog
                 yield return Map.FromEntity(entity);
             }
         }
-    }
-
-    private void AddError(string property, string message)
-    {
-        ValidationFailures.Add(new ValidationFailure(property, message));
-    }
-
-    private bool HasError()
-    {
-        return ValidationFailures.Count > 0;
     }
 }

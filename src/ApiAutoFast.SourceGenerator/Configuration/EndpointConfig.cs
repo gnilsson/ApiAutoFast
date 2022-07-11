@@ -5,7 +5,13 @@ namespace ApiAutoFast.SourceGenerator.Configuration;
 
 internal readonly struct EndpointConfig
 {
-    internal EndpointConfig(EntityConfig entityConfig, RequestEndpointPair requestEndpointPair)
+    internal EndpointConfig(
+        EntityConfig entityConfig,
+        RequestEndpointPair requestEndpointPair,
+        bool isTargetForGeneration,
+        ImmutableArray<string> relationalNavigationNames,
+        ImmutableArray<string> stringEntityProperties,
+        string contextName)
     {
         var endpointTarget = requestEndpointPair.EndpointTarget.ToString();
         Endpoint = $"{endpointTarget}{entityConfig.BaseName}Endpoint";
@@ -22,6 +28,10 @@ internal readonly struct EndpointConfig
         Response = entityConfig.Response;
         Request = $"{entityConfig.BaseName}{requestEndpointPair.RequestModel}";
         RequestEndpointPair = requestEndpointPair;
+        IsTargetForGeneration = isTargetForGeneration;
+        RelationalNavigationNames = relationalNavigationNames;
+        StringEntityProperties = stringEntityProperties;
+        ContextName = contextName;
     }
 
     internal readonly string Endpoint { get; }
@@ -31,4 +41,8 @@ internal readonly struct EndpointConfig
     internal readonly string Route { get; }
     internal readonly string MappingProfile { get; }
     internal readonly RequestEndpointPair RequestEndpointPair { get; }
+    internal readonly bool IsTargetForGeneration { get; }
+    internal readonly ImmutableArray<string> RelationalNavigationNames { get; }
+    internal readonly ImmutableArray<string> StringEntityProperties { get; }
+    internal readonly string ContextName { get; }
 }

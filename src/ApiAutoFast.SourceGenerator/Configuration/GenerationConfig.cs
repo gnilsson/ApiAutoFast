@@ -8,7 +8,6 @@ internal readonly struct GenerationConfig
         EntityGeneration = entityGeneration;
     }
 
-    internal static readonly GenerationConfig Empty = default;
     internal readonly ContextGenerationConfig? ContextGeneration { get; }
     internal readonly EntityGenerationConfig? EntityGeneration { get; }
 }

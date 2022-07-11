@@ -10,15 +10,9 @@ using System.Linq.Expressions;
 
 namespace ApiAutoFast.Sample.Server;
 
-public partial class DeleteBlogEndpoint : Endpoint<BlogDeleteCommand, BlogResponse, BlogMappingProfile>
+public abstract class DeleteBlogEndpoint : EndpointBase<BlogDeleteCommand, BlogResponse, BlogMappingProfile>
 {
-    partial void ExtendConfigure();
     private readonly AutoFastSampleDbContext _dbContext;
-    private readonly IQueryExecutor<Blog> _queryExecutor;
-    private bool _overrideConfigure = false;
-    private bool _saveChanges = true;
-    private bool _terminateHandler = false;
-
 
     public DeleteBlogEndpoint(AutoFastSampleDbContext dbContext)
     {
@@ -27,20 +21,13 @@ public partial class DeleteBlogEndpoint : Endpoint<BlogDeleteCommand, BlogRespon
 
     public override void Configure()
     {
-        if (_overrideConfigure is false)
-        {
-            Verbs(Http.DELETE);
-            Routes("/blogs/{id}");
-            // note: temporarily allow anonymous
-            AllowAnonymous();
-        }
-
-        ExtendConfigure();
+        Verbs(Http.DELETE);
+        Routes("/blogs/{id}");
+        AllowAnonymous();
     }
 
-    public override async Task HandleAsync(BlogDeleteCommand req, CancellationToken ct)
+    public override async Task HandleRequestAsync(BlogDeleteCommand req, CancellationToken ct)
     {
-        if(_terminateHandler) return;
 
         var identifier = Identifier.ConvertFromRequest(req.Id, AddError);
 
@@ -60,18 +47,11 @@ public partial class DeleteBlogEndpoint : Endpoint<BlogDeleteCommand, BlogRespon
 
         _dbContext.Blogs.Remove(result);
 
-        await _dbContext.SaveChangesAsync(ct);
+        if (ShouldSave())
+        {
+            await _dbContext.SaveChangesAsync(ct);
+        }
 
         await SendOkAsync(ct);
-    }
-
-    private void AddError(string property, string message)
-    {
-        ValidationFailures.Add(new ValidationFailure(property, message));
-    }
-
-    private bool HasError()
-    {
-        return ValidationFailures.Count > 0;
     }
 }

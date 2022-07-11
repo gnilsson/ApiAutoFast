@@ -5,11 +5,6 @@ using System.Text.RegularExpressions;
 
 namespace ApiAutoFast;
 
-public interface IIdentifier : IEquatable<Identifier>
-{
-
-}
-
 public readonly struct Identifier :
         IIdentifier,
         IFormattable

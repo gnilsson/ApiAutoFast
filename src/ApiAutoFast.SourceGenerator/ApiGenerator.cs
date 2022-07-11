@@ -11,6 +11,8 @@ namespace ApiAutoFast.SourceGenerator;
 [Generator]
 public class ApiGenerator : IIncrementalGenerator
 {
+    private static readonly ImmutableArray<RequestEndpointPair> _requestEndpointPairs;
+
     static ApiGenerator()
     {
         _requestEndpointPairs = ImmutableArray.Create(new RequestEndpointPair[]
@@ -24,8 +26,6 @@ public class ApiGenerator : IIncrementalGenerator
         });
     }
 
-    private static readonly ImmutableArray<RequestEndpointPair> _requestEndpointPairs;
-
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         context.RegisterPostInitializationOutput(ctx =>
@@ -33,6 +33,7 @@ public class ApiGenerator : IIncrementalGenerator
             ctx.AddSource("EndpointTargetEnum.g.cs", SourceText.From(EmbeddedSourceEmitter.EndpointTargetEnum, Encoding.UTF8));
             ctx.AddSource("AutoFastEndpointsAttribute.g.cs", SourceText.From(EmbeddedSourceEmitter.AutoFastEndpointsAttribute, Encoding.UTF8));
             ctx.AddSource("AutoFastContextAttribute.g.cs", SourceText.From(EmbeddedSourceEmitter.AutoFastContextAttribute, Encoding.UTF8));
+            ctx.AddSource("AutoFastEndpointAttribute.g.cs", SourceText.From(EmbeddedSourceEmitter.AutoFastEndpointAttribute, Encoding.UTF8));
             ctx.AddSource("RequestModelTargetEnum.g.cs", SourceText.From(EmbeddedSourceEmitter.RequestModelTargetEnum, Encoding.UTF8));
             ctx.AddSource("ExcludeRequestModelAttribute.g.cs", SourceText.From(EmbeddedSourceEmitter.ExcludeRequestModelAttribute, Encoding.UTF8));
             ctx.AddSource("IncludeInCommandAttribute.g.cs", SourceText.From(EmbeddedSourceEmitter.IncludeInCommandAttribute, Encoding.UTF8));
@@ -95,14 +96,8 @@ public class ApiGenerator : IIncrementalGenerator
             {
                 if (entityConfig.EndpointsAttributeArguments.EndpointTargetType.HasFlag(requestEndpointPair.EndpointTarget))
                 {
-                    var endpointConfig = new EndpointConfig(entityConfig, requestEndpointPair);
-                    var requestModelsResult = EndpointSourceEmitter.EmitEndpoint(
-                        sb,
-                        entityGenerationConfig.Namespace,
-                        endpointConfig,
-                        contextConfig.Name,
-                        entityConfig.RelationalNavigationNames,
-                        entityConfig.StringEntityProperties);
+                    var endpointConfig = new EndpointConfig(entityConfig, requestEndpointPair, true, entityConfig.RelationalNavigationNames, entityConfig.StringEntityProperties, contextConfig.Name);
+                    var requestModelsResult = EndpointSourceEmitter.EmitEndpoint(sb, entityGenerationConfig.Namespace, endpointConfig);
                     context.AddSource($"{endpointConfig.Endpoint}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
                 }
             }

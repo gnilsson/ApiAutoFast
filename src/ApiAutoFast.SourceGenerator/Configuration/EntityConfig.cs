@@ -8,8 +8,8 @@ internal readonly struct EntityConfig
 {
     internal EntityConfig(
         AutoFastEndpointsAttributeArguments endpointsAttributeArguments,
-        ImmutableArray<string> relationalNavigationNames,
         PropertyConfig propertyConfig,
+        ImmutableArray<string> relationalNavigationNames,
         ImmutableArray<string> stringEntityProperties)
     {
         BaseName = endpointsAttributeArguments.EntityName;
@@ -18,8 +18,8 @@ internal readonly struct EntityConfig
         CreateCommand = $"{endpointsAttributeArguments.EntityName}{nameof(RequestModelTarget.CreateCommand)}";
         ModifyCommand = $"{endpointsAttributeArguments.EntityName}{nameof(RequestModelTarget.ModifyCommand)}";
         EndpointsAttributeArguments = endpointsAttributeArguments;
-        RelationalNavigationNames = relationalNavigationNames;
         PropertyConfig = propertyConfig;
+        RelationalNavigationNames = relationalNavigationNames;
         StringEntityProperties = stringEntityProperties;
     }
 
@@ -29,7 +29,7 @@ internal readonly struct EntityConfig
     internal readonly string CreateCommand { get; }
     internal readonly string ModifyCommand { get; }
     internal readonly AutoFastEndpointsAttributeArguments EndpointsAttributeArguments { get; }
-    internal readonly ImmutableArray<string> RelationalNavigationNames { get; }
     internal readonly PropertyConfig PropertyConfig { get; }
+    internal readonly ImmutableArray<string> RelationalNavigationNames { get; }
     internal readonly ImmutableArray<string> StringEntityProperties { get; }
 }

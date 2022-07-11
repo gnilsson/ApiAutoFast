@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 
 namespace ApiAutoFast.EntityFramework;
 
+// note: create queryexecutor for seqId?
 public sealed class QueryExecutor<TEntity> : IQueryExecutor<TEntity> where TEntity : class, IEntity<Identifier>
 {
     private static readonly Dictionary<string, KeysetPaginationDirection> _paginationDirectionParams = new()

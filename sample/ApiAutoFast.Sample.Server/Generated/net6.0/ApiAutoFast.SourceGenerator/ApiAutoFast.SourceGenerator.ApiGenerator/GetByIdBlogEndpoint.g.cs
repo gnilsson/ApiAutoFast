@@ -10,18 +10,13 @@ using System.Linq.Expressions;
 
 namespace ApiAutoFast.Sample.Server;
 
-public partial class GetByIdBlogEndpoint : Endpoint<BlogGetByIdRequest, BlogResponse, BlogMappingProfile>
+public abstract class GetByIdBlogEndpoint : EndpointBase<BlogGetByIdRequest, BlogResponse, BlogMappingProfile>
 {
-    partial void ExtendConfigure();
     private readonly AutoFastSampleDbContext _dbContext;
-    private readonly IQueryExecutor<Blog> _queryExecutor;
-    private bool _overrideConfigure = false;
-    private bool _saveChanges = true;
-    private bool _terminateHandler = false;
+
     private static readonly string[] _relationalNavigationNames = new string[]
     {
     };
-
 
     public GetByIdBlogEndpoint(AutoFastSampleDbContext dbContext)
     {
@@ -30,20 +25,13 @@ public partial class GetByIdBlogEndpoint : Endpoint<BlogGetByIdRequest, BlogResp
 
     public override void Configure()
     {
-        if (_overrideConfigure is false)
-        {
-            Verbs(Http.GET);
-            Routes("/blogs/{id}");
-            // note: temporarily allow anonymous
-            AllowAnonymous();
-        }
-
-        ExtendConfigure();
+        Verbs(Http.GET);
+        Routes("/blogs/{id}");
+        AllowAnonymous();
     }
 
-    public override async Task HandleAsync(BlogGetByIdRequest req, CancellationToken ct)
+    public override async Task HandleRequestAsync(BlogGetByIdRequest req, CancellationToken ct)
     {
-        if(_terminateHandler) return;
 
         var identifier = Identifier.ConvertFromRequest(req.Id, AddError);
 
@@ -71,15 +59,5 @@ public partial class GetByIdBlogEndpoint : Endpoint<BlogGetByIdRequest, BlogResp
         var response = Map.FromEntity(result);
 
         await SendOkAsync(response, ct);
-    }
-
-    private void AddError(string property, string message)
-    {
-        ValidationFailures.Add(new ValidationFailure(property, message));
-    }
-
-    private bool HasError()
-    {
-        return ValidationFailures.Count > 0;
     }
 }

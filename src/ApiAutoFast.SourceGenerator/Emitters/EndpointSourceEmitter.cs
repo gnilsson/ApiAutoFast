@@ -7,7 +7,7 @@ namespace ApiAutoFast.SourceGenerator.Emitters;
 
 internal static class EndpointSourceEmitter
 {
-    private static Func<StringBuilder, EndpointConfig, StringBuilder> GetEndpointSource(EndpointTargetType endpointTargetType) => endpointTargetType switch
+    private static Func<StringBuilder, EndpointConfig, StringBuilder> GetEndpointHandlerSource(EndpointTargetType endpointTargetType) => endpointTargetType switch
     {
         EndpointTargetType.Get => static (sb, endpointConfig) =>
         {
@@ -31,7 +31,7 @@ internal static class EndpointSourceEmitter
         EndpointTargetType.Create => static (sb, endpointConfig) =>
         {
             sb.Append(@"
-        _entity = Map.ToDomainEntity(req, AddError);
+        var entity = Map.ToDomainEntity(req, AddError);
 
         if (HasError())
         {
@@ -39,16 +39,16 @@ internal static class EndpointSourceEmitter
             return;
         }
 
-        await _dbContext.AddAsync(_entity, ct);
+        await _dbContext.AddAsync(entity, ct);
 
-        if (_saveChanges)
+        if (ShouldSave())
         {
             await _dbContext.SaveChangesAsync(ct);
         }
 
-        var response = Map.FromEntity(_entity);
+        var response = Map.FromEntity(entity);
 
-        await SendCreatedAtAsync<GetById").Append(endpointConfig.Entity).Append(@"Endpoint>(new { Id = _entity.Id }, response, generateAbsoluteUrl: true, cancellation: ct);");
+        await SendCreatedAtAsync<GetById").Append(endpointConfig.Entity).Append(@"Endpoint>(new { Id = entity.Id }, response, generateAbsoluteUrl: true, cancellation: ct);");
             return sb;
         }
         ,
@@ -100,7 +100,10 @@ internal static class EndpointSourceEmitter
 
         _dbContext.").Append(endpointConfig.Entity).Append(@"s.Remove(result);
 
-        await _dbContext.SaveChangesAsync(ct);
+        if (ShouldSave())
+        {
+            await _dbContext.SaveChangesAsync(ct);
+        }
 
         await SendOkAsync(ct);");
             return sb;
@@ -146,17 +149,80 @@ internal static class EndpointSourceEmitter
         }
     };
 
-    internal static string EmitEndpoint(
-        StringBuilder sb,
-        string @namespace,
-        EndpointConfig endpointConfig,
-        string contextName,
-        ImmutableArray<string> relationalNavigationNames,
-        ImmutableArray<string> stringEntityProperties)
+    private static Func<StringBuilder, EndpointConfig, StringBuilder> GetEndpointSetupSource(EndpointTargetType endpointTargetType) => endpointTargetType switch
+    {
+        EndpointTargetType.Get => static (sb, endpointConfig) =>
+        {
+            sb.Append(@"
+    private static readonly Dictionary<string, Func<string, Expression<Func<").Append(endpointConfig.Entity).Append(@", bool>>>> _stringMethods = new()
+    {");
+            foreach (var propertyName in endpointConfig.StringEntityProperties)
+            {
+                sb.Append(@"
+                [""").Append(propertyName).Append(@"""] = static query => entity => ((string)entity.").Append(propertyName).Append(@").Contains(query),");
+            }
+            sb.Append(@"
+    };
+    private static readonly string[] _relationalNavigationNames = new string[]
+    {");
+            foreach (var relationalNavigationName in endpointConfig.RelationalNavigationNames)
+            {
+                sb.Append(@"
+        """).Append(relationalNavigationName).Append(@""",");
+            }
+            sb.Append(@"
+    };
+    private readonly IQueryExecutor<").Append(endpointConfig.Entity).Append(@"> _queryExecutor;");
+
+            sb.Append(@"
+    public ").Append(endpointConfig.Endpoint).Append(@"(").Append(endpointConfig.ContextName).Append(@" dbContext)
+    {
+        _dbContext = dbContext;
+        _queryExecutor = new QueryExecutor<").Append(endpointConfig.Entity).Append(@">(_dbContext.").Append(endpointConfig.Entity).Append(@"s, _stringMethods, _relationalNavigationNames);");
+            sb.Append(@"
+    }");
+
+            return sb;
+        }
+        ,
+        EndpointTargetType.GetById => static (sb, endpointConfig) =>
+        {
+            sb.Append(@"
+    private static readonly string[] _relationalNavigationNames = new string[]
+    {");
+            foreach (var relationalNavigationName in endpointConfig.RelationalNavigationNames)
+            {
+                sb.Append(@"
+        """).Append(relationalNavigationName).Append(@""",");
+            }
+            sb.Append(@"
+    };
+
+    public ").Append(endpointConfig.Endpoint).Append(@"(").Append(endpointConfig.ContextName).Append(@" dbContext)
+    {
+        _dbContext = dbContext;
+    }");
+            return sb;
+        }
+        ,
+        EndpointTargetType.Create or EndpointTargetType.Update or EndpointTargetType.Delete => static (sb, endpointConfig) =>
+        {
+            sb.Append(@"
+    public ").Append(endpointConfig.Endpoint).Append(@"(").Append(endpointConfig.ContextName).Append(@" dbContext)
+    {
+        _dbContext = dbContext;
+    }");
+            return sb;
+        }
+        ,
+        _ => null!
+    };
+
+    internal static string EmitEndpoint(StringBuilder sb, string @namespace, EndpointConfig endpointConfig)
     {
         sb.Clear();
 
-        var response = endpointConfig.RequestEndpointPair.EndpointTarget is EndpointTargetType.Get ? $"Paginated<{endpointConfig.Response}>" : endpointConfig.Response;
+        var response = endpointConfig.RequestEndpointPair.EndpointTarget is EndpointTargetType.Get ? $"Paginated <{endpointConfig.Response}>" : endpointConfig.Response;
 
         sb.Append(@"
 using ApiAutoFast;
@@ -170,10 +236,13 @@ using System.Linq.Expressions;
 
 namespace ").Append(@namespace).Append(@";
 ");
+        var keyWord = endpointConfig.IsTargetForGeneration ? "abstract" : "partial";
+
         sb.Append(@"
-public partial class ")
+public ").Append(keyWord)
+            .Append(" class ")
             .Append(endpointConfig.Endpoint)
-            .Append(@" : Endpoint<")
+            .Append(@" : EndpointBase<")
             .Append(endpointConfig.Request)
             .Append(@", ")
             .Append(response)
@@ -181,92 +250,32 @@ public partial class ")
             .Append(endpointConfig.MappingProfile)
             .Append(@">
 {
-    partial void ExtendConfigure();");
+    private readonly ").Append(endpointConfig.ContextName).Append(@" _dbContext;
+");
 
-        if (endpointConfig.RequestEndpointPair.EndpointTarget is EndpointTargetType.Get)
-        {
-            sb.Append(@"
-    private static readonly Dictionary<string, Func<string, Expression<Func<").Append(endpointConfig.Entity).Append(@", bool>>>> _stringMethods = new()
-    {");
-            foreach (var propertyName in stringEntityProperties)
-            {
-                //        sb.Append(@" 
-                //[""").Append(propertyName).Append(@"""] = static query => entity => entity.").Append(propertyName).Append(@".Contains(query),");
-                sb.Append(@"
-                [""").Append(propertyName).Append(@"""] = static query => entity => ((string)entity.").Append(propertyName).Append(@").Contains(query),");
-            }
-            sb.Append(@"
-    };");
-        }
-        sb.Append(@"
-    private readonly ").Append(contextName).Append(@" _dbContext;
-    private readonly IQueryExecutor<").Append(endpointConfig.Entity).Append(@"> _queryExecutor;");
-        if (endpointConfig.RequestEndpointPair.EndpointTarget is EndpointTargetType.Create)
-        {
-            sb.Append(@"
-    private ").Append(endpointConfig.Entity).Append(@" _entity;");
-        }
-        sb.Append(@"
-    private bool _overrideConfigure = false;
-    private bool _saveChanges = true;
-    private bool _terminateHandler = false;");
-
-        if (endpointConfig.RequestEndpointPair.EndpointTarget is EndpointTargetType.Get or EndpointTargetType.GetById)
-        {
-            sb.Append(@"
-    private static readonly string[] _relationalNavigationNames = new string[]
-    {");
-            foreach (var relationalNavigationName in relationalNavigationNames)
-            {
-                sb.Append(@"
-        """).Append(relationalNavigationName).Append(@""",");
-            }
-            sb.Append(@"
-    };");
-        }
-        sb.Append(@"
-
-
-    public ").Append(endpointConfig.Endpoint).Append(@"(").Append(contextName).Append(@" dbContext)
-    {
-        _dbContext = dbContext;");
-        if (endpointConfig.RequestEndpointPair.EndpointTarget is EndpointTargetType.Get)
-        {
-            sb.Append(@"
-        _queryExecutor = new QueryExecutor<").Append(endpointConfig.Entity).Append(@">(_dbContext.").Append(endpointConfig.Entity).Append(@"s, _stringMethods, _relationalNavigationNames);");
-        }
-        sb.Append(@"
-    }
+        sb = GetEndpointSetupSource(endpointConfig.RequestEndpointPair.EndpointTarget)(sb, endpointConfig).Append(@"
 
     public override void Configure()
     {
-        if (_overrideConfigure is false)
+        Verbs(").Append(endpointConfig.RequestEndpointPair.HttpVerb).Append(@");
+        Routes(""").Append(endpointConfig.Route).Append(@""");
+        AllowAnonymous();
+    }
+");
+        if (endpointConfig.IsTargetForGeneration is false)
         {
-            Verbs(").Append(endpointConfig.RequestEndpointPair.HttpVerb).Append(@");
-            Routes(""").Append(endpointConfig.Route).Append(@""");
-            // note: temporarily allow anonymous
-            AllowAnonymous();
+            sb.Append(@"
+    public override Task HandleAsync(").Append(endpointConfig.Request).Append(@" req, CancellationToken ct)
+    {
+        return HandleRequestAsync(req, ct);
+    }
+");
         }
-
-        ExtendConfigure();
-    }
-");
         sb.Append(@"
-    public override async Task HandleAsync(").Append(endpointConfig.Request).Append(@" req, CancellationToken ct)
+    public override async Task HandleRequestAsync(").Append(endpointConfig.Request).Append(@" req, CancellationToken ct)
     {
-        if(_terminateHandler) return;
 ");
-        sb = GetEndpointSource(endpointConfig.RequestEndpointPair.EndpointTarget)(sb, endpointConfig).Append(@"
-    }
-
-    private void AddError(string property, string message)
-    {
-        ValidationFailures.Add(new ValidationFailure(property, message));
-    }
-
-    private bool HasError()
-    {
-        return ValidationFailures.Count > 0;
+        sb = GetEndpointHandlerSource(endpointConfig.RequestEndpointPair.EndpointTarget)(sb, endpointConfig).Append(@"
     }
 }
 ");
