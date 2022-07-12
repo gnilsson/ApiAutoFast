@@ -1,13 +1,12 @@
-﻿//HintName: BlogModifyCommand.g.cs
+﻿//HintName: BlogGetByIdRequest.g.cs
 
  #nullable enable
 
 using ApiAutoFast;
 
-namespace ApiAutoFast.Sample.Server.Database;
+namespace ApiAutoFast.Sample.Server;
 
-public partial class BlogModifyCommand
+public partial class BlogGetByIdRequest
 {
     public string Id { get; set; }
-    public string Title { get; set; }
 }

@@ -15,7 +15,9 @@ namespace ApiAutoFast.Sample.Server;
 //}
 //[AutoFastEndpoints(IdType = IdType.Sequential)]
 
-[AutoFastEntity]
+//[AutoFastEntity(idType: IdType.Identifier)]
+
+[AutoFastEntity(idType: IdType.SequentialIdentifier)]
 public class BlogEntity
 {
     public Title Title { get; set; } = default!;
@@ -31,9 +33,9 @@ public class BlogEntity
 
 
 [AutoFastEndpoint]
-public class CreateBlogEndpointExt : CreateBlogEndpoint
+public class CreateBlogEndpointExtended : CreateBlogEndpoint
 {
-    public CreateBlogEndpointExt(AutoFastSampleDbContext dbContext) : base(dbContext)
+    public CreateBlogEndpointExtended(AutoFastSampleDbContext dbContext) : base(dbContext)
     {
     }
 

@@ -1,16 +1,17 @@
-﻿//HintName: RequestModelTargetEnum.g.cs
+﻿//HintName: EndpointTargetEnum.g.cs
 
 using System;
 
 namespace ApiAutoFast;
 
 [Flags]
-public enum RequestModelTarget
+internal enum EndpointTargetType
 {
     None = 0,
-    CreateCommand = 1,
-    ModifyCommand = 2,
-    QueryRequest = 4,
-    GetByIdRequest = 8,
-    DeleteCommand = 16,
+    Get = 1,
+    GetById = 2,
+    Create = 4,
+    Update = 8,
+    Delete = 16,
+    All = Get | Create | Update | GetById | Delete
 }

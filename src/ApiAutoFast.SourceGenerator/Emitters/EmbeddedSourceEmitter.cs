@@ -14,14 +14,16 @@ namespace ApiAutoFast;
 [AttributeUsage(AttributeTargets.Class)]
 internal class AutoFastEntityAttribute : Attribute
 {
-    internal AutoFastEntityAttribute(string? entityName = null, EndpointTargetType includeEndpointTarget = EndpointTargetType.All)
+    internal AutoFastEntityAttribute(string? entityName = null, EndpointTargetType includeEndpointTarget = EndpointTargetType.All, IdType idType = IdType.Identifier)
     {
         EntityName = entityName;
         IncludeEndpointTarget = includeEndpointTarget;
+        IdType = idType;
     }
 
     public string? EntityName { get; }
     public EndpointTargetType IncludeEndpointTarget { get; }
+    public IdType IdType { get; }
 }
 ";
 
@@ -70,6 +72,7 @@ public class ExcludeRequestModelAttribute : Attribute
 }
 ";
 
+    //note: the usefulness of this attribute is highly questionable, partial commands seems better.
     public const string IncludeInCommandAttribute = @"
     using System;
 
@@ -123,6 +126,16 @@ internal enum EndpointTargetType
     Update = 8,
     Delete = 16,
     All = Get | Create | Update | GetById | Delete
+}
+";
+
+    public const string IdTypeEnum = @"
+namespace ApiAutoFast;
+
+internal enum IdType
+{
+    Identifier,
+    SequentialIdentifier,
 }
 ";
 }

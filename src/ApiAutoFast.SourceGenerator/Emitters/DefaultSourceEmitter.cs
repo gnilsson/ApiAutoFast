@@ -63,9 +63,9 @@ public partial class MappingRegister : ICodeGenerationRegister
         TypeAdapterConfig.GlobalSettings.Default.AddDestinationTransform(DestinationTransform.EmptyCollectionIfNull);
 
         TypeAdapterConfig.GlobalSettings
-            .When((src, dest, map) => src.GetInterface(nameof(IEntity<IIdentifier>)) is not null)
-            .Map(nameof(IEntity<IIdentifier>.CreatedDateTime), (IEntity<IIdentifier> e) => e.CreatedDateTime.ToString(""dddd, dd MMMM yyyy HH:mm""))
-            .Map(nameof(IEntity<IIdentifier>.ModifiedDateTime), (IEntity<IIdentifier> e) => e.ModifiedDateTime.ToString(""dddd, dd MMMM yyyy HH:mm""));");
+            .When((src, dest, map) => src.GetInterface(nameof(IEntity<Identifier>)) is not null)
+            .Map(nameof(IEntity<Identifier>.CreatedDateTime), (IEntity<Identifier> e) => e.CreatedDateTime.ToString(""dddd, dd MMMM yyyy HH:mm""))
+            .Map(nameof(IEntity<Identifier>.ModifiedDateTime), (IEntity<Identifier> e) => e.ModifiedDateTime.ToString(""dddd, dd MMMM yyyy HH:mm""));");
 
         foreach (var definedDomainValue in generationConfig.EntityConfigs
             .SelectMany(x => x.PropertyConfig.DomainValues)
@@ -86,7 +86,7 @@ public partial class MappingRegister : ICodeGenerationRegister
             }
 
             sb.Append(@"
-            TypeAdapterConfig<")
+        TypeAdapterConfig<")
                 .Append(definedDomainValue.DomainValueDefinition.TypeName)
                 .Append(@", ")
                 .Append(definedDomainValue.DomainValueDefinition.ResponseType)
@@ -95,17 +95,17 @@ public partial class MappingRegister : ICodeGenerationRegister
 
         sb.Append(@"
 
-            ExtendRegister(config);
+        ExtendRegister(config);
 
-            config.GenerateMapper(""[name]Mapper"")");
+        config.GenerateMapper(""[name]Mapper"")");
         foreach (var entity in generationConfig.EntityConfigs)
         {
             sb.Append(@"
-                .ForType<").Append(entity.BaseName).Append(@">()");
+            .ForType<").Append(entity.BaseName).Append(@">()");
         }
         sb.Append(@";").Append(@"
-        }
     }
+}
 
 public static class AdaptAttributeBuilderExtensions
 {
@@ -151,7 +151,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ").Append(@namespace).Append(@";
 
-public class ").Append(entityConfig.BaseName).Append(@" : IEntity<Identifier>
+public class ").Append(entityConfig.BaseName).Append(@" : IEntity<").Append(entityConfig.EndpointsAttributeArguments.IdType).Append(@">
 {
     public ").Append(entityConfig.BaseName).Append(@"()
     {");
@@ -174,7 +174,7 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity<Identifier>
         sb.Append(@"
     }
 
-    public Identifier Id { get; set; }
+    public ").Append(entityConfig.EndpointsAttributeArguments.IdType).Append(@" Id { get; set; }
     public DateTime CreatedDateTime { get; set; }
     public DateTime ModifiedDateTime { get; set; }");
         foreach (var propertyOutput in entities)

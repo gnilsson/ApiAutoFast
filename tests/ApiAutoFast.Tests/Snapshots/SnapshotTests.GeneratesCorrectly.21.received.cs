@@ -1,4 +1,4 @@
-﻿//HintName: DeleteBlogEndpoint.g.cs
+﻿//HintName: UpdateBlogEndpoint.g.cs
 
 using ApiAutoFast;
 using ApiAutoFast.EntityFramework;
@@ -11,27 +11,27 @@ using System.Linq.Expressions;
 
 namespace ApiAutoFast.Sample.Server;
 
-public partial class DeleteBlogEndpoint : EndpointBase<BlogDeleteCommand, BlogResponse, BlogMappingProfile>
+public partial class UpdateBlogEndpoint : EndpointBase<BlogModifyCommand, BlogResponse, BlogMappingProfile>
 {
     private readonly AutoFastSampleDbContext _dbContext;
 
-    public DeleteBlogEndpoint(AutoFastSampleDbContext dbContext)
+    public UpdateBlogEndpoint(AutoFastSampleDbContext dbContext)
     {
         _dbContext = dbContext;
     }
 
     public override void Configure()
     {
-        MapRoute("/blogs/{id}", HttpVerb.Delete);
+        MapRoute("/blogs/{id}", HttpVerb.Put);
         AllowAnonymous();
     }
 
-    public override Task HandleAsync(BlogDeleteCommand req, CancellationToken ct)
+    public override Task HandleAsync(BlogModifyCommand req, CancellationToken ct)
     {
         return HandleRequestAsync(req, ct);
     }
 
-    public override async Task HandleRequestAsync(BlogDeleteCommand req, CancellationToken ct)
+    public override async Task HandleRequestAsync(BlogModifyCommand req, CancellationToken ct)
     {
         var identifier = Identifier.ConvertFromRequest(req.Id, AddError);
 
@@ -49,13 +49,10 @@ public partial class DeleteBlogEndpoint : EndpointBase<BlogDeleteCommand, BlogRe
             return;
         }
 
-        _dbContext.Blogs.Remove(result);
+        var entity = Map.UpdateEntity(result, req);
 
-        if (ShouldSave())
-        {
-            await _dbContext.SaveChangesAsync(ct);
-        }
+        var response = Map.FromEntity(entity);
 
-        await SendOkAsync(ct);
+        await SendOkAsync(response, ct);
     }
 }

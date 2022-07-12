@@ -1,4 +1,5 @@
-﻿
+﻿//HintName: GetBlogEndpoint.g.cs
+
 using ApiAutoFast;
 using ApiAutoFast.EntityFramework;
 using FastEndpoints;
@@ -10,7 +11,7 @@ using System.Linq.Expressions;
 
 namespace ApiAutoFast.Sample.Server;
 
-public partial class GetBlogEndpoint : EndpointBase<BlogQueryRequest, Paginated<BlogResponse>, BlogMappingProfile>
+public partial class GetBlogEndpoint : EndpointBase<BlogQueryRequest, Paginated <BlogResponse>, BlogMappingProfile>
 {
     private readonly AutoFastSampleDbContext _dbContext;
 

@@ -17,7 +17,7 @@ using ApiAutoFast;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
-namespace ApiAutoFast.Sample.Server.Database;
+namespace ApiAutoFast.Sample.Server;
 
 
 [AutoFastEntity]

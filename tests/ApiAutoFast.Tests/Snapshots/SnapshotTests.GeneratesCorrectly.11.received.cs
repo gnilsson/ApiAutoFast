@@ -1,21 +1,50 @@
-﻿//HintName: IncludeInCommandAttribute.g.cs
+﻿//HintName: CreateBlogEndpoint.g.cs
 
-    using System;
+using ApiAutoFast;
+using ApiAutoFast.EntityFramework;
+using FastEndpoints;
+using FluentValidation.Results;
+using Microsoft.EntityFrameworkCore;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Linq.Expressions;
 
-    namespace ApiAutoFast;
+namespace ApiAutoFast.Sample.Server;
 
-    /// <summary>
-    /// Attribute to include property in another entity command.
-    /// <param name="otherEntityType">The other entity</param>
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Class)]
-    public class IncludeInCommandAttribute : Attribute
+public abstract class CreateBlogEndpoint : EndpointBase<BlogCreateCommand, BlogResponse, BlogMappingProfile>
+{
+    private readonly AutoFastSampleDbContext _dbContext;
+
+    public CreateBlogEndpoint(AutoFastSampleDbContext dbContext)
     {
-        public IncludeInCommandAttribute(params Type[] otherEntityTypes)
+        _dbContext = dbContext;
+    }
+
+    public override void Configure()
+    {
+        MapRoute("/blogs", HttpVerb.Post);
+        AllowAnonymous();
+    }
+
+    public override async Task HandleRequestAsync(BlogCreateCommand req, CancellationToken ct)
+    {
+        var entity = Map.ToDomainEntity(req, AddError);
+
+        if (HasError())
         {
-            OtherEntityTypes = otherEntityTypes;
+            await SendErrorsAsync(400, ct);
+            return;
         }
 
-        public Type[] OtherEntityTypes { get; }
+        await _dbContext.AddAsync(entity, ct);
+
+        if (ShouldSave())
+        {
+            await _dbContext.SaveChangesAsync(ct);
+        }
+
+        var response = Map.FromEntity(entity);
+
+        await SendCreatedAtAsync<GetByIdBlogEndpoint>(new { Id = entity.Id }, response, generateAbsoluteUrl: true, cancellation: ct);
     }
-    
+}

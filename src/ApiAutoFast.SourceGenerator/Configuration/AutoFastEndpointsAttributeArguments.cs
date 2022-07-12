@@ -2,14 +2,16 @@
 
 namespace ApiAutoFast.SourceGenerator.Configuration;
 
-internal readonly struct AutoFastEndpointsAttributeArguments
+internal readonly struct AutoFastEntityAttributeArguments
 {
-    public AutoFastEndpointsAttributeArguments(string entityName, EndpointTargetType endpointTargetType)
+    public AutoFastEntityAttributeArguments(string entityName, EndpointTargetType endpointTargetType, string idType)
     {
         EntityName = entityName;
         EndpointTargetType = endpointTargetType;
+        IdType = idType;
     }
 
     internal readonly string EntityName { get; }
     internal readonly EndpointTargetType EndpointTargetType { get; }
+    internal readonly string IdType { get; }
 }

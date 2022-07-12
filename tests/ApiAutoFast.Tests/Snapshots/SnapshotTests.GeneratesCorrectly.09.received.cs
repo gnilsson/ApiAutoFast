@@ -1,17 +1,13 @@
-﻿//HintName: EndpointTargetEnum.g.cs
+﻿//HintName: BlogModifyCommand.g.cs
 
-using System;
+ #nullable enable
 
-namespace ApiAutoFast;
+using ApiAutoFast;
 
-[Flags]
-internal enum EndpointTargetType
+namespace ApiAutoFast.Sample.Server;
+
+public partial class BlogModifyCommand
 {
-    None = 0,
-    Get = 1,
-    GetById = 2,
-    Create = 4,
-    Update = 8,
-    Delete = 16,
-    All = Get | Create | Update | GetById | Delete
+    public string Id { get; set; }
+    public string Title { get; set; }
 }

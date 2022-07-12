@@ -1,40 +1,24 @@
-﻿//HintName: AutoFastSampleDbContext.g.cs
+﻿//HintName: AutoFastEntityAttribute.g.cs
 
-using ApiAutoFast;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
+using System;
 
-namespace ApiAutoFast.Sample.Server.Database;
+namespace ApiAutoFast;
 
-public partial class AutoFastSampleDbContext : DbContext
+/// <summary>
+/// Marker attribute for source generator.
+/// <param name="entityName">Name of the entity to generate, will default to current class name and remove "Entity"</param>
+/// </summary>
+[AttributeUsage(AttributeTargets.Class)]
+internal class AutoFastEntityAttribute : Attribute
 {
-    private static readonly Type[] _entityTypes;
-
-    static AutoFastSampleDbContext()
+    internal AutoFastEntityAttribute(string? entityName = null, EndpointTargetType includeEndpointTarget = EndpointTargetType.All, IdType idType = IdType.Identifier)
     {
-        _entityTypes = AutoFastDbContextHelper.GetEntityTypes<AutoFastSampleDbContext>();
+        EntityName = entityName;
+        IncludeEndpointTarget = includeEndpointTarget;
+        IdType = idType;
     }
 
-    partial void ExtendOnModelCreating(ModelBuilder modelBuilder);
-    partial void ExtendSaveChanges();
-
-    public AutoFastSampleDbContext(DbContextOptions<AutoFastSampleDbContext> options) : base(options) { }
-
-    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        AutoFastDbContextHelper.UpdateModifiedDateTime(ChangeTracker.Entries());
-
-        ExtendSaveChanges();
-
-        return await base.SaveChangesAsync(cancellationToken);
-    }
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        AutoFastDbContextHelper.BuildEntities(modelBuilder, _entityTypes);
-
-        ExtendOnModelCreating(modelBuilder);
-    }
-
-    public DbSet<Blog> Blogs { get; init; } = default!;
+    public string? EntityName { get; }
+    public EndpointTargetType IncludeEndpointTarget { get; }
+    public IdType IdType { get; }
 }

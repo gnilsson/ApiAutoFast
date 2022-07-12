@@ -1,21 +1,14 @@
-﻿//HintName: ExcludeRequestModelAttribute.g.cs
+﻿//HintName: BlogQueryRequest.g.cs
 
-using System;
+ #nullable enable
 
-namespace ApiAutoFast;
+using ApiAutoFast;
 
-/// <summary>
-/// Attribute to exclude property from request model.
-/// <param name="includeRequestModelTarget">If not applied, property is per default included in
-/// RequestModelTarget.CreateCommand | RequestModelTarget.ModifyCommand | RequestModelTarget.QueryRequest</param>
-/// </summary>
-[AttributeUsage(AttributeTargets.Class)]
-public class ExcludeRequestModelAttribute : Attribute
+namespace ApiAutoFast.Sample.Server;
+
+public partial class BlogQueryRequest
 {
-    public ExcludeRequestModelAttribute(RequestModelTarget includeRequestModelTarget = RequestModelTarget.None)
-    {
-        IncludeRequestModelTarget = includeRequestModelTarget;
-    }
-
-    public RequestModelTarget IncludeRequestModelTarget { get; }
+    public string? CreatedDateTime { get; set; }
+    public string? ModifiedDateTime { get; set; }
+    public string? Title { get; set; }
 }

@@ -1,12 +1,19 @@
-﻿//HintName: BlogCreateCommand.g.cs
-
- #nullable enable
+﻿//HintName: Blog.g.cs
 
 using ApiAutoFast;
+using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
-namespace ApiAutoFast.Sample.Server.Database;
+namespace ApiAutoFast.Sample.Server;
 
-public partial class BlogCreateCommand
+public class Blog : IEntity<Identifier>
 {
-    public string Title { get; set; }
+    public Blog()
+    {
+    }
+
+    public Identifier Id { get; set; }
+    public DateTime CreatedDateTime { get; set; }
+    public DateTime ModifiedDateTime { get; set; }
+    public Title Title { get; set; }
 }

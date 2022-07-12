@@ -1,12 +1,12 @@
-﻿//HintName: BlogGetByIdRequest.g.cs
+﻿//HintName: BlogDeleteCommand.g.cs
 
  #nullable enable
 
 using ApiAutoFast;
 
-namespace ApiAutoFast.Sample.Server.Database;
+namespace ApiAutoFast.Sample.Server;
 
-public partial class BlogGetByIdRequest
+public partial class BlogDeleteCommand
 {
     public string Id { get; set; }
 }

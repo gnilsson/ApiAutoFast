@@ -157,7 +157,7 @@ internal static class EndpointSourceEmitter
             foreach (var propertyName in endpointConfig.StringEntityProperties)
             {
                 sb.Append(@"
-            [""").Append(propertyName).Append(@"""] = static query => entity => ((string)entity.").Append(propertyName).Append(@").Contains(query),");
+        [""").Append(propertyName).Append(@"""] = static query => entity => ((string)entity.").Append(propertyName).Append(@").Contains(query),");
             }
             sb.Append(@"
     };
@@ -237,7 +237,7 @@ public ").Append(endpointConfig.IsTargetForGeneration ? "abstract" : "partial")
             .Append(@" : EndpointBase<")
             .Append(endpointConfig.Request)
             .Append(@", ")
-            .Append(endpointConfig.RequestEndpointPair.EndpointTarget is EndpointTargetType.Get ? $"Paginated <{endpointConfig.Response}>" : endpointConfig.Response)
+            .Append(endpointConfig.RequestEndpointPair.EndpointTarget is EndpointTargetType.Get ? $"Paginated<{endpointConfig.Response}>" : endpointConfig.Response)
             .Append(@", ")
             .Append(endpointConfig.MappingProfile)
             .Append(@">

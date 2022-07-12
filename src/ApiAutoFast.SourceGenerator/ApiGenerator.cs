@@ -31,6 +31,7 @@ public class ApiGenerator : IIncrementalGenerator
         context.RegisterPostInitializationOutput(ctx =>
         {
             ctx.AddSource("EndpointTargetEnum.g.cs", SourceText.From(EmbeddedSourceEmitter.EndpointTargetEnum, Encoding.UTF8));
+            ctx.AddSource("IdTypeEnum.g.cs", SourceText.From(EmbeddedSourceEmitter.IdTypeEnum, Encoding.UTF8));
             ctx.AddSource("AutoFastEntityAttribute.g.cs", SourceText.From(EmbeddedSourceEmitter.AutoFastEntityAttribute, Encoding.UTF8));
             ctx.AddSource("AutoFastContextAttribute.g.cs", SourceText.From(EmbeddedSourceEmitter.AutoFastContextAttribute, Encoding.UTF8));
             ctx.AddSource("AutoFastEndpointAttribute.g.cs", SourceText.From(EmbeddedSourceEmitter.AutoFastEndpointAttribute, Encoding.UTF8));
@@ -97,7 +98,7 @@ public class ApiGenerator : IIncrementalGenerator
                 if (entityConfig.EndpointsAttributeArguments.EndpointTargetType.HasFlag(requestEndpointPair.EndpointTarget))
                 {
                     var endpoint = $"{requestEndpointPair.EndpointTarget}{entityConfig.BaseName}Endpoint";
-                    var isTargetedEndpoint = entityGenerationConfig.TargetedEndpointNames.Contains(endpoint);
+                    var isTargetedEndpoint = entityGenerationConfig.TargetedEndpointNames.HasValue && entityGenerationConfig.TargetedEndpointNames.Contains(endpoint);
                     var endpointConfig = new EndpointConfig(endpoint, entityConfig, requestEndpointPair, isTargetedEndpoint, entityConfig.RelationalNavigationNames, entityConfig.StringEntityProperties, contextConfig.Name);
 
                     var requestModelsResult = EndpointSourceEmitter.EmitEndpoint(sb, entityGenerationConfig.Namespace, endpointConfig);

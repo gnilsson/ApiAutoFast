@@ -57,7 +57,14 @@ internal static class Parser
             .Select(x => x.EndpointsAttributeArguments.EntityName)
             .ToImmutableArray();
 
-        var targetedEndpointNames = YieldAutoFastEndpointBaseName(compilation, semanticTargetInformations, entityNames).ToImmutableArray();
+        var endpointClassDeclarations = semanticTargetInformations
+            .Where(x => x.Target is AutoFastEndpointAttribute && x.ClassDeclarationSyntax is not null)
+            .Select(x => x.ClassDeclarationSyntax)
+            .ToImmutableArray();
+
+        var targetedEndpointNames = endpointClassDeclarations.Length == 0
+            ? null
+            : YieldTargetedEndpointName(compilation, endpointClassDeclarations, entityNames)?.ToImmutableArray();
 
         var propertyConfigSetups = YieldPropertyConfigSetup(compilation, entityNames, entityConfigSetups).ToImmutableArray();
 
@@ -66,36 +73,42 @@ internal static class Parser
         var semanticTarget = semanticTargetInformations.FirstOrDefault(x => x.Target == AutoFastContextAttribute);
 
         if (semanticTarget is null || compilation
-            .GetSemanticModel(semanticTarget.ClassDeclarationSyntax!.SyntaxTree)
-            .GetDeclaredSymbol(semanticTarget.ClassDeclarationSyntax!) is not INamedTypeSymbol namedTypeSymbol)
+            .GetSemanticModel(semanticTarget.ClassDeclarationSyntax.SyntaxTree)
+            .GetDeclaredSymbol(semanticTarget.ClassDeclarationSyntax) is not INamedTypeSymbol namedTypeSymbol)
         {
             return new GenerationConfig(
-                new EntityGenerationConfig(entityConfigs, GetNamespace(entityClassDeclarations.First()), targetedEndpointNames.ToImmutableArray()));
+                new EntityGenerationConfig(entityConfigs, GetNamespace(entityClassDeclarations.First()), targetedEndpointNames));
         }
 
         return new GenerationConfig(
-            new EntityGenerationConfig(entityConfigs, GetNamespace(semanticTarget.ClassDeclarationSyntax), targetedEndpointNames.ToImmutableArray()),
+            new EntityGenerationConfig(entityConfigs, GetNamespace(semanticTarget.ClassDeclarationSyntax), targetedEndpointNames),
             new ContextGenerationConfig(namedTypeSymbol.Name));
     }
 
-    private static IEnumerable<string> YieldAutoFastEndpointBaseName(
+    private static IEnumerable<string> YieldTargetedEndpointName(
         Compilation compilation,
-        ImmutableArray<SemanticTargetInformation> semanticTargetInformations,
+        ImmutableArray<ClassDeclarationSyntax> endpointClassDeclarations,
         ImmutableArray<string> entityNames)
     {
-        var endpointClassDeclarations = semanticTargetInformations
-            .Where(x => x.Target is AutoFastEndpointAttribute && x.ClassDeclarationSyntax is not null)
-            .Select(x => x.ClassDeclarationSyntax);
-
         var endpoints = entityNames
             .Select(x => $"{x}Endpoint")
             .ToArray();
 
         foreach (var classDeclaration in endpointClassDeclarations)
         {
-            var endpointTarget = compilation
+            var declaredSymbol = compilation
                 .GetSemanticModel(classDeclaration.SyntaxTree)
-                .GetDeclaredSymbol(classDeclaration)?.BaseType?.Name;
+                .GetDeclaredSymbol(classDeclaration);
+
+            if (declaredSymbol is null) continue;
+
+            if (declaredSymbol.Name.EndsWith("Extended"))
+            {
+                yield return declaredSymbol.Name.Replace("Extended", "");
+                continue;
+            }
+
+            var endpointTarget = declaredSymbol?.BaseType?.Name;
 
             if (endpointTarget is not null && endpoints.Any(x => endpointTarget.Contains(x)))
             {
@@ -142,13 +155,13 @@ internal static class Parser
 
             if (semanticModel.GetDeclaredSymbol(entityClassDeclaration) is not INamedTypeSymbol namedTypeSymbol) continue;
 
-            var endpointsAttributeArguments = GetAutoFastEndpointsAttributeArguments(namedTypeSymbol);
+            var endpointsAttributeArguments = GetAutoFastEntityAttributeArguments(namedTypeSymbol);
 
             yield return new EntityConfigSetup(entityClassDeclaration, semanticModel, endpointsAttributeArguments);
         }
     }
 
-    private static AutoFastEndpointsAttributeArguments GetAutoFastEndpointsAttributeArguments(INamedTypeSymbol namedTypeSymbol)
+    private static AutoFastEntityAttributeArguments GetAutoFastEntityAttributeArguments(INamedTypeSymbol namedTypeSymbol)
     {
         var endpointsAttribute = namedTypeSymbol.GetAttributes()[0];
 
@@ -158,7 +171,9 @@ internal static class Parser
 
         var endpointTarget = (EndpointTargetType)endpointsAttribute.ConstructorArguments[1].Value!;
 
-        return new AutoFastEndpointsAttributeArguments(entityName!, endpointTarget);
+        var idType = ((IdType)endpointsAttribute.ConstructorArguments[2].Value!).ToString();
+
+        return new AutoFastEntityAttributeArguments(entityName!, endpointTarget, idType);
     }
 
     private static IEnumerable<KeyValuePair<string, Dictionary<string, List<PropertySetup>>>> YieldPropertyConfigSetup(
@@ -270,24 +285,25 @@ internal static class Parser
         return null;
     }
 
-    private static IEnumerable<PropertyConfig> YieldPropertyConfig(ImmutableArray<KeyValuePair<string, Dictionary<string, List<PropertySetup>>>> entityNameKeyKvps)
+    private static IEnumerable<PropertyConfig> YieldPropertyConfig(ImmutableArray<KeyValuePair<string, Dictionary<string, List<PropertySetup>>>> propertyConfigSetupsKvps)
     {
         var propertiesCollection = new Dictionary<string, List<PropertyOutput>>();
+
         var domainValuesCollection = new Dictionary<string, ImmutableArray<DefinedDomainValue>>();
 
-        foreach (var kvpDictionaries in entityNameKeyKvps)
+        foreach (var propertyConfigSetupsEntityKvp in propertyConfigSetupsKvps)
         {
-            var definedDomainValues = new List<DefinedDomainValue>();
+            var definedDomainValues = ImmutableArray.CreateBuilder<DefinedDomainValue>();
 
-            foreach (var kvpProperties in kvpDictionaries.Value)
+            foreach (var propertyConfigSetupsKvp in propertyConfigSetupsEntityKvp.Value)
             {
-                var definedProperties = new List<DefinedProperty>();
+                var definedProperties = ImmutableArray.CreateBuilder<DefinedProperty>();
 
-                var domainValueDefinition = kvpDictionaries.Value[kvpProperties.Key].First().DomainValueMetadata.Definition;
+                var domainValueDefinition = propertyConfigSetupsEntityKvp.Value[propertyConfigSetupsKvp.Key].First().DomainValueMetadata.Definition;
 
-                foreach (var propertySetup in kvpProperties.Value)
+                foreach (var propertySetup in propertyConfigSetupsKvp.Value)
                 {
-                    foreach (var propertyOutput in YieldPropertyOutput(kvpDictionaries.Key, propertySetup))
+                    foreach (var propertyOutput in YieldPropertyOutput(propertyConfigSetupsEntityKvp.Key, propertySetup))
                     {
                         if (propertyOutput.PropertyKind is PropertyKind.Identifier && propertyOutput.Name == $"{propertySetup.Name}Id")
                         {
@@ -309,10 +325,10 @@ internal static class Parser
                     }
                 }
 
-                definedDomainValues.Add(new DefinedDomainValue(domainValueDefinition, definedProperties.ToImmutableArray()));
+                definedDomainValues.Add(new DefinedDomainValue(domainValueDefinition, definedProperties.ToImmutable()));
             }
 
-            domainValuesCollection.Add(kvpDictionaries.Key, definedDomainValues.ToImmutableArray());
+            domainValuesCollection.Add(propertyConfigSetupsEntityKvp.Key, definedDomainValues.ToImmutable());
         }
 
         foreach (var kvpCollection in propertiesCollection)
@@ -333,6 +349,7 @@ internal static class Parser
 
         if (propertySetup.DomainValueMetadata.AttributeDatas.Length > 0)
         {
+            //note: this is the root of the complexity, changing the entity of the property.
             var typedConstant = propertySetup.DomainValueMetadata.AttributeDatas
                 .FirstOrDefault(x => x.AttributeClass?.Name == TypeText.IncludeInCommandAttribute && x.ConstructorArguments.Length > 0)?.ConstructorArguments[0];
 
