@@ -14,8 +14,6 @@ internal static class EndpointSourceEmitter
             sb.Append(@"
         var response = YieldResponse(_queryExecutor.ExecuteAsync(HttpContext.Request.Query, ct));
 
-        // return no content
-
         await SendOkAsync(new Paginated<").Append(endpointConfig.Response).Append(@"> { Data = response }, ct);
 
         static async IAsyncEnumerable<").Append(endpointConfig.Response).Append(@"> YieldResponse(IAsyncEnumerable<").Append(endpointConfig.Entity).Append(@"> entities)
@@ -159,7 +157,7 @@ internal static class EndpointSourceEmitter
             foreach (var propertyName in endpointConfig.StringEntityProperties)
             {
                 sb.Append(@"
-                [""").Append(propertyName).Append(@"""] = static query => entity => ((string)entity.").Append(propertyName).Append(@").Contains(query),");
+            [""").Append(propertyName).Append(@"""] = static query => entity => ((string)entity.").Append(propertyName).Append(@").Contains(query),");
             }
             sb.Append(@"
     };
@@ -172,16 +170,14 @@ internal static class EndpointSourceEmitter
             }
             sb.Append(@"
     };
-    private readonly IQueryExecutor<").Append(endpointConfig.Entity).Append(@"> _queryExecutor;");
+    private readonly IQueryExecutor<").Append(endpointConfig.Entity).Append(@"> _queryExecutor;
 
-            sb.Append(@"
     public ").Append(endpointConfig.Endpoint).Append(@"(").Append(endpointConfig.ContextName).Append(@" dbContext)
     {
         _dbContext = dbContext;
         _queryExecutor = new QueryExecutor<").Append(endpointConfig.Entity).Append(@">(_dbContext.").Append(endpointConfig.Entity).Append(@"s, _stringMethods, _relationalNavigationNames);");
             sb.Append(@"
     }");
-
             return sb;
         }
         ,
@@ -222,8 +218,6 @@ internal static class EndpointSourceEmitter
     {
         sb.Clear();
 
-        var response = endpointConfig.RequestEndpointPair.EndpointTarget is EndpointTargetType.Get ? $"Paginated <{endpointConfig.Response}>" : endpointConfig.Response;
-
         sb.Append(@"
 using ApiAutoFast;
 using ApiAutoFast.EntityFramework;
@@ -236,23 +230,20 @@ using System.Linq.Expressions;
 
 namespace ").Append(@namespace).Append(@";
 ");
-        var keyWord = endpointConfig.IsTargetForGeneration ? "abstract" : "partial";
-
         sb.Append(@"
-public ").Append(keyWord)
+public ").Append(endpointConfig.IsTargetForGeneration ? "abstract" : "partial")
             .Append(" class ")
             .Append(endpointConfig.Endpoint)
             .Append(@" : EndpointBase<")
             .Append(endpointConfig.Request)
             .Append(@", ")
-            .Append(response)
+            .Append(endpointConfig.RequestEndpointPair.EndpointTarget is EndpointTargetType.Get ? $"Paginated <{endpointConfig.Response}>" : endpointConfig.Response)
             .Append(@", ")
             .Append(endpointConfig.MappingProfile)
             .Append(@">
 {
     private readonly ").Append(endpointConfig.ContextName).Append(@" _dbContext;
 ");
-
         sb = GetEndpointSetupSource(endpointConfig.RequestEndpointPair.EndpointTarget)(sb, endpointConfig).Append(@"
 
     public override void Configure()

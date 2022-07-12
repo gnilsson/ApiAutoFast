@@ -78,35 +78,6 @@ internal static class Parser
             new ContextGenerationConfig(namedTypeSymbol.Name));
     }
 
-    //private static IEnumerable<KeyValuePair<string, string>> YieldAutoFastEndpointBaseName(
-    //    Compilation compilation,
-    //    ImmutableArray<SemanticTargetInformation> semanticTargetInformations,
-    //    ImmutableArray<string> entityNames)
-    //{
-    //    var endpointClassDeclarations = semanticTargetInformations
-    //        .Where(x => x.Target is AutoFastEndpointAttribute && x.ClassDeclarationSyntax is not null)
-    //        .Select(x => x.ClassDeclarationSyntax);
-
-    //    foreach (var classDeclaration in endpointClassDeclarations)
-    //    {
-    //        var endpointTarget = compilation
-    //            .GetSemanticModel(classDeclaration.SyntaxTree)
-    //            .GetDeclaredSymbol(classDeclaration)?.BaseType?.Name;
-
-    //        if (endpointTarget is null) continue;
-
-    //        var endpoints = entityNames.Select(x => $"{x}Endpoint").ToArray();
-
-    //        if (endpoints.Any(x => endpointTarget.Contains(x)))
-    //        {
-    //            var entity = entityNames.FirstOrDefault(x => endpointTarget.Contains(x));
-
-    //            yield return new(endpointTarget, entity!);
-    //        }
-    //    }
-    //}
-
-
     private static IEnumerable<string> YieldAutoFastEndpointBaseName(
         Compilation compilation,
         ImmutableArray<SemanticTargetInformation> semanticTargetInformations,
@@ -116,17 +87,17 @@ internal static class Parser
             .Where(x => x.Target is AutoFastEndpointAttribute && x.ClassDeclarationSyntax is not null)
             .Select(x => x.ClassDeclarationSyntax);
 
+        var endpoints = entityNames
+            .Select(x => $"{x}Endpoint")
+            .ToArray();
+
         foreach (var classDeclaration in endpointClassDeclarations)
         {
             var endpointTarget = compilation
                 .GetSemanticModel(classDeclaration.SyntaxTree)
                 .GetDeclaredSymbol(classDeclaration)?.BaseType?.Name;
 
-            if (endpointTarget is null) continue;
-
-            var endpoints = entityNames.Select(x => $"{x}Endpoint").ToArray();
-
-            if (endpoints.Any(x => endpointTarget.Contains(x)))
+            if (endpointTarget is not null && endpoints.Any(x => endpointTarget.Contains(x)))
             {
                 yield return endpointTarget;
             }
