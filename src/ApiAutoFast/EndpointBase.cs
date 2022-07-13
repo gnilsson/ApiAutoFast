@@ -21,9 +21,9 @@ public abstract class EndpointBase<TRequest, TResponse, TMapping> : Endpoint<TRe
         _handleRequestAsync = HandleRequestAsync;
     }
 
-    private bool _saveChanges;
-    public void SkipSaveChanges() => _saveChanges = false;
-    public bool ShouldSave() => _saveChanges;
+    private bool _skipSaveChanges;
+    public void SkipSaveChanges() => _skipSaveChanges = true;
+    public bool ShouldSave() => !_skipSaveChanges;
     public void MapRoute(string route, HttpVerb verb)
     {
         Routes(route);

@@ -144,8 +144,11 @@ public readonly struct Identifier :
     public static implicit operator Identifier(in Guid guidValue) => new(guidValue);
     public static implicit operator string(in Identifier identifier) => identifier._base64Value;
     public static implicit operator Guid(in Identifier identifier) => identifier._guidValue;
+
     public static bool operator ==(in Identifier id1, in Identifier id2) => id1._guidValue.Equals(id2._guidValue);
     public static bool operator !=(in Identifier id1, in Identifier id2) => !id1._guidValue.Equals(id2._guidValue);
     public static bool operator ==(in Guid id1, in Identifier id2) => id1.Equals(id2._guidValue);
     public static bool operator !=(in Guid id1, in Identifier id2) => !id1.Equals(id2._guidValue);
+    public static bool operator ==(in Identifier id1, in Guid id2) => id1._guidValue.Equals(id2);
+    public static bool operator !=(in Identifier id1, in Guid id2) => !id1._guidValue.Equals(id2);
 }

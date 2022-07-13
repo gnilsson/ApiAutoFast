@@ -20,6 +20,12 @@ public readonly struct SequentialIdentifier :
         _newId = newIdValue;
     }
 
+    public SequentialIdentifier(in Guid guidValue)
+    {
+        _identifier = new Identifier(guidValue);
+        _newId = guidValue.ToNewId();
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SequentialIdentifier New() => new(NewId.Next());
 
@@ -80,10 +86,17 @@ public readonly struct SequentialIdentifier :
     public override string ToString() => _identifier.ToString();
 
     public static implicit operator Identifier(in SequentialIdentifier seqIdentifier) => seqIdentifier._identifier;
+    public static implicit operator Guid(in SequentialIdentifier seqIdentifier) => seqIdentifier._identifier.ToGuid();
+    public static implicit operator string(in SequentialIdentifier seqIdentifier) => seqIdentifier._identifier.ToString();
+
     public static bool operator <(in SequentialIdentifier id1, in SequentialIdentifier id2) => id1._newId.CompareTo(id2) < 0;
     public static bool operator >(in SequentialIdentifier id1, in SequentialIdentifier id2) => id1._newId.CompareTo(id2) > 0;
     public static bool operator ==(in SequentialIdentifier id1, in SequentialIdentifier id2) => id1._identifier.Equals(id2._identifier);
     public static bool operator !=(in SequentialIdentifier id1, in SequentialIdentifier id2) => !id1._identifier.Equals(id2._identifier);
+    public static bool operator ==(in Identifier id1, in SequentialIdentifier id2) => id1.Equals(id2._identifier);
+    public static bool operator !=(in Identifier id1, in SequentialIdentifier id2) => !id1.Equals(id2._identifier);
+    public static bool operator ==(in SequentialIdentifier id1, in Identifier id2) => id1._identifier.Equals(id2);
+    public static bool operator !=(in SequentialIdentifier id1, in Identifier id2) => !id1.Equals(id2);
     public static bool operator ==(in Guid id1, in SequentialIdentifier id2) => id1.Equals(id2._identifier);
     public static bool operator !=(in Guid id1, in SequentialIdentifier id2) => !id1.Equals(id2._identifier);
 }

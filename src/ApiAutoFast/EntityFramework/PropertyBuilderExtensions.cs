@@ -27,9 +27,7 @@ internal static class PropertyBuilderExtensions
 
     internal static PropertyBuilder HasStringDomainValueConversion(this PropertyBuilder propertyBuilder, PropertyInfo propertyInfo)
     {
-        var valueConverter = typeof(DomainValueConverter<,,,>).MakeGenericType(typeof(string), typeof(string), typeof(string), propertyInfo.PropertyType); //  typeof(StringDomainValue)
-
-        //        var valueConverter = typeof(StringDomainValueConverter);
+        var valueConverter = typeof(DomainValueConverter<,,,>).MakeGenericType(typeof(string), typeof(string), typeof(string), propertyInfo.PropertyType);
 
         propertyBuilder.HasConversion(valueConverter);
 

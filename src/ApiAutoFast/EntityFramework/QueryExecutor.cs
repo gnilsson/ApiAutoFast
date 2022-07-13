@@ -81,6 +81,18 @@ public sealed class QueryExecutor<TEntity> : IQueryExecutor<TEntity> where TEnti
             baseQuery = baseQuery.Include(relationalNavigationName);
         }
 
+        //wip
+        var count = await baseQuery.CountAsync();
+
+        var keysetContext = _dbSet.KeysetPaginate(
+            x => x.Descending(y => y.Id),
+            direction ?? KeysetPaginationDirection.Forward,
+            referenceId is null ? null : await _dbSet.FindAsync(new object?[] { referenceId }, cancellationToken: ct));
+
+        var users = await baseQuery.Take(20).ToListAsync();
+
+        keysetContext.EnsureCorrectOrder(users);
+
         var query = baseQuery
             .Take(20)
             .KeysetPaginateQuery(

@@ -39,9 +39,9 @@ public class CreateBlogEndpointExtended : CreateBlogEndpoint
     {
     }
 
-    public override async Task HandleAsync(BlogCreateCommand req, CancellationToken ct)
+    public override Task HandleAsync(BlogCreateCommand req, CancellationToken ct)
     {
-        await _handleRequestAsync(req, ct);
+        return _handleRequestAsync(req, ct);
     }
 }
 

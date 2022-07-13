@@ -30,13 +30,13 @@ public static class AutoFastDbContextHelper
     {
         foreach (var entityType in entityTypes)
         {
-            var properties = entityType.GetProperties();
-
             var entityMethod = typeof(ModelBuilder)
                 .GetMethod(nameof(ModelBuilder.Entity), 1, Type.EmptyTypes)!
                 .MakeGenericMethod(new[] { entityType });
 
             var entityTypeBuilder = (EntityTypeBuilder)entityMethod.Invoke(modelBuilder, null)!;
+
+            var properties = entityType.GetProperties();
 
             foreach (var property in properties)
             {
@@ -57,6 +57,12 @@ public static class AutoFastDbContextHelper
                     .HasConversion<IdentifierValueConverter>()
                     .HasValueGenerator<IdentifierValueGenerator>(),
 
+            { PropertyType.Name: TypeText.SequentialIdentifier } =>
+                entityTypeBuilder
+                    .Property(propertyInfo.Name)
+                    .HasConversion<SequentialIdentifierValueConverter>()
+                    .HasValueGenerator<SequentialIdentifierValueGenerator>(),
+
             { Name: TypeText.CreatedDateTime or TypeText.ModifiedDateTime } =>
                 entityTypeBuilder
                     .Property(propertyInfo.Name)
@@ -67,10 +73,11 @@ public static class AutoFastDbContextHelper
                     .Property(propertyInfo.Name)
                     .HasDomainValueConversion(propertyInfo),
 
-            { PropertyType.BaseType.Name: TypeText.StringDomainValue1 } =>
-                entityTypeBuilder
-                    .Property(propertyInfo.Name)
-                    .HasStringDomainValueConversion(propertyInfo),
+            //note: pin this for now.
+            //{ PropertyType.BaseType.Name: TypeText.StringDomainValue1 } =>
+            //    entityTypeBuilder
+            //        .Property(propertyInfo.Name)
+            //        .HasStringDomainValueConversion(propertyInfo),
 
             _ => null!
         };
@@ -103,7 +110,7 @@ public static class LinqExtensions
             if (node.Method.DeclaringType?.Name == TypeText.StringDomainValue1 && node.Method.Name == TypeText.Method.Contains)
             {
                 //EF.Functions.
-              //  var mm = Expression.MakeMemberAccess(node.Object!, node.Method.DeclaringType!.GetProperty("EntityValue")!);
+                //  var mm = Expression.MakeMemberAccess(node.Object!, node.Method.DeclaringType!.GetProperty("EntityValue")!);
                 var c = Expression.Convert(node.Object!, typeof(string));
                 var b = Expression.Property(c, "EntityValue");
                 return Expression.Call(_containsMethod, Expression.Constant(EF.Functions), c, node.Arguments[0]);

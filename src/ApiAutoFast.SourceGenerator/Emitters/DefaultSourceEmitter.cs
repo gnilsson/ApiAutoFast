@@ -323,9 +323,7 @@ public partial class ")
                     .Append(property.Name)
                     .Append(@" = ")
                     .Append(property.Type)
-                    .Append(@".ConvertFromRequest<")
-                    .Append(property.Type)
-                    .Append(@">(command.")
+                    .Append(@".ConvertFromRequest(command.")
                     .Append(property.Name)
                     .Append(@", addValidationError),
 ");

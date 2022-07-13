@@ -9,3 +9,11 @@ public class IdentifierValueConverter : ValueConverter<Identifier, Guid>
         t => new Identifier(t))
     { }
 }
+
+public class SequentialIdentifierValueConverter : ValueConverter<SequentialIdentifier, Guid>
+{
+    public SequentialIdentifierValueConverter() : base(
+        s => s,
+        t => new SequentialIdentifier(t))
+    { }
+}
