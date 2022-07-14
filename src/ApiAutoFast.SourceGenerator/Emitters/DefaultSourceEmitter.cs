@@ -151,6 +151,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ").Append(@namespace).Append(@";
 
+[Index(nameof(CreatedDateTime), nameof(Id))]
 public class ").Append(entityConfig.BaseName).Append(@" : IEntity<").Append(entityConfig.EndpointsAttributeArguments.IdType).Append(@">
 {
     public ").Append(entityConfig.BaseName).Append(@"()

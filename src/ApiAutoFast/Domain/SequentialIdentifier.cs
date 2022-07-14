@@ -1,4 +1,5 @@
-﻿using MassTransit;
+﻿using ApiAutoFast.Domain;
+using MassTransit;
 using System.Runtime.CompilerServices;
 
 namespace ApiAutoFast;
@@ -56,7 +57,7 @@ public readonly struct SequentialIdentifier :
     {
         try
         {
-            var newId = identifier.ToGuid().ToNewId();
+            var newId = identifier.ToGuid().ToNewIdFromSequential();
             _ = newId.Timestamp;
             seqIdentifier = new SequentialIdentifier(newId);
         }
@@ -100,37 +101,4 @@ public readonly struct SequentialIdentifier :
     public static bool operator !=(in SequentialIdentifier id1, in Identifier id2) => !id1.Equals(id2);
     public static bool operator ==(in Guid id1, in SequentialIdentifier id2) => id1.Equals(id2._identifier);
     public static bool operator !=(in Guid id1, in SequentialIdentifier id2) => !id1.Equals(id2._identifier);
-}
-
-public static class Helper
-{
-
-    static void FromSequentialByteArray(in byte[] bytes, out Int32 a, out Int32 b, out Int32 c, out Int32 d)
-    {
-        a = bytes[3] << 24 | bytes[2] << 16 | bytes[1] << 8 | bytes[0];
-        b = bytes[5] << 24 | bytes[4] << 16 | bytes[7] << 8 | bytes[6];
-        c = bytes[8] << 24 | bytes[9] << 16 | bytes[10] << 8 | bytes[11];
-        d = bytes[12] << 24 | bytes[13] << 16 | bytes[15] << 8 | bytes[14];
-    }
-
-    public static NewId FromSequentialGuid(in Guid guid)
-    {
-        var bytes = guid.ToByteArray();
-        FromSequentialByteArray(bytes, out int a, out int b, out int c, out int d);
-
-        return new NewId(a, b, c, d);
-    }
-
-    public static NewId ToNewIdFromSequential(this Guid guid)
-    {
-        var newId = Helper.FromSequentialGuid(guid);
-
-        //inb4 y3k
-        if (newId.Timestamp.Year.ToString()[0] != '2')
-        {
-            throw new InvalidOperationException("Guid must be sequential.");
-        }
-
-        return newId;
-    }
 }

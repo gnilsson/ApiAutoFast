@@ -21,12 +21,12 @@ public partial class GetBlogEndpoint : EndpointBase<BlogQueryRequest, Paginated<
     private static readonly string[] _relationalNavigationNames = new string[]
     {
     };
-    private readonly IQueryExecutor<Blog> _queryExecutor;
+    private readonly IQueryExecutor<Blog, SequentialIdentifier> _queryExecutor;
 
     public GetBlogEndpoint(AutoFastSampleDbContext dbContext)
     {
         _dbContext = dbContext;
-        _queryExecutor = new QueryExecutor<Blog>(_dbContext.Blogs, _stringMethods, _relationalNavigationNames);
+        _queryExecutor = new QueryExecutor<Blog, SequentialIdentifier>(_dbContext.Blogs, _stringMethods, _relationalNavigationNames);
     }
 
     public override void Configure()

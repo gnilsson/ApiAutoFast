@@ -110,7 +110,7 @@ internal static class EndpointSourceEmitter
         EndpointTargetType.GetById => static (sb, endpointConfig) =>
         {
             sb.Append(@"
-        var identifier = Identifier.ConvertFromRequest(req.Id, AddError);
+        var identifier = ").Append(endpointConfig.IdType).Append(@".ConvertFromRequest(req.Id, AddError);
 
         if (HasError())
         {
@@ -170,12 +170,12 @@ internal static class EndpointSourceEmitter
             }
             sb.Append(@"
     };
-    private readonly IQueryExecutor<").Append(endpointConfig.Entity).Append(@"> _queryExecutor;
+    private readonly IQueryExecutor<").Append(endpointConfig.Entity).Append(", ").Append(endpointConfig.IdType).Append(@"> _queryExecutor;
 
     public ").Append(endpointConfig.Endpoint).Append(@"(").Append(endpointConfig.ContextName).Append(@" dbContext)
     {
         _dbContext = dbContext;
-        _queryExecutor = new QueryExecutor<").Append(endpointConfig.Entity).Append(@">(_dbContext.").Append(endpointConfig.Entity).Append(@"s, _stringMethods, _relationalNavigationNames);");
+        _queryExecutor = new QueryExecutor<").Append(endpointConfig.Entity).Append(", ").Append(endpointConfig.IdType).Append(@">(_dbContext.").Append(endpointConfig.Entity).Append(@"s, _stringMethods, _relationalNavigationNames);");
             sb.Append(@"
     }");
             return sb;

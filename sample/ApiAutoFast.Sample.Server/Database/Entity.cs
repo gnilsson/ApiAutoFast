@@ -31,20 +31,6 @@ public class BlogEntity
 //    public static implicit operator string(Title2 domain) => domain.EntityValue;
 //}
 
-
-[AutoFastEndpoint]
-public class CreateBlogEndpointExtended : CreateBlogEndpoint
-{
-    public CreateBlogEndpointExtended(AutoFastSampleDbContext dbContext) : base(dbContext)
-    {
-    }
-
-    public override Task HandleAsync(BlogCreateCommand req, CancellationToken ct)
-    {
-        return _handleRequestAsync(req, ct);
-    }
-}
-
 // note: if first generic param is specific in foreign relation it will be available for query/command
 //       if its a to-many relation ...
 //public class BlogRelation : DomainValue<string, Blog, BlogRelation>

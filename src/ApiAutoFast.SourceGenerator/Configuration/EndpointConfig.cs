@@ -32,6 +32,7 @@ internal readonly struct EndpointConfig
         RelationalNavigationNames = relationalNavigationNames;
         StringEntityProperties = stringEntityProperties;
         ContextName = contextName;
+        IdType = entityConfig.EndpointsAttributeArguments.IdType;
     }
 
     internal readonly string Endpoint { get; }
@@ -45,4 +46,5 @@ internal readonly struct EndpointConfig
     internal readonly ImmutableArray<string> RelationalNavigationNames { get; }
     internal readonly ImmutableArray<string> StringEntityProperties { get; }
     internal readonly string ContextName { get; }
+    internal readonly string IdType { get; }
 }

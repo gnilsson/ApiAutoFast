@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ApiAutoFast.Sample.Server;
 
+[Index(nameof(CreatedDateTime), nameof(Id))]
 public class Blog : IEntity<SequentialIdentifier>
 {
     public Blog()

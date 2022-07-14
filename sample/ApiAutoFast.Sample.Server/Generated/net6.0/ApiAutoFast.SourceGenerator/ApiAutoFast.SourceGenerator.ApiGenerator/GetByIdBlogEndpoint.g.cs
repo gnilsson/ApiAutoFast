@@ -36,7 +36,7 @@ public partial class GetByIdBlogEndpoint : EndpointBase<BlogGetByIdRequest, Blog
 
     public override async Task HandleRequestAsync(BlogGetByIdRequest req, CancellationToken ct)
     {
-        var identifier = Identifier.ConvertFromRequest(req.Id, AddError);
+        var identifier = SequentialIdentifier.ConvertFromRequest(req.Id, AddError);
 
         if (HasError())
         {

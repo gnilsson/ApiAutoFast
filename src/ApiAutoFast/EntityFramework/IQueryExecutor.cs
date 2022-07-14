@@ -2,7 +2,7 @@
 
 namespace ApiAutoFast.EntityFramework;
 
-public interface IQueryExecutor<TEntity> where TEntity : class, IEntity<SequentialIdentifier>
+public interface IQueryExecutor<TEntity, TId> where TEntity : class, IEntity<TId> where TId : IIdentifier
 {
     IAsyncEnumerable<TEntity> ExecuteAsync(IQueryCollection queryCollection, CancellationToken ct);
 }
