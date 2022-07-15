@@ -2,7 +2,7 @@
 
 namespace ApiAutoFast.SourceGenerator.Configuration;
 
-internal readonly record struct EntityAttributeArguments
+internal readonly struct EntityAttributeArguments
 {
     public EntityAttributeArguments(string entityName, EndpointTargetType endpointTargetType, string idType)
     {

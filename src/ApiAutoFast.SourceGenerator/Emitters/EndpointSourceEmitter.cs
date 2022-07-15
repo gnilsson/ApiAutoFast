@@ -70,9 +70,20 @@ internal static class EndpointSourceEmitter
             return;
         }
 
-        var entity = Map.UpdateEntity(result, req);
+        result = Map.UpdateDomainEntity(result, req, AddError);
 
-        var response = Map.FromEntity(entity);
+        if (HasError())
+        {
+            await SendErrorsAsync(400, ct);
+            return;
+        }
+
+        if (ShouldSave())
+        {
+            await _dbContext.SaveChangesAsync(ct);
+        }
+
+        var response = Map.FromEntity(result);
 
         await SendOkAsync(response, ct);");
             return sb;

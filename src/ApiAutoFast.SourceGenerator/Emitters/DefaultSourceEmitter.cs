@@ -291,62 +291,47 @@ public partial class ")
     .Append(entityConfig.BaseName)
     .Append(@">
 {
-    private readonly bool _onOverrideUpdateEntity = false;
-
-    partial void").Append(@" OnOverrideUpdateEntity(ref ").Append(entityConfig.BaseName).Append(@" originalEntity, ").Append(entityConfig.ModifyCommand).Append(@" e);
-
     public override ").Append(entityConfig.Response).Append(@" FromEntity(").Append(entityConfig.BaseName).Append(@" e)
     {
         return e.AdaptToResponse();
     }
 
-    public ").Append(entityConfig.BaseName).Append(@" UpdateEntity(").Append(entityConfig.BaseName).Append(@" originalEntity, ").Append(entityConfig.ModifyCommand).Append(@" e)
-    {
-        if(_onOverrideUpdateEntity)
+    public ").Append(entityConfig.BaseName).Append(@" UpdateDomainEntity(").Append(entityConfig.BaseName).Append(@" entity, ").Append(entityConfig.ModifyCommand).Append(@" command, Action<string, string> addValidationError)
+    {");
+        var properties = entityConfig.PropertyConfig.DomainValues
+            .SelectMany(x => x.DefinedProperties)
+            .ToArray();
+
+        foreach (var property in properties)
         {
-            OnOverrideUpdateEntity(ref originalEntity, e);
-            return originalEntity;
+            if (property.Type is not TypeText.Identifier and not TypeText.SequentialIdentifier)
+            {
+                sb.Append(@"
+        entity.").Append(property.Name).Append(@" = ").Append(property.Type).Append(".UpdateFromRequest(entity.").Append(property.Name).Append(", command.").Append(property.Name).Append(@", addValidationError);");
+            }
         }
-");
         sb.Append(@"
-        return originalEntity;
+        return entity;
     }
 
     public ").Append(entityConfig.BaseName).Append(@" ToDomainEntity(").Append(entityConfig.CreateCommand).Append(@" command, Action<string, string> addValidationError)
     {
         return new ").Append(entityConfig.BaseName).Append(@"
+        {");
+        foreach (var property in properties)
         {
-");
-        foreach (var definedProperties in entityConfig.PropertyConfig.DomainValues.Select(x => x.DefinedProperties))
-        {
-            foreach (var property in definedProperties)
+            if (property.Type is TypeText.Identifier or TypeText.SequentialIdentifier)
             {
-                if (property.Type is TypeText.Identifier or TypeText.SequentialIdentifier)
-                {
-                    sb.Append(@"            ")
-                        .Append(property.Name)
-                        .Append(@" = ")
-                        .Append(TypeText.IdentifierUtility)
-                        .Append(@".ConvertFromRequest<")
-                        .Append(property.Type)
-                        .Append(@">(command.")
-                        .Append(property.Name)
-                        .Append(@", addValidationError),
-");
-                    continue;
-                }
-                sb.Append(@"            ")
-                    .Append(property.Name)
-                    .Append(@" = ")
-                    .Append(property.Type)
-                    .Append(@".ConvertFromRequest(command.")
-                    .Append(property.Name)
-                    .Append(@", addValidationError),
-");
+                sb.Append(@"
+            ").Append(property.Name).Append(@" = ").Append(TypeText.IdentifierUtility).Append(@".ConvertFromRequest<").Append(property.Type).Append(@">(command.").Append(property.Name).Append(@", addValidationError),");
+                continue;
             }
 
+            sb.Append(@"
+            ").Append(property.Name).Append(@" = ").Append(property.Type).Append(@".ConvertFromRequest(command.").Append(property.Name).Append(@", addValidationError),");
         }
-        sb.Append(@"        };
+        sb.Append(@"
+        };
     }
 }
 ");

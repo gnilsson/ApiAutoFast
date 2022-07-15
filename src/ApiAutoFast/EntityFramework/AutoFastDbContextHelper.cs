@@ -20,9 +20,9 @@ public static class AutoFastDbContextHelper
 
     public static void UpdateModifiedDateTime(IEnumerable<EntityEntry> entityEntries)
     {
-        foreach (var entry in entityEntries.Where(x => x.Entity is IEntity<IIdentifier> && x.State is EntityState.Modified))
+        foreach (var entry in entityEntries.Where(x => x.Entity is ITimestamp && x.State is EntityState.Modified))
         {
-            ((IEntity<IIdentifier>)entry.Entity).ModifiedDateTime = DateTime.UtcNow;
+            ((ITimestamp)entry.Entity).ModifiedDateTime = DateTime.UtcNow;
         }
     }
 

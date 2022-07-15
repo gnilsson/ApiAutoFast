@@ -45,9 +45,6 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
 
     private static readonly Func<TDomain> _factory;
 
-    // todo: add this message to some static dictionary that is setup via config
-    protected virtual string? MessageOnFailedValidation { get; }
-
     public TEntity EntityValue { get; private set; } = default!;
 
     protected virtual bool TryValidateRequestConversion(TRequest? requestValue, [NotNullWhen(true)] out TEntity entityValue)
@@ -72,25 +69,34 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
             return domain;
         }
 
-        addError(typeof(TDomain).Name, domain.MessageOnFailedValidation ?? "Error when converting request.");
+        addError(typeof(TDomain).Name, "Error when converting request.");
         return default!;
     }
 
-
-    public static T? ConvertFromRequest<T>(TRequest? request, Action<string, string> addError) where T : TDomain
+    public static TDomain? UpdateFromRequest(TDomain domain, TRequest? request, Action<string, string> addError)
     {
-        var domain = _factory();
-
         if (domain.TryValidateRequestConversion(request, out var entityValue))
         {
-            domain.EntityValue = entityValue;
-            return (T)domain;
+            return (TDomain)entityValue;
         }
 
-        addError(typeof(TDomain).Name, domain.MessageOnFailedValidation ?? "Error when converting request.");
+        addError(typeof(TDomain).Name, "Error when converting request.");
         return default!;
     }
 
+    //public static T? ConvertFromRequest<T>(TRequest? request, Action<string, string> addError) where T : TDomain
+    //{
+    //    var domain = _factory();
+
+    //    if (domain.TryValidateRequestConversion(request, out var entityValue))
+    //    {
+    //        domain.EntityValue = entityValue;
+    //        return (T)domain;
+    //    }
+
+    //    addError(typeof(TDomain).Name, domain.MessageOnFailedValidation ?? "Error when converting request.");
+    //    return default!;
+    //}
 
     public static implicit operator DomainValue<TRequest, TEntity, TResponse, TDomain>(TEntity entityValue) => From(entityValue);
 

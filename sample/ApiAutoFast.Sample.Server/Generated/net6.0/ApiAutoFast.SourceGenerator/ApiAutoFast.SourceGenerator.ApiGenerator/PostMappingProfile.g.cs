@@ -5,24 +5,19 @@ namespace ApiAutoFast.Sample.Server;
 
 public partial class PostMappingProfile : Mapper<PostCreateCommand, PostResponse, Post>
 {
-    private readonly bool _onOverrideUpdateEntity = false;
-
-    partial void OnOverrideUpdateEntity(ref Post originalEntity, PostModifyCommand e);
-
     public override PostResponse FromEntity(Post e)
     {
         return e.AdaptToResponse();
     }
 
-    public Post UpdateEntity(Post originalEntity, PostModifyCommand e)
+    public Post UpdateDomainEntity(Post entity, PostModifyCommand command, Action<string, string> addValidationError)
     {
-        if(_onOverrideUpdateEntity)
-        {
-            OnOverrideUpdateEntity(ref originalEntity, e);
-            return originalEntity;
-        }
-
-        return originalEntity;
+        entity.Title = Title.UpdateFromRequest(entity.Title, command.Title, addValidationError);
+        entity.PublicationDateTime = PublicationDateTime.UpdateFromRequest(entity.PublicationDateTime, command.PublicationDateTime, addValidationError);
+        entity.Description = Description.UpdateFromRequest(entity.Description, command.Description, addValidationError);
+        entity.PostType = PostType.UpdateFromRequest(entity.PostType, command.PostType, addValidationError);
+        entity.LikeCount = LikeCount.UpdateFromRequest(entity.LikeCount, command.LikeCount, addValidationError);
+        return entity;
     }
 
     public Post ToDomainEntity(PostCreateCommand command, Action<string, string> addValidationError)

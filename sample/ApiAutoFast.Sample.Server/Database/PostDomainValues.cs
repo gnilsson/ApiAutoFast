@@ -23,7 +23,7 @@ public class Title : DomainValue<string, Title>
         return requestValue is not null && Regex.IsMatch(requestValue, RegexPattern);
     }
 
-    protected override string? MessageOnFailedValidation => "Incorrect format on Title.";
+//    protected override string? MessageOnFailedValidation => "Incorrect format on Title.";
 }
 
 public class Description : DomainValue<string, Description>

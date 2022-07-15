@@ -5,24 +5,15 @@ namespace ApiAutoFast.Sample.Server;
 
 public partial class BlogMappingProfile : Mapper<BlogCreateCommand, BlogResponse, Blog>
 {
-    private readonly bool _onOverrideUpdateEntity = false;
-
-    partial void OnOverrideUpdateEntity(ref Blog originalEntity, BlogModifyCommand e);
-
     public override BlogResponse FromEntity(Blog e)
     {
         return e.AdaptToResponse();
     }
 
-    public Blog UpdateEntity(Blog originalEntity, BlogModifyCommand e)
+    public Blog UpdateDomainEntity(Blog entity, BlogModifyCommand command, Action<string, string> addValidationError)
     {
-        if(_onOverrideUpdateEntity)
-        {
-            OnOverrideUpdateEntity(ref originalEntity, e);
-            return originalEntity;
-        }
-
-        return originalEntity;
+        entity.Title = Title.UpdateFromRequest(entity.Title, command.Title, addValidationError);
+        return entity;
     }
 
     public Blog ToDomainEntity(BlogCreateCommand command, Action<string, string> addValidationError)
