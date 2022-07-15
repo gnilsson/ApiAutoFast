@@ -6,7 +6,7 @@ namespace ApiAutoFast.SourceGenerator;
 
 internal record EntityConfigSetup
 {
-    internal EntityConfigSetup(ClassDeclarationSyntax classDeclarationSyntax, SemanticModel semanticModel, AutoFastEntityAttributeArguments endpointsAttributeArguments)
+    internal EntityConfigSetup(ClassDeclarationSyntax classDeclarationSyntax, SemanticModel semanticModel, EntityAttributeArguments endpointsAttributeArguments)
     {
         ClassDeclarationSyntax = classDeclarationSyntax;
         SemanticModel = semanticModel;
@@ -15,5 +15,5 @@ internal record EntityConfigSetup
 
     public ClassDeclarationSyntax ClassDeclarationSyntax { get; }
     public SemanticModel SemanticModel { get; }
-    public AutoFastEntityAttributeArguments EndpointsAttributeArguments { get; }
+    public EntityAttributeArguments EndpointsAttributeArguments { get; }
 }

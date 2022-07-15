@@ -50,15 +50,6 @@ public readonly struct Identifier :
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Identifier New() => new(Guid.NewGuid());
 
-    public static Identifier ConvertFromRequest(in string? request, in Action<string, string> addError)
-    {
-        if (TryParse(request, out var identifier)) return identifier;
-
-        addError(nameof(Identifier), "Error while parsing.");
-
-        return default;
-    }
-
     public static bool TryParse(in string? valueToParse, out Identifier identifier)
     {
         if (valueToParse is not null

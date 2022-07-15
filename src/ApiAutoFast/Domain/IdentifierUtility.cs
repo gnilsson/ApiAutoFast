@@ -1,8 +1,8 @@
 ﻿using MassTransit;
 
-namespace ApiAutoFast.Domain;
+namespace ApiAutoFast;
 
-public static class IdentifierHelper
+public static class IdentifierUtility
 {
     public static NewId FromSequentialGuid(in Guid guid)
     {
@@ -26,19 +26,30 @@ public static class IdentifierHelper
         return newId;
     }
 
-    //note: wait for statc interface members in c# 11..
-    public static bool TryParse<TId>(string? value, out IIdentifier id) where TId : IIdentifier
+    //note: wait for static interface members in c# 11..
+    public static bool TryParse<TId>(string? value, out TId id) where TId : struct, IIdentifier
     {
+        bool parsed;
         if (typeof(TId) == typeof(SequentialIdentifier))
         {
-            var parsed = SequentialIdentifier.TryParse(value, out var seqId);
-            id = seqId;
-            return parsed;
+            parsed = SequentialIdentifier.TryParse(value, out var seqIdentifier);
+            id = (TId)(IIdentifier)seqIdentifier;
         }
+        else
+        {
+            parsed = Identifier.TryParse(value, out var identifier);
+            id = (TId)(IIdentifier)identifier;
+        }
+        return parsed;
+    }
 
-        var p = Identifier.TryParse(value, out var id2);
-        id = id2;
-        return p;
+    public static TId ConvertFromRequest<TId>(in string? request, in Action<string, string> addError) where TId : struct, IIdentifier
+    {
+        if (TryParse<TId>(request, out var identifier)) return identifier;
+
+        addError(nameof(Identifier), "Error while parsing.");
+
+        return default;
     }
 
     private static void FromSequentialByteArray(in byte[] bytes, out int a, out int b, out int c, out int d)

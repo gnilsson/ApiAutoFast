@@ -1,13 +1,11 @@
-﻿//HintName: BlogModifyCommand.g.cs
-
+﻿
  #nullable enable
 
 using ApiAutoFast;
 
 namespace ApiAutoFast.Sample.Server;
 
-public partial class BlogModifyCommand
+public partial class PostDeleteCommand
 {
     public string Id { get; set; }
-    public string Title { get; set; }
 }

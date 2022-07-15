@@ -1,5 +1,4 @@
-﻿//HintName: UpdateBlogEndpoint.g.cs
-
+﻿
 using ApiAutoFast;
 using ApiAutoFast.EntityFramework;
 using FastEndpoints;
@@ -11,29 +10,29 @@ using System.Linq.Expressions;
 
 namespace ApiAutoFast.Sample.Server;
 
-public partial class UpdateBlogEndpoint : EndpointBase<BlogModifyCommand, BlogResponse, BlogMappingProfile>
+public partial class UpdatePostEndpoint : EndpointBase<PostModifyCommand, PostResponse, PostMappingProfile>
 {
     private readonly AutoFastSampleDbContext _dbContext;
 
-    public UpdateBlogEndpoint(AutoFastSampleDbContext dbContext)
+    public UpdatePostEndpoint(AutoFastSampleDbContext dbContext)
     {
         _dbContext = dbContext;
     }
 
     public override void Configure()
     {
-        MapRoute("/blogs/{id}", HttpVerb.Put);
+        MapRoute("/posts/{id}", HttpVerb.Put);
         AllowAnonymous();
     }
 
-    public override Task HandleAsync(BlogModifyCommand req, CancellationToken ct)
+    public override Task HandleAsync(PostModifyCommand req, CancellationToken ct)
     {
         return HandleRequestAsync(req, ct);
     }
 
-    public override async Task HandleRequestAsync(BlogModifyCommand req, CancellationToken ct)
+    public override async Task HandleRequestAsync(PostModifyCommand req, CancellationToken ct)
     {
-        var identifier = Identifier.ConvertFromRequest(req.Id, AddError);
+        var identifier = IdentifierUtility.ConvertFromRequest<Identifier>(req.Id, AddError);
 
         if (HasError())
         {
@@ -41,7 +40,7 @@ public partial class UpdateBlogEndpoint : EndpointBase<BlogModifyCommand, BlogRe
             return;
         }
 
-        var result = await _dbContext.Blogs.FindAsync(new object?[] { identifier }, cancellationToken: ct);
+        var result = await _dbContext.Posts.FindAsync(new object?[] { identifier }, cancellationToken: ct);
 
         if (result is null)
         {

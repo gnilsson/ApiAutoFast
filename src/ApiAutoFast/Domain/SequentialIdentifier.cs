@@ -1,5 +1,4 @@
-﻿using ApiAutoFast.Domain;
-using MassTransit;
+﻿using MassTransit;
 using System.Runtime.CompilerServices;
 
 namespace ApiAutoFast;
@@ -43,16 +42,6 @@ public readonly struct SequentialIdentifier :
         seqIdentifier = default;
         return false;
     }
-
-    public static SequentialIdentifier ConvertFromRequest(in string? request, in Action<string, string> addError)
-    {
-        if (TryParse(request, out var seqIdentifier)) return seqIdentifier;
-
-        addError(nameof(SequentialIdentifier), "Error while parsing.");
-
-        return default;
-    }
-
     private static bool TryToSequentialIdentifier(in Identifier identifier, out SequentialIdentifier seqIdentifier)
     {
         try

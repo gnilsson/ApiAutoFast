@@ -49,28 +49,26 @@ internal static class Parser
             .Select(x => x.ClassDeclarationSyntax)
             .ToImmutableArray();
 
-        if (entityClassDeclarations.Length == 0) return null;
+        if (entityClassDeclarations.Length is 0) return null;
 
         var entityConfigSetups = YieldEntityConfigSetup(compilation, entityClassDeclarations).ToImmutableArray();
 
-        var entityNames = entityConfigSetups
-            .Select(x => x.EndpointsAttributeArguments.EntityName)
-            .ToImmutableArray();
+        var entities = entityConfigSetups.ToImmutableDictionary(x => x.EndpointsAttributeArguments.EntityName, y => y.EndpointsAttributeArguments.IdType);
 
         var endpointClassDeclarations = semanticTargetInformations
             .Where(x => x.Target is AutoFastEndpointAttribute && x.ClassDeclarationSyntax is not null)
             .Select(x => x.ClassDeclarationSyntax)
             .ToImmutableArray();
 
-        var targetedEndpointNames = endpointClassDeclarations.Length == 0
+        var targetedEndpointNames = endpointClassDeclarations.Length is 0
             ? null
-            : YieldTargetedEndpointName(compilation, endpointClassDeclarations, entityNames)?.ToImmutableArray();
+            : YieldTargetedEndpointName(compilation, endpointClassDeclarations, entities.Keys)?.ToImmutableArray();
 
-        var propertyConfigSetups = YieldPropertyConfigSetup(compilation, entityNames, entityConfigSetups).ToImmutableArray();
+        var propertyConfigSetups = YieldPropertyConfigSetup(compilation, entities.Keys, entityConfigSetups).ToImmutableArray();
 
-        var entityConfigs = YieldEntityConfig(entityConfigSetups, propertyConfigSetups, ct).ToImmutableArray();
+        var entityConfigs = YieldEntityConfig(entityConfigSetups, propertyConfigSetups, entities, ct).ToImmutableArray();
 
-        var semanticTarget = semanticTargetInformations.FirstOrDefault(x => x.Target == AutoFastContextAttribute);
+        var semanticTarget = semanticTargetInformations.FirstOrDefault(x => x.Target is AutoFastContextAttribute);
 
         if (semanticTarget is null || compilation
             .GetSemanticModel(semanticTarget.ClassDeclarationSyntax.SyntaxTree)
@@ -88,9 +86,9 @@ internal static class Parser
     private static IEnumerable<string> YieldTargetedEndpointName(
         Compilation compilation,
         ImmutableArray<ClassDeclarationSyntax> endpointClassDeclarations,
-        ImmutableArray<string> entityNames)
+        IEnumerable<string> foreignEntityNames)
     {
-        var endpoints = entityNames
+        var endpoints = foreignEntityNames
             .Select(x => $"{x}Endpoint")
             .ToArray();
 
@@ -120,9 +118,10 @@ internal static class Parser
     private static IEnumerable<EntityConfig> YieldEntityConfig(
         ImmutableArray<EntityConfigSetup> entityConfigSetups,
         ImmutableArray<KeyValuePair<string, Dictionary<string, List<PropertySetup>>>> propertyConfigSetups,
+        ImmutableDictionary<string, string> foreignEntities,
         CancellationToken ct)
     {
-        foreach (var propertyConfig in YieldPropertyConfig(propertyConfigSetups))
+        foreach (var propertyConfig in YieldPropertyConfig(propertyConfigSetups, foreignEntities))
         {
             ct.ThrowIfCancellationRequested();
 
@@ -161,7 +160,7 @@ internal static class Parser
         }
     }
 
-    private static AutoFastEntityAttributeArguments GetAutoFastEntityAttributeArguments(INamedTypeSymbol namedTypeSymbol)
+    private static EntityAttributeArguments GetAutoFastEntityAttributeArguments(INamedTypeSymbol namedTypeSymbol)
     {
         var endpointsAttribute = namedTypeSymbol.GetAttributes()[0];
 
@@ -173,28 +172,28 @@ internal static class Parser
 
         var idType = ((IdType)endpointsAttribute.ConstructorArguments[2].Value!).ToString();
 
-        return new AutoFastEntityAttributeArguments(entityName!, endpointTarget, idType);
+        return new EntityAttributeArguments(entityName!, endpointTarget, idType);
     }
 
     private static IEnumerable<KeyValuePair<string, Dictionary<string, List<PropertySetup>>>> YieldPropertyConfigSetup(
         Compilation compilation,
-        ImmutableArray<string> entityNames,
+        IEnumerable<string> entityNames,
         ImmutableArray<EntityConfigSetup> entityConfigSetups)
     {
         foreach (var entity in entityConfigSetups)
         {
+            var members = entity.SemanticModel
+                .GetDeclaredSymbol(entity.ClassDeclarationSyntax)!
+                .GetMembers();
+
             yield return new KeyValuePair<string, Dictionary<string, List<PropertySetup>>>(
                 entity.EndpointsAttributeArguments.EntityName,
-                GetPropertySetups(compilation, entityNames, entity));
+                GetPropertySetups(compilation, entityNames.ToImmutableArray(), members));
         }
     }
 
-    private static Dictionary<string, List<PropertySetup>> GetPropertySetups(Compilation compilation, ImmutableArray<string> entityNames, EntityConfigSetup entity)
+    private static Dictionary<string, List<PropertySetup>> GetPropertySetups(Compilation compilation, ImmutableArray<string> entityNames, ImmutableArray<ISymbol> members)
     {
-        var members = entity.SemanticModel
-            .GetDeclaredSymbol(entity.ClassDeclarationSyntax)!
-            .GetMembers();
-
         var propertySetupDictionary = new Dictionary<string, List<PropertySetup>>();
 
         foreach (var member in members)
@@ -285,29 +284,27 @@ internal static class Parser
         return null;
     }
 
-    private static IEnumerable<PropertyConfig> YieldPropertyConfig(ImmutableArray<KeyValuePair<string, Dictionary<string, List<PropertySetup>>>> propertyConfigSetupsKvps)
+    private static IEnumerable<PropertyConfig> YieldPropertyConfig(
+        ImmutableArray<KeyValuePair<string, Dictionary<string, List<PropertySetup>>>> propertyConfigSetupsKvps,
+        ImmutableDictionary<string, string> entities)
     {
         var propertiesCollection = new Dictionary<string, List<PropertyOutput>>();
-
         var domainValuesCollection = new Dictionary<string, ImmutableArray<DefinedDomainValue>>();
-
         foreach (var propertyConfigSetupsEntityKvp in propertyConfigSetupsKvps)
         {
             var definedDomainValues = ImmutableArray.CreateBuilder<DefinedDomainValue>();
-
             foreach (var propertyConfigSetupsKvp in propertyConfigSetupsEntityKvp.Value)
             {
-                var definedProperties = ImmutableArray.CreateBuilder<DefinedProperty>();
-
                 var domainValueDefinition = propertyConfigSetupsEntityKvp.Value[propertyConfigSetupsKvp.Key].First().DomainValueMetadata.Definition;
 
+                var definedProperties = ImmutableArray.CreateBuilder<DefinedProperty>();
                 foreach (var propertySetup in propertyConfigSetupsKvp.Value)
                 {
-                    foreach (var propertyOutput in YieldPropertyOutput(propertyConfigSetupsEntityKvp.Key, propertySetup))
+                    foreach (var propertyOutput in YieldPropertyOutput(propertyConfigSetupsEntityKvp.Key, propertySetup, entities))
                     {
                         if (propertyOutput.PropertyKind is PropertyKind.Identifier && propertyOutput.Name == $"{propertySetup.Name}Id")
                         {
-                            definedProperties.Add(new DefinedProperty(propertyOutput.Name, PropertyKind.Identifier, TypeText.Identifier));
+                            definedProperties.Add(new DefinedProperty(propertyOutput.Name, PropertyKind.Identifier, entities[domainValueDefinition.PropertyRelation.ForeignEntityName]));
                         }
 
                         if (propertiesCollection.TryGetValue(propertyOutput.EntityKind, out var properties))
@@ -341,17 +338,17 @@ internal static class Parser
         }
     }
 
-    private static IEnumerable<PropertyOutput> YieldPropertyOutput(string entityName, PropertySetup propertySetup)
+    private static IEnumerable<PropertyOutput> YieldPropertyOutput(string entityName, PropertySetup propertySetup, ImmutableDictionary<string, string> foreignEntities)
     {
         var domainValueDefinition = propertySetup.DomainValueMetadata.Definition;
 
-        var propertySource = GetPropertySource(propertySetup, domainValueDefinition);
+        var propertySource = GetPropertySource(propertySetup, domainValueDefinition, foreignEntities, domainValueDefinition.PropertyRelation.ForeignEntityName);
 
         if (propertySetup.DomainValueMetadata.AttributeDatas.Length > 0)
         {
             //note: this is the root of the complexity, changing the entity of the property.
             var typedConstant = propertySetup.DomainValueMetadata.AttributeDatas
-                .FirstOrDefault(x => x.AttributeClass?.Name == TypeText.IncludeInCommandAttribute && x.ConstructorArguments.Length > 0)?.ConstructorArguments[0];
+                .FirstOrDefault(x => x.AttributeClass?.Name is TypeText.IncludeInCommandAttribute && x.ConstructorArguments.Length > 0)?.ConstructorArguments[0];
 
             if (typedConstant!.Value.Kind is TypedConstantKind.Array)
             {
@@ -372,7 +369,7 @@ internal static class Parser
 
         if (domainValueDefinition.PropertyRelation.Type is RelationalType.ToOne)
         {
-            yield return new PropertyOutput(entityName, propertySource.Id, PropertyTarget.Entity, $"{propertySetup.Name}Id", TypeText.Identifier, domainValueDefinition.PropertyRelation, PropertyKind.Identifier);
+            yield return new PropertyOutput(entityName, propertySource.Id, PropertyTarget.Entity, $"{propertySetup.Name}Id", foreignEntities[domainValueDefinition.PropertyRelation.ForeignEntityName], domainValueDefinition.PropertyRelation, PropertyKind.Identifier);
         }
 
         if (domainValueDefinition.PropertyRelation.Type is not RelationalType.ToMany)
@@ -382,7 +379,7 @@ internal static class Parser
         }
     }
 
-    private static PropertySource GetPropertySource(PropertySetup propertySetup, DomainValueDefinition domainValueDefinition)
+    private static PropertySource GetPropertySource(PropertySetup propertySetup, DomainValueDefinition domainValueDefinition, ImmutableDictionary<string, string> entities, string foreignEntityName)
     {
         var firstSpaceIndex = propertySetup.BaseSource.IndexOf(' ');
 
@@ -401,7 +398,7 @@ internal static class Parser
             var entitySource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.EntityType}");
             var requestSource = baseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}?");
             var commandSource = baseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}");
-            var idSource = baseSource.Insert(firstSpaceIndex, $" {TypeText.Identifier}");
+            var idSource = baseSource.Insert(firstSpaceIndex, $" {entities[foreignEntityName]}");
             return new PropertySource(entitySource, requestSource, commandSource, idSource, domainValueDefinition.EntityType);
         }
 

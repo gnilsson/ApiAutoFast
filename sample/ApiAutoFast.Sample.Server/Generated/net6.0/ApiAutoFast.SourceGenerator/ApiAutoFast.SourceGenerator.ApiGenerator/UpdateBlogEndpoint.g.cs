@@ -32,7 +32,7 @@ public partial class UpdateBlogEndpoint : EndpointBase<BlogModifyCommand, BlogRe
 
     public override async Task HandleRequestAsync(BlogModifyCommand req, CancellationToken ct)
     {
-        var identifier = Identifier.ConvertFromRequest(req.Id, AddError);
+        var identifier = IdentifierUtility.ConvertFromRequest<SequentialIdentifier>(req.Id, AddError);
 
         if (HasError())
         {

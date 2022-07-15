@@ -1,10 +1,8 @@
 ﻿using ApiAutoFast.Descriptive;
-using ApiAutoFast.Domain;
 using ApiAutoFast.Utility;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using MR.EntityFrameworkCore.KeysetPagination;
-using System.Collections.Immutable;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 
@@ -18,10 +16,10 @@ public sealed class QueryExecutor<TEntity, TId> : IQueryExecutor<TEntity, TId> w
         [QueryParameterText.Last] = KeysetPaginationDirection.Backward
     };
 
-    private static readonly string[] _paginationReferenceParams = new[]
+    private static readonly Dictionary<string, KeysetPaginationDirection> _paginationReferenceParams = new()
     {
-        QueryParameterText.Before,
-        QueryParameterText.After,
+        [QueryParameterText.Before] = KeysetPaginationDirection.Backward,
+        [QueryParameterText.After] = KeysetPaginationDirection.Forward,
     };
 
     private readonly DbSet<TEntity> _dbSet;
@@ -44,22 +42,23 @@ public sealed class QueryExecutor<TEntity, TId> : IQueryExecutor<TEntity, TId> w
 
         Expression<Func<TEntity, bool>>? predicate = null;
         KeysetPaginationDirection? direction = null;
-        IIdentifier? referenceId = null;
+        TId? referenceId = null;
 
         foreach (var param in queryParameters)
         {
-            if (_paginationDirectionParams.TryGetValue(param.Key, out var dir)
+            if (_paginationReferenceParams.TryGetValue(param.Key, out var referenceDir)
+                && referenceId is null
+                && IdentifierUtility.TryParse<TId>(param.Value, out var identifier))
+            {
+                referenceId = identifier;
+                direction = referenceDir;
+            }
+            else if (_paginationDirectionParams.TryGetValue(param.Key, out var absoluteDir)
                 && direction is null
                 && bool.TryParse(param.Value, out var value)
                 && value)
             {
-                direction = dir;
-            }
-            else if (_paginationReferenceParams.Contains(param.Key)
-                && referenceId is null
-                && IdentifierHelper.TryParse<TId>(param.Value, out var identifier))
-            {
-                referenceId = identifier;
+                direction = absoluteDir;
             }
             else if (_stringMethods.TryGetValue(param.Key, out var func))
             {
@@ -69,6 +68,7 @@ public sealed class QueryExecutor<TEntity, TId> : IQueryExecutor<TEntity, TId> w
             }
         }
 
+        //note: what was the point of newid if you cannot order on timestamp in sql query?
         var keysetContext = _dbSet.KeysetPaginate(
             x => x.Descending(y => y.CreatedDateTime),
             direction ?? KeysetPaginationDirection.Forward,

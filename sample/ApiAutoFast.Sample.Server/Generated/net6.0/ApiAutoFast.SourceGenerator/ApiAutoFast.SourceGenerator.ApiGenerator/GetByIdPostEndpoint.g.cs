@@ -1,5 +1,4 @@
-﻿//HintName: GetByIdBlogEndpoint.g.cs
-
+﻿
 using ApiAutoFast;
 using ApiAutoFast.EntityFramework;
 using FastEndpoints;
@@ -11,33 +10,34 @@ using System.Linq.Expressions;
 
 namespace ApiAutoFast.Sample.Server;
 
-public partial class GetByIdBlogEndpoint : EndpointBase<BlogGetByIdRequest, BlogResponse, BlogMappingProfile>
+public partial class GetByIdPostEndpoint : EndpointBase<PostGetByIdRequest, PostResponse, PostMappingProfile>
 {
     private readonly AutoFastSampleDbContext _dbContext;
 
     private static readonly string[] _relationalNavigationNames = new string[]
     {
+        "Blog",
     };
 
-    public GetByIdBlogEndpoint(AutoFastSampleDbContext dbContext)
+    public GetByIdPostEndpoint(AutoFastSampleDbContext dbContext)
     {
         _dbContext = dbContext;
     }
 
     public override void Configure()
     {
-        MapRoute("/blogs/{id}", HttpVerb.Get);
+        MapRoute("/posts/{id}", HttpVerb.Get);
         AllowAnonymous();
     }
 
-    public override Task HandleAsync(BlogGetByIdRequest req, CancellationToken ct)
+    public override Task HandleAsync(PostGetByIdRequest req, CancellationToken ct)
     {
         return HandleRequestAsync(req, ct);
     }
 
-    public override async Task HandleRequestAsync(BlogGetByIdRequest req, CancellationToken ct)
+    public override async Task HandleRequestAsync(PostGetByIdRequest req, CancellationToken ct)
     {
-        var identifier = Identifier.ConvertFromRequest(req.Id, AddError);
+        var identifier = IdentifierUtility.ConvertFromRequest<Identifier>(req.Id, AddError);
 
         if (HasError())
         {
@@ -45,7 +45,7 @@ public partial class GetByIdBlogEndpoint : EndpointBase<BlogGetByIdRequest, Blog
             return;
         }
 
-        var query = _dbContext.Blogs.AsNoTracking();
+        var query = _dbContext.Posts.AsNoTracking();
 
         foreach (var relationalNavigationName in _relationalNavigationNames)
         {

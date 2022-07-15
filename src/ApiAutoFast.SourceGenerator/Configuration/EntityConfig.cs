@@ -6,7 +6,7 @@ namespace ApiAutoFast.SourceGenerator.Configuration;
 internal readonly struct EntityConfig
 {
     internal EntityConfig(
-        AutoFastEntityAttributeArguments endpointsAttributeArguments,
+        EntityAttributeArguments endpointsAttributeArguments,
         PropertyConfig propertyConfig,
         ImmutableArray<string> relationalNavigationNames,
         ImmutableArray<string> stringEntityProperties)
@@ -27,7 +27,7 @@ internal readonly struct EntityConfig
     internal readonly string MappingProfile { get; }
     internal readonly string CreateCommand { get; }
     internal readonly string ModifyCommand { get; }
-    internal readonly AutoFastEntityAttributeArguments EndpointsAttributeArguments { get; }
+    internal readonly EntityAttributeArguments EndpointsAttributeArguments { get; }
     internal readonly PropertyConfig PropertyConfig { get; }
     internal readonly ImmutableArray<string> RelationalNavigationNames { get; }
     internal readonly ImmutableArray<string> StringEntityProperties { get; }

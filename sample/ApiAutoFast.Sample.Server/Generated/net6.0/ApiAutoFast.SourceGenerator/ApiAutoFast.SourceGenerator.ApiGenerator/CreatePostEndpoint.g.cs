@@ -1,5 +1,4 @@
-﻿//HintName: CreateBlogEndpoint.g.cs
-
+﻿
 using ApiAutoFast;
 using ApiAutoFast.EntityFramework;
 using FastEndpoints;
@@ -11,22 +10,27 @@ using System.Linq.Expressions;
 
 namespace ApiAutoFast.Sample.Server;
 
-public abstract class CreateBlogEndpoint : EndpointBase<BlogCreateCommand, BlogResponse, BlogMappingProfile>
+public partial class CreatePostEndpoint : EndpointBase<PostCreateCommand, PostResponse, PostMappingProfile>
 {
     private readonly AutoFastSampleDbContext _dbContext;
 
-    public CreateBlogEndpoint(AutoFastSampleDbContext dbContext)
+    public CreatePostEndpoint(AutoFastSampleDbContext dbContext)
     {
         _dbContext = dbContext;
     }
 
     public override void Configure()
     {
-        MapRoute("/blogs", HttpVerb.Post);
+        MapRoute("/posts", HttpVerb.Post);
         AllowAnonymous();
     }
 
-    public override async Task HandleRequestAsync(BlogCreateCommand req, CancellationToken ct)
+    public override Task HandleAsync(PostCreateCommand req, CancellationToken ct)
+    {
+        return HandleRequestAsync(req, ct);
+    }
+
+    public override async Task HandleRequestAsync(PostCreateCommand req, CancellationToken ct)
     {
         var entity = Map.ToDomainEntity(req, AddError);
 
@@ -45,6 +49,6 @@ public abstract class CreateBlogEndpoint : EndpointBase<BlogCreateCommand, BlogR
 
         var response = Map.FromEntity(entity);
 
-        await SendCreatedAtAsync<GetByIdBlogEndpoint>(new { Id = entity.Id }, response, generateAbsoluteUrl: true, cancellation: ct);
+        await SendCreatedAtAsync<GetByIdPostEndpoint>(new { Id = entity.Id }, response, generateAbsoluteUrl: true, cancellation: ct);
     }
 }

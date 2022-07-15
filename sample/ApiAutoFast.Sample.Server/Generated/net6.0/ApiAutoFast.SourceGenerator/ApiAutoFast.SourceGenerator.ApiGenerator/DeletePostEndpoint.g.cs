@@ -1,5 +1,4 @@
-﻿//HintName: DeleteBlogEndpoint.g.cs
-
+﻿
 using ApiAutoFast;
 using ApiAutoFast.EntityFramework;
 using FastEndpoints;
@@ -11,29 +10,29 @@ using System.Linq.Expressions;
 
 namespace ApiAutoFast.Sample.Server;
 
-public partial class DeleteBlogEndpoint : EndpointBase<BlogDeleteCommand, BlogResponse, BlogMappingProfile>
+public partial class DeletePostEndpoint : EndpointBase<PostDeleteCommand, PostResponse, PostMappingProfile>
 {
     private readonly AutoFastSampleDbContext _dbContext;
 
-    public DeleteBlogEndpoint(AutoFastSampleDbContext dbContext)
+    public DeletePostEndpoint(AutoFastSampleDbContext dbContext)
     {
         _dbContext = dbContext;
     }
 
     public override void Configure()
     {
-        MapRoute("/blogs/{id}", HttpVerb.Delete);
+        MapRoute("/posts/{id}", HttpVerb.Delete);
         AllowAnonymous();
     }
 
-    public override Task HandleAsync(BlogDeleteCommand req, CancellationToken ct)
+    public override Task HandleAsync(PostDeleteCommand req, CancellationToken ct)
     {
         return HandleRequestAsync(req, ct);
     }
 
-    public override async Task HandleRequestAsync(BlogDeleteCommand req, CancellationToken ct)
+    public override async Task HandleRequestAsync(PostDeleteCommand req, CancellationToken ct)
     {
-        var identifier = Identifier.ConvertFromRequest(req.Id, AddError);
+        var identifier = IdentifierUtility.ConvertFromRequest<Identifier>(req.Id, AddError);
 
         if (HasError())
         {
@@ -41,7 +40,7 @@ public partial class DeleteBlogEndpoint : EndpointBase<BlogDeleteCommand, BlogRe
             return;
         }
 
-        var result = await _dbContext.Blogs.FindAsync(new object?[] { identifier }, cancellationToken: ct);
+        var result = await _dbContext.Posts.FindAsync(new object?[] { identifier }, cancellationToken: ct);
 
         if (result is null)
         {
@@ -49,7 +48,7 @@ public partial class DeleteBlogEndpoint : EndpointBase<BlogDeleteCommand, BlogRe
             return;
         }
 
-        _dbContext.Blogs.Remove(result);
+        _dbContext.Posts.Remove(result);
 
         if (ShouldSave())
         {

@@ -20,6 +20,7 @@ public partial class GetBlogEndpoint : EndpointBase<BlogQueryRequest, Paginated<
     };
     private static readonly string[] _relationalNavigationNames = new string[]
     {
+        "Posts",
     };
     private readonly IQueryExecutor<Blog, SequentialIdentifier> _queryExecutor;
 

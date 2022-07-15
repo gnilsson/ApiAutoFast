@@ -1,5 +1,6 @@
 ﻿using ApiAutoFast.SourceGenerator.Configuration;
 using ApiAutoFast.SourceGenerator.Configuration.Enums;
+using ApiAutoFast.SourceGenerator.Descriptive;
 using System.Collections.Immutable;
 using System.Text;
 
@@ -320,6 +321,20 @@ public partial class ")
         {
             foreach (var property in definedProperties)
             {
+                if (property.Type is TypeText.Identifier or TypeText.SequentialIdentifier)
+                {
+                    sb.Append(@"            ")
+                        .Append(property.Name)
+                        .Append(@" = ")
+                        .Append(TypeText.IdentifierUtility)
+                        .Append(@".ConvertFromRequest<")
+                        .Append(property.Type)
+                        .Append(@">(command.")
+                        .Append(property.Name)
+                        .Append(@", addValidationError),
+");
+                    continue;
+                }
                 sb.Append(@"            ")
                     .Append(property.Name)
                     .Append(@" = ")

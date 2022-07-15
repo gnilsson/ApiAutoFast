@@ -32,7 +32,7 @@ public partial class DeleteBlogEndpoint : EndpointBase<BlogDeleteCommand, BlogRe
 
     public override async Task HandleRequestAsync(BlogDeleteCommand req, CancellationToken ct)
     {
-        var identifier = Identifier.ConvertFromRequest(req.Id, AddError);
+        var identifier = IdentifierUtility.ConvertFromRequest<SequentialIdentifier>(req.Id, AddError);
 
         if (HasError())
         {

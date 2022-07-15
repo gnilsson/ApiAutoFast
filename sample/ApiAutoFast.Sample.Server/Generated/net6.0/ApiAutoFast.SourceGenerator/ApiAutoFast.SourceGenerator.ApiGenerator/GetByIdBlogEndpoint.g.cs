@@ -16,6 +16,7 @@ public partial class GetByIdBlogEndpoint : EndpointBase<BlogGetByIdRequest, Blog
 
     private static readonly string[] _relationalNavigationNames = new string[]
     {
+        "Posts",
     };
 
     public GetByIdBlogEndpoint(AutoFastSampleDbContext dbContext)
@@ -36,7 +37,7 @@ public partial class GetByIdBlogEndpoint : EndpointBase<BlogGetByIdRequest, Blog
 
     public override async Task HandleRequestAsync(BlogGetByIdRequest req, CancellationToken ct)
     {
-        var identifier = SequentialIdentifier.ConvertFromRequest(req.Id, AddError);
+        var identifier = IdentifierUtility.ConvertFromRequest<SequentialIdentifier>(req.Id, AddError);
 
         if (HasError())
         {

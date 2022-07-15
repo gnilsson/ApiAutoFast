@@ -1,5 +1,6 @@
 ﻿using ApiAutoFast.SourceGenerator.Configuration;
 using ApiAutoFast.SourceGenerator.Configuration.Enums;
+using ApiAutoFast.SourceGenerator.Descriptive;
 using System.Collections.Immutable;
 using System.Text;
 
@@ -53,7 +54,7 @@ internal static class EndpointSourceEmitter
         EndpointTargetType.Update => static (sb, endpointConfig) =>
         {
             sb.Append(@"
-        var identifier = Identifier.ConvertFromRequest(req.Id, AddError);
+        var identifier = ").Append(TypeText.IdentifierUtility).Append(@".ConvertFromRequest<").Append(endpointConfig.IdType).Append(@">(req.Id, AddError);
 
         if (HasError())
         {
@@ -80,7 +81,7 @@ internal static class EndpointSourceEmitter
         EndpointTargetType.Delete => static (sb, endpointConfig) =>
         {
             sb.Append(@"
-        var identifier = Identifier.ConvertFromRequest(req.Id, AddError);
+        var identifier = ").Append(TypeText.IdentifierUtility).Append(@".ConvertFromRequest<").Append(endpointConfig.IdType).Append(@">(req.Id, AddError);
 
         if (HasError())
         {
@@ -110,7 +111,7 @@ internal static class EndpointSourceEmitter
         EndpointTargetType.GetById => static (sb, endpointConfig) =>
         {
             sb.Append(@"
-        var identifier = ").Append(endpointConfig.IdType).Append(@".ConvertFromRequest(req.Id, AddError);
+        var identifier = ").Append(TypeText.IdentifierUtility).Append(@".ConvertFromRequest<").Append(endpointConfig.IdType).Append(@">(req.Id, AddError);
 
         if (HasError())
         {
