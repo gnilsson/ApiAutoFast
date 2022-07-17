@@ -1,11 +1,6 @@
 ﻿namespace ApiAutoFast;
 
-public interface IIdentifier : IEquatable<Identifier>
+public interface IIdentifier : IEquatable<Identifier>, IEquatable<Guid>
 {
 
-}
-
-public interface IParseableIdentifier<TId>
-{
-    
 }

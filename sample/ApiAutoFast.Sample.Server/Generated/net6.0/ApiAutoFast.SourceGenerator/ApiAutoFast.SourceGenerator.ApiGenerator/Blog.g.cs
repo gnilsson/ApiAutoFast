@@ -1,4 +1,6 @@
 ﻿
+#nullable enable
+
 using ApiAutoFast;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
@@ -13,9 +15,9 @@ public class Blog : IEntity<SequentialIdentifier>
         this.Posts = new HashSet<Post>();
     }
 
-    public SequentialIdentifier Id { get; set; }
-    public DateTime CreatedDateTime { get; set; }
-    public DateTime ModifiedDateTime { get; set; }
-    public Title Title { get; set; }
+    public SequentialIdentifier Id { get; set; } = default!;
+    public DateTime CreatedDateTime { get; set; } = default!;
+    public DateTime ModifiedDateTime { get; set; } = default!;
+    public Title? Title { get; set; }
     public System.Collections.Generic.ICollection<Post> Posts { get; set; }
 }

@@ -385,7 +385,7 @@ internal static class Parser
 
         if (domainValueDefinition.PropertyRelation.Type is RelationalType.None)
         {
-            var entitySource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.TypeName}");
+            var entitySource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.TypeName}?");
             var requestSource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}?");
             var commandSource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}");
             return new PropertySource(entitySource, requestSource, commandSource, string.Empty, domainValueDefinition.TypeName);

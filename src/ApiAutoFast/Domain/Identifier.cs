@@ -54,7 +54,7 @@ public readonly struct Identifier :
     {
         if (valueToParse is not null
             && Regex.IsMatch(valueToParse, UrlFriendlyBase64RegexPattern, RegexOptions.Compiled)
-            && TryToIdentifier(valueToParse!, out identifier))
+            && TryToConstruct(valueToParse!, out identifier))
         {
             return true;
         }
@@ -63,7 +63,7 @@ public readonly struct Identifier :
         return false;
     }
 
-    private static bool TryToIdentifier(in string value, out Identifier identifier)
+    private static bool TryToConstruct(in string value, out Identifier identifier)
     {
         try
         {
@@ -125,21 +125,20 @@ public readonly struct Identifier :
         return new Guid(idBytes);
     }
 
+    public bool Equals(Identifier? other) => _guidValue == other?._guidValue;
     public bool Equals(Identifier other) => _guidValue == other._guidValue;
-    public string ToString(string? format, IFormatProvider? formatProvider) => _base64Value.ToString(formatProvider);
-    public Guid ToGuid() => _guidValue;
     public override bool Equals(object? obj) => base.Equals(obj);
     public override int GetHashCode() => base.GetHashCode();
     public override string ToString() => _base64Value;
+    public string ToString(string? format, IFormatProvider? formatProvider) => _base64Value.ToString(formatProvider);
+    public bool Equals(Guid other) => _guidValue.Equals(other);
 
-    public static implicit operator Identifier(in Guid guidValue) => new(guidValue);
-    public static implicit operator string(in Identifier identifier) => identifier._base64Value;
-    public static implicit operator Guid(in Identifier identifier) => identifier._guidValue;
+    public static implicit operator Identifier(Guid guidValue) => new(guidValue);
+    public static implicit operator string(Identifier identifier) => identifier._base64Value;
+    public static implicit operator Guid(Identifier identifier) => identifier._guidValue;
 
-    public static bool operator ==(in Identifier id1, in Identifier id2) => id1._guidValue.Equals(id2._guidValue);
-    public static bool operator !=(in Identifier id1, in Identifier id2) => !id1._guidValue.Equals(id2._guidValue);
-    public static bool operator ==(in Guid id1, in Identifier id2) => id1.Equals(id2._guidValue);
-    public static bool operator !=(in Guid id1, in Identifier id2) => !id1.Equals(id2._guidValue);
-    public static bool operator ==(in Identifier id1, in Guid id2) => id1._guidValue.Equals(id2);
-    public static bool operator !=(in Identifier id1, in Guid id2) => !id1._guidValue.Equals(id2);
+    public static bool operator ==(Identifier id1, Identifier id2) => id1.Equals(id2);
+    public static bool operator !=(Identifier id1, Identifier id2) => !id1.Equals(id2);
+    public static bool operator ==(Identifier id1, Guid id2) => id1._guidValue.Equals(id2);
+    public static bool operator !=(Identifier id1, Guid id2) => !id1._guidValue.Equals(id2);
 }

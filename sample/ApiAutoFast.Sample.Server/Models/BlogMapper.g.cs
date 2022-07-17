@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ApiAutoFast;
 using ApiAutoFast.Sample.Server;
 using Mapster;
 using Mapster.Utils;
@@ -30,8 +31,8 @@ namespace ApiAutoFast.Sample.Server
                 references[key] = (object)result;
                 
                 result.Id = p1.Id.ToString();
-                result.CreatedDateTime = p1.CreatedDateTime.ToString();
-                result.ModifiedDateTime = p1.ModifiedDateTime.ToString();
+                result.CreatedDateTime = ((ITimestamp)p1).CreatedDateTime.ToString("dddd, dd MMMM yyyy HH:mm");
+                result.ModifiedDateTime = ((ITimestamp)p1).ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm");
                 result.Title = p1.Title.EntityValue;
                 result.Posts = funcMain1(p1.Posts) ?? new List<PostResponse>();
                 return result;
@@ -65,8 +66,8 @@ namespace ApiAutoFast.Sample.Server
                 references[key] = (object)result;
                 
                 result.Id = p4.Id.ToString();
-                result.CreatedDateTime = p4.CreatedDateTime.ToString();
-                result.ModifiedDateTime = p4.ModifiedDateTime.ToString();
+                result.CreatedDateTime = ((ITimestamp)p4).CreatedDateTime.ToString("dddd, dd MMMM yyyy HH:mm");
+                result.ModifiedDateTime = ((ITimestamp)p4).ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm");
                 result.Title = p4.Title.EntityValue;
                 result.Posts = funcMain3(p4.Posts, result.Posts) ?? new List<PostResponse>();
                 return result;
@@ -177,8 +178,8 @@ namespace ApiAutoFast.Sample.Server
                 references[key] = (object)result;
                 
                 result.Id = p3.Id.ToString();
-                result.CreatedDateTime = p3.CreatedDateTime.ToString();
-                result.ModifiedDateTime = p3.ModifiedDateTime.ToString();
+                result.CreatedDateTime = ((ITimestamp)p3).CreatedDateTime.ToString("dddd, dd MMMM yyyy HH:mm");
+                result.ModifiedDateTime = ((ITimestamp)p3).ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm");
                 result.Title = p3.Title.EntityValue;
                 result.PublicationDateTime = p3.PublicationDateTime.ToString();
                 result.Description = p3.Description.EntityValue;
@@ -218,8 +219,8 @@ namespace ApiAutoFast.Sample.Server
                 references[key] = (object)result;
                 
                 result.Id = p8.Id.ToString();
-                result.CreatedDateTime = p8.CreatedDateTime.ToString();
-                result.ModifiedDateTime = p8.ModifiedDateTime.ToString();
+                result.CreatedDateTime = ((ITimestamp)p8).CreatedDateTime.ToString("dddd, dd MMMM yyyy HH:mm");
+                result.ModifiedDateTime = ((ITimestamp)p8).ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm");
                 result.Title = p8.Title.EntityValue;
                 result.PublicationDateTime = p8.PublicationDateTime.ToString();
                 result.Description = p8.Description.EntityValue;

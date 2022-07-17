@@ -40,9 +40,9 @@ public partial class MappingRegister : ICodeGenerationRegister
         TypeAdapterConfig.GlobalSettings.Default.AddDestinationTransform(DestinationTransform.EmptyCollectionIfNull);
 
         TypeAdapterConfig.GlobalSettings
-            .When((src, dest, map) => src.GetInterface(nameof(IEntity<Identifier>)) is not null)
-            .Map(nameof(IEntity<Identifier>.CreatedDateTime), (IEntity<Identifier> e) => e.CreatedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"))
-            .Map(nameof(IEntity<Identifier>.ModifiedDateTime), (IEntity<Identifier> e) => e.ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"));
+            .When((src, dest, map) => src.GetInterface(nameof(ITimestamp)) is not null)
+            .Map(nameof(ITimestamp.CreatedDateTime), (ITimestamp e) => e.CreatedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"))
+            .Map(nameof(ITimestamp.ModifiedDateTime), (ITimestamp e) => e.ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"));
             TypeAdapterConfig<Title, string>.NewConfig().MapWith(x => x.EntityValue);
         TypeAdapterConfig<PublicationDateTime, string>.NewConfig().MapWith(x => x.ToString());
             TypeAdapterConfig<Description, string>.NewConfig().MapWith(x => x.EntityValue);

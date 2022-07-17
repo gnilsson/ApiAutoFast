@@ -4,6 +4,7 @@ using ApiAutoFast.Sample.Server;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ApiAutoFast.Sample.Server.Migrations
 {
     [DbContext(typeof(AutoFastSampleDbContext))]
-    partial class AutoFastSampleDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220716155455_Nullable2")]
+    partial class Nullable2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

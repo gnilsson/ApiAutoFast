@@ -1,6 +1,7 @@
 ﻿namespace ApiAutoFast;
 
-public interface IEntity<T> : ITimestamp where T : IIdentifier
+
+public interface IEntity<TId> : ITimestamp where TId : IIdentifier
 {
-    public T Id { get; set; }
+    public TId Id { get; set; }
 }

@@ -17,3 +17,11 @@ public class SequentialIdentifierValueConverter : ValueConverter<SequentialIdent
         t => new SequentialIdentifier(t))
     { }
 }
+
+//public class SequentialIdentifierValueConverter : ValueConverter<SequentialIdentifier?, Guid>
+//{
+//    public SequentialIdentifierValueConverter() : base(
+//        s => (Guid)s!,
+//        t => new SequentialIdentifier(t))
+//    { }
+//}

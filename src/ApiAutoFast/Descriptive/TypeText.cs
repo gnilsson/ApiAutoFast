@@ -4,8 +4,8 @@ internal sealed class TypeText
 {
     internal const string Identifier = nameof(ApiAutoFast.Identifier);
     internal const string SequentialIdentifier = nameof(ApiAutoFast.SequentialIdentifier);
-    internal const string CreatedDateTime = nameof(IEntity<IIdentifier>.CreatedDateTime);
-    internal const string ModifiedDateTime = nameof(IEntity<IIdentifier>.ModifiedDateTime);
+    internal const string CreatedDateTime = nameof(ITimestamp.CreatedDateTime);
+    internal const string ModifiedDateTime = nameof(ITimestamp.ModifiedDateTime);
     internal const string DomainValue2 = "DomainValue`2";
     internal const string DomainValue3 = "DomainValue`3";
     internal const string DomainValue4 = "DomainValue`4";

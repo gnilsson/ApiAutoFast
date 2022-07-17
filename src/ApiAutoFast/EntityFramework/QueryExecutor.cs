@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 
 namespace ApiAutoFast.EntityFramework;
 
-public sealed class QueryExecutor<TEntity, TId> : IQueryExecutor<TEntity, TId> where TEntity : class, IEntity<TId> where TId : struct, IIdentifier
+public sealed class QueryExecutor<TEntity, TId> : IQueryExecutor<TEntity, TId> where TEntity : class, ITimestamp, IEntity<TId> where TId : struct, IIdentifier
 {
     private static readonly Dictionary<string, KeysetPaginationDirection> _paginationDirectionParams = new()
     {
@@ -42,6 +42,7 @@ public sealed class QueryExecutor<TEntity, TId> : IQueryExecutor<TEntity, TId> w
 
         Expression<Func<TEntity, bool>>? predicate = null;
         KeysetPaginationDirection? direction = null;
+        //TId? referenceId = null;
         TId? referenceId = null;
 
         foreach (var param in queryParameters)

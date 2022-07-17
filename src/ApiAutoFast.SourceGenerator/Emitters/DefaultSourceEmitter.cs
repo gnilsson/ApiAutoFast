@@ -64,9 +64,9 @@ public partial class MappingRegister : ICodeGenerationRegister
         TypeAdapterConfig.GlobalSettings.Default.AddDestinationTransform(DestinationTransform.EmptyCollectionIfNull);
 
         TypeAdapterConfig.GlobalSettings
-            .When((src, dest, map) => src.GetInterface(nameof(IEntity<Identifier>)) is not null)
-            .Map(nameof(IEntity<Identifier>.CreatedDateTime), (IEntity<Identifier> e) => e.CreatedDateTime.ToString(""dddd, dd MMMM yyyy HH:mm""))
-            .Map(nameof(IEntity<Identifier>.ModifiedDateTime), (IEntity<Identifier> e) => e.ModifiedDateTime.ToString(""dddd, dd MMMM yyyy HH:mm""));");
+            .When((src, dest, map) => src.GetInterface(nameof(ITimestamp)) is not null)
+            .Map(nameof(ITimestamp.CreatedDateTime), (ITimestamp e) => e.CreatedDateTime.ToString(""dddd, dd MMMM yyyy HH:mm""))
+            .Map(nameof(ITimestamp.ModifiedDateTime), (ITimestamp e) => e.ModifiedDateTime.ToString(""dddd, dd MMMM yyyy HH:mm""));");
 
         foreach (var definedDomainValue in generationConfig.EntityConfigs
             .SelectMany(x => x.PropertyConfig.DomainValues)
@@ -146,6 +146,8 @@ public static class AdaptAttributeBuilderExtensions
         sb.Clear();
 
         sb.Append(@"
+#nullable enable
+
 using ApiAutoFast;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
@@ -176,11 +178,18 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity<").Append(enti
         sb.Append(@"
     }
 
-    public ").Append(entityConfig.EndpointsAttributeArguments.IdType).Append(@" Id { get; set; }
-    public DateTime CreatedDateTime { get; set; }
-    public DateTime ModifiedDateTime { get; set; }");
+    public ").Append(entityConfig.EndpointsAttributeArguments.IdType).Append(@" Id { get; set; } = default!;
+    public DateTime CreatedDateTime { get; set; } = default!;
+    public DateTime ModifiedDateTime { get; set; } = default!;");
         foreach (var propertyOutput in entities)
         {
+            if(propertyOutput.Relation.Type is RelationalType.ToOne)
+            {
+                sb.Append(@"
+    [Required]
+    ").Append(propertyOutput.Source).Append(@" = default!;");
+                continue;
+            }
             sb.Append(@"
     ").Append(propertyOutput.Source);
         }

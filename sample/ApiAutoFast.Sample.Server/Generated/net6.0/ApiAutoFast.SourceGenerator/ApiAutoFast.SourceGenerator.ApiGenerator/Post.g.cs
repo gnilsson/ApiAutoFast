@@ -1,4 +1,6 @@
 ﻿
+#nullable enable
+
 using ApiAutoFast;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
@@ -12,14 +14,16 @@ public class Post : IEntity<Identifier>
     {
     }
 
-    public Identifier Id { get; set; }
-    public DateTime CreatedDateTime { get; set; }
-    public DateTime ModifiedDateTime { get; set; }
-    public Title Title { get; set; }
-    public PublicationDateTime PublicationDateTime { get; set; }
-    public Description Description { get; set; }
-    public PostType PostType { get; set; }
-    public LikeCount LikeCount { get; set; }
-    public Blog Blog { get; set; }
-    public SequentialIdentifier BlogId { get; set; }
+    public Identifier Id { get; set; } = default!;
+    public DateTime CreatedDateTime { get; set; } = default!;
+    public DateTime ModifiedDateTime { get; set; } = default!;
+    public Title? Title { get; set; }
+    public PublicationDateTime? PublicationDateTime { get; set; }
+    public Description? Description { get; set; }
+    public PostType? PostType { get; set; }
+    public LikeCount? LikeCount { get; set; }
+    [Required]
+    public Blog Blog { get; set; } = default!;
+    [Required]
+    public SequentialIdentifier BlogId { get; set; } = default!;
 }
