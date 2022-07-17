@@ -35,6 +35,6 @@ public partial class AutoFastSampleDbContext : DbContext
         ExtendOnModelCreating(modelBuilder);
     }
 
-    public DbSet<Post> Posts { get; init; } = default!;
-    public DbSet<Blog> Blogs { get; init; } = default!;
+    public DbSet<Post> Posts => Set<Post>();
+    public DbSet<Blog> Blogs => Set<Blog>();
 }

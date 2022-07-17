@@ -273,7 +273,7 @@ public partial class ").Append(contextConfig.Name).Append(@" : DbContext
         foreach (var entity in endpointsConfig.EntityConfigs)
         {
             sb.Append(@"
-    public DbSet<").Append(entity.BaseName).Append("> ").Append(entity.BaseName).Append(@"s { get; init; } = default!;");
+    public DbSet<").Append(entity.BaseName).Append("> ").Append(entity.BaseName).Append(@"s => Set<").Append(entity.BaseName).Append(@">();");
         }
         sb.Append(@"
 }

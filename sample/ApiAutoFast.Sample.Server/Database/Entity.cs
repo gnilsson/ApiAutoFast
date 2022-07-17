@@ -45,3 +45,14 @@ public partial class AutoFastSampleDbContext : DbContext
 //public class Title2 : StringDomainValue<Title2>
 //{
 //    public const string RegexPattern = @"^[a-zA-Z0-9 ]*$";
+//}
+
+public abstract class AutoFastConfiguration
+{
+
+}
+
+public class AutoFastSampleConfiguration : AutoFastConfiguration
+{
+
+}
