@@ -47,12 +47,11 @@ public partial class AutoFastSampleDbContext : DbContext
 //    public const string RegexPattern = @"^[a-zA-Z0-9 ]*$";
 //}
 
-public abstract class AutoFastConfiguration
-{
-
-}
 
 public class AutoFastSampleConfiguration : AutoFastConfiguration
 {
-
+    public override void Configure()
+    {
+        AddValidationErrorMessage<Title>("Incorrect format on Title.");
+    }
 }

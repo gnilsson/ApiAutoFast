@@ -19,7 +19,7 @@ builder.Services
         s.OperationProcessors.Add(new KeysetPaginationOperationProcessor());
     }, shortSchemaNames: true);
 
-builder.Services.AddAutoFast();
+builder.Services.AddAutoFast(typeof(Program));
 
 builder.Services.AddDbContext<AutoFastSampleDbContext>(options => options
     .UseSqlServer(builder.Configuration.GetConnectionString("sqlConn"))

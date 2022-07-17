@@ -1,4 +1,5 @@
 ﻿using ApiAutoFast.Descriptive;
+using ApiAutoFast.Domain;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -14,7 +15,6 @@ public abstract class StringDomainValue<TDomain> : DomainValue<string, TDomain> 
 
     //public override StringDomainValue ConvertFromRequest(string? request, Action<string, string> addError)
     //{
-
     //    var a = base.ConvertFromRequest(request, addError);
     //}
     public bool Contains(string value)
@@ -25,8 +25,6 @@ public abstract class StringDomainValue<TDomain> : DomainValue<string, TDomain> 
     public static implicit operator string(StringDomainValue<TDomain> domain) => domain.EntityValue!;
 }
 
-
-// note: maybe there should be a seperate class called ForeignDomainValue
 public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : DomainValue<TRequest, TEntity, TResponse, TDomain>, new()
 {
     static DomainValue()
@@ -69,7 +67,7 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
             return domain;
         }
 
-        addError(typeof(TDomain).Name, "Error when converting request.");
+        addError(typeof(TDomain).Name, ValidationErrorMessageContainer.Get<TDomain>());
         return default!;
     }
 
@@ -85,7 +83,7 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
             return (TDomain)entityValue;
         }
 
-        addError(typeof(TDomain).Name, "Error when converting request.");
+        addError(typeof(TDomain).Name, ValidationErrorMessageContainer.Get<TDomain>() );
         return default!;
     }
 
