@@ -52,7 +52,7 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
         return requestValue is not null;
     }
 
-    protected virtual TResponse ToResponse()
+    public virtual TResponse ToResponse()
     {
         throw new NotImplementedException($"{TypeText.DomainValue4} needs an overriden {nameof(ToResponse)} method.");
     }

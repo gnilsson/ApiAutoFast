@@ -8,10 +8,11 @@ public class DomainValue<TRequest, TEntity, TDomain> : DomainValue<TRequest, TEn
 {
     protected override bool TryValidateRequestConversion(TRequest? requestValue, [NotNullWhen(true)] out TEntity entityValue)
     {
+        // ?
         throw new NotImplementedException($"{TypeText.DomainValue3} needs an overriden {nameof(TryValidateRequestConversion)} method.");
     }
 
-    protected override TRequest ToResponse()
+    public override TRequest ToResponse()
     {
         throw new NotImplementedException($"{TypeText.DomainValue3} needs an overriden {nameof(ToResponse)} method.");
     }

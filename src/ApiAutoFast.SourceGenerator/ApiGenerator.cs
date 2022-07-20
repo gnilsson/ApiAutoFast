@@ -17,12 +17,11 @@ public class ApiGenerator : IIncrementalGenerator
     {
         _requestEndpointPairs = ImmutableArray.Create(new RequestEndpointPair[]
         {
-            // note: propertytarget not currently used here
-            new (RequestModelTarget.GetByIdRequest, PropertyTarget.None, EndpointTargetType.GetById, "HttpVerb.Get"),
-            new (RequestModelTarget.DeleteCommand,  PropertyTarget.None, EndpointTargetType.Delete,  "HttpVerb.Delete"),
-            new (RequestModelTarget.ModifyCommand,  PropertyTarget.ModifyCommand, EndpointTargetType.Update,  "HttpVerb.Put"),
-            new (RequestModelTarget.CreateCommand,  PropertyTarget.CreateCommand, EndpointTargetType.Create,  "HttpVerb.Post"),
-            new (RequestModelTarget.QueryRequest,   PropertyTarget.QueryRequest, EndpointTargetType.Get,     "HttpVerb.Get"),
+            new (RequestModelTarget.GetByIdRequest, PropertyTarget.None,            EndpointTargetType.GetById, "HttpVerb.Get"),
+            new (RequestModelTarget.DeleteCommand,  PropertyTarget.None,            EndpointTargetType.Delete,  "HttpVerb.Delete"),
+            new (RequestModelTarget.ModifyCommand,  PropertyTarget.ModifyCommand,   EndpointTargetType.Update,  "HttpVerb.Put"),
+            new (RequestModelTarget.CreateCommand,  PropertyTarget.CreateCommand,   EndpointTargetType.Create,  "HttpVerb.Post"),
+            new (RequestModelTarget.QueryRequest,   PropertyTarget.QueryRequest,    EndpointTargetType.Get,     "HttpVerb.Get"),
         });
     }
 
@@ -66,7 +65,7 @@ public class ApiGenerator : IIncrementalGenerator
 
         foreach (var entityConfig in entityGenerationConfig.EntityConfigs)
         {
-            var entityResult = DefaultSourceEmitter.EmitEntityModels(sb, entityGenerationConfig.Namespace, entityConfig);
+            var entityResult = DefaultSourceEmitter.EmitEntityModel(sb, entityGenerationConfig.Namespace, entityConfig);
             context.AddSource($"{entityConfig.BaseName}.g.cs", SourceText.From(entityResult, Encoding.UTF8));
         }
 
@@ -82,11 +81,27 @@ public class ApiGenerator : IIncrementalGenerator
 
         foreach (var entityConfig in entityGenerationConfig.EntityConfigs)
         {
+            var responseResult = MapperSourceEmitter.EmitSimplifiedResponseModel(sb, entityGenerationConfig.Namespace, entityConfig);
+            context.AddSource($"{entityConfig.Response}Simplified.g.cs", SourceText.From(responseResult, Encoding.UTF8));
+        }
+
+        foreach (var (name, source) in MapperSourceEmitter.EmitMappers(sb, entityGenerationConfig.Namespace, entityGenerationConfig.EntityConfigs))
+        {
+            context.AddSource($"{name}Mapper2.g.cs", SourceText.From(source, Encoding.UTF8));
+        }
+
+        foreach (var entityConfig in entityGenerationConfig.EntityConfigs)
+        {
             foreach (var requestEndpointPair in _requestEndpointPairs)
             {
-                var requestModelsResult = DefaultSourceEmitter.EmitRequestModel(sb, entityGenerationConfig.Namespace, entityConfig, requestEndpointPair.RequestModel);
+                var requestModelsResult = DefaultSourceEmitter.EmitRequestModel(sb, entityGenerationConfig.Namespace, entityConfig, requestEndpointPair.RequestModel, requestEndpointPair.PropertyTarget);
                 context.AddSource($"{entityConfig.BaseName}{requestEndpointPair.RequestModel}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
             }
+
+            var responseResult = MapperSourceEmitter.EmitResponseModel(sb, entityGenerationConfig.Namespace, entityConfig);
+            context.AddSource($"{entityConfig.Response}2.g.cs", SourceText.From(responseResult, Encoding.UTF8));
+
+            //addsource
 
             if (MapsterMapperIsGenerated(compilation, entityConfig.BaseName, entityGenerationConfig.Namespace) is false) continue;
 

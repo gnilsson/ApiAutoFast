@@ -58,14 +58,45 @@ public class PostEntity
 }
 
 
+[AutoFastEntity]
+public class AuthorEntity
+{
+    public FirstName FirstName { get; set; } = default!;
+    public LastName LastName { get; set; } = default!;
+    public BlogsRelation Blogs { get; set; } = default!;
+}
 
-public class PostsRelation : DomainValue<ICollection<Post>, PostsRelation>
+
+public class BlogRelation : DomainValue<string, Blog, BlogRelation>
 {
 
 }
 
-public class BlogRelation : DomainValue<string, Blog, BlogRelation>
-{ }
+public class PostsRelation : DomainValue<ICollection<Post>, PostsRelation>
+{
+}
+
+
+public class AuthorsRelation : DomainValue<ICollection<Author>, AuthorsRelation>
+{
+
+}
+
+
+public class BlogsRelation : DomainValue<ICollection<Blog>, BlogsRelation>
+{
+
+}
+
+public class FirstName : DomainValue<string, FirstName>
+{
+
+}
+
+public class LastName : DomainValue<string, LastName>
+{
+
+}
 
 public class PublicationDateTime : DomainValue<string, DateTime, PublicationDateTime>
 {

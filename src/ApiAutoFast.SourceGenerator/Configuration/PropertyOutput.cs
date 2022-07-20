@@ -18,8 +18,8 @@ internal readonly struct PropertyOutput
     internal readonly string EntityKind { get; }
     internal readonly string Source { get; }
     internal readonly PropertyTarget Target { get; }
-    public string Name { get; }
-    public string Type { get; }
-    public PropertyRelation Relation { get; }
-    public PropertyKind PropertyKind { get; }
+    internal readonly string Name { get; }
+    internal readonly string Type { get; }
+    internal readonly PropertyRelation Relation { get; }
+    internal readonly PropertyKind PropertyKind { get; }
 }

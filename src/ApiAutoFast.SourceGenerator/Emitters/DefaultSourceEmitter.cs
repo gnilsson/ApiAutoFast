@@ -141,7 +141,7 @@ public static class AdaptAttributeBuilderExtensions
         return sb.ToString();
     }
 
-    internal static string EmitEntityModels(StringBuilder sb, string @namespace, EntityConfig entityConfig)
+    internal static string EmitEntityModel(StringBuilder sb, string @namespace, EntityConfig entityConfig)
     {
         sb.Clear();
 
@@ -160,11 +160,11 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity<").Append(enti
     public ").Append(entityConfig.BaseName).Append(@"()
     {");
 
-        var entities = entityConfig.PropertyConfig.Properties
+        var entityProperties = entityConfig.PropertyConfig.Properties
             .Where(x => x.Target is PropertyTarget.Entity)
-            .ToImmutableArray();
+            .ToArray();
 
-        foreach (var propertyOutput in entities)
+        foreach (var propertyOutput in entityProperties)
         {
             if (propertyOutput.Relation.Type is RelationalType.ToMany)
             {
@@ -181,9 +181,9 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity<").Append(enti
     public ").Append(entityConfig.EndpointsAttributeArguments.IdType).Append(@" Id { get; set; } = default!;
     public DateTime CreatedDateTime { get; set; } = default!;
     public DateTime ModifiedDateTime { get; set; } = default!;");
-        foreach (var propertyOutput in entities)
+        foreach (var propertyOutput in entityProperties)
         {
-            if(propertyOutput.Relation.Type is RelationalType.ToOne)
+            if (propertyOutput.Relation.Type is RelationalType.ToOne)
             {
                 sb.Append(@"
     [Required]
@@ -199,7 +199,7 @@ public class ").Append(entityConfig.BaseName).Append(@" : IEntity<").Append(enti
         return sb.ToString();
     }
 
-    internal static string EmitRequestModel(StringBuilder sb, string @namespace, EntityConfig entityConfig, RequestModelTarget modelTarget)
+    internal static string EmitRequestModel(StringBuilder sb, string @namespace, EntityConfig entityConfig, RequestModelTarget modelTarget, PropertyTarget propertyTarget)
     {
         sb.Clear();
 
@@ -215,7 +215,7 @@ public partial class ").Append(entityConfig.BaseName).Append(modelTarget).Append
 {");
         sb.Append(_getModelTargetSource(modelTarget));
 
-        if (Enum.TryParse<PropertyTarget>(modelTarget.ToString(), out var propertyTarget))
+        if (propertyTarget is not PropertyTarget.None)
         {
             foreach (var property in entityConfig.PropertyConfig.Properties.Where(x => x.Target.HasFlag(propertyTarget)))
             {

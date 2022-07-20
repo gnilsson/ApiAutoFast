@@ -49,12 +49,15 @@ public partial class MappingRegister : ICodeGenerationRegister
         TypeAdapterConfig<PostType, string>.NewConfig().MapWith(x => x.ToString());
             TypeAdapterConfig<LikeCount, int>.NewConfig().MapWith(x => x.EntityValue);
             TypeAdapterConfig<Title, string>.NewConfig().MapWith(x => x.EntityValue);
+            TypeAdapterConfig<FirstName, string>.NewConfig().MapWith(x => x.EntityValue);
+            TypeAdapterConfig<LastName, string>.NewConfig().MapWith(x => x.EntityValue);
 
         ExtendRegister(config);
 
         config.GenerateMapper("[name]Mapper")
             .ForType<Post>()
-            .ForType<Blog>();
+            .ForType<Blog>()
+            .ForType<Author>();
     }
 }
 
@@ -81,6 +84,14 @@ public static class AdaptAttributeBuilderExtensions
                     cfg.Map(poco => poco.CreatedDateTime, typeof(string));
                     cfg.Map(poco => poco.ModifiedDateTime, typeof(string));
                     cfg.Map(poco => poco.Title, typeof(string));
+                })
+                .ForType<Author>(cfg =>
+                {
+                    cfg.Map(poco => poco.Id, typeof(string));
+                    cfg.Map(poco => poco.CreatedDateTime, typeof(string));
+                    cfg.Map(poco => poco.ModifiedDateTime, typeof(string));
+                    cfg.Map(poco => poco.FirstName, typeof(string));
+                    cfg.Map(poco => poco.LastName, typeof(string));
                 });
     }
 }

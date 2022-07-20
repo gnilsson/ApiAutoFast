@@ -37,4 +37,5 @@ public partial class AutoFastSampleDbContext : DbContext
 
     public DbSet<Post> Posts => Set<Post>();
     public DbSet<Blog> Blogs => Set<Blog>();
+    public DbSet<Author> Authors => Set<Author>();
 }

@@ -10,4 +10,9 @@ public class DomainValue<TRequestEntityResponse, TDomain> : DomainValue<TRequest
         entityValue = requestValue!;
         return requestValue is not null;
     }
+
+    public override TRequestEntityResponse ToResponse()
+    {
+        return EntityValue!;
+    }
 }

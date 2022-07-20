@@ -13,6 +13,7 @@ public class Blog : IEntity<SequentialIdentifier>
     public Blog()
     {
         this.Posts = new HashSet<Post>();
+        this.Authors = new HashSet<Author>();
     }
 
     public SequentialIdentifier Id { get; set; } = default!;
@@ -20,4 +21,5 @@ public class Blog : IEntity<SequentialIdentifier>
     public DateTime ModifiedDateTime { get; set; } = default!;
     public Title? Title { get; set; }
     public System.Collections.Generic.ICollection<Post> Posts { get; set; }
+    public System.Collections.Generic.ICollection<Author> Authors { get; set; }
 }

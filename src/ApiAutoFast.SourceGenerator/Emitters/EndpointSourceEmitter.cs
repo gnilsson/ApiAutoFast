@@ -1,7 +1,6 @@
 ﻿using ApiAutoFast.SourceGenerator.Configuration;
 using ApiAutoFast.SourceGenerator.Configuration.Enums;
 using ApiAutoFast.SourceGenerator.Descriptive;
-using System.Collections.Immutable;
 using System.Text;
 
 namespace ApiAutoFast.SourceGenerator.Emitters;

@@ -8,4 +8,5 @@ internal enum PropertyTarget
     CreateCommand = 2,
     ModifyCommand = 4,
     QueryRequest = 8,
+    Response = 16,
 }
