@@ -307,19 +307,29 @@ public partial class ")
 
     public ").Append(entityConfig.BaseName).Append(@" UpdateDomainEntity(").Append(entityConfig.BaseName).Append(@" entity, ").Append(entityConfig.ModifyCommand).Append(@" command, Action<string, string> addValidationError)
     {");
-        var properties = entityConfig.PropertyConfig.DomainValues
+        var domainValues = entityConfig.PropertyConfig.DomainValues
             .Where(x => x.DomainValueDefinition.PropertyRelation.Type is not RelationalType.ToMany)
-            .SelectMany(x => x.DefinedProperties)
             .ToArray();
 
-        foreach (var property in properties)
+        foreach (var domainValue in domainValues)
         {
-            if (property.Type is not TypeText.Identifier and not TypeText.SequentialIdentifier)
+            foreach (var property in domainValue.DefinedProperties)
             {
-                sb.Append(@"
+                if (property.PropertyKind is PropertyKind.Identifier && domainValue.DomainValueDefinition.PropertyRelation.Type is RelationalType.ToOne)
+                {
+                    sb.Append(@"
+        entity.").Append(property.Name).Append(@" = ").Append(TypeText.IdentifierUtility).Append(@".ConvertFromRequest<").Append(property.Type).Append(@">(command.").Append(property.Name).Append(@", addValidationError);");
+                    continue;
+                }
+
+                if (property.PropertyKind is PropertyKind.Domain && domainValue.DomainValueDefinition.PropertyRelation.Type is RelationalType.None)
+                {
+                    sb.Append(@"
         entity.").Append(property.Name).Append(@" = ").Append(property.Type).Append(".UpdateFromRequest(entity.").Append(property.Name).Append(", command.").Append(property.Name).Append(@", addValidationError);");
+                }
             }
         }
+
         sb.Append(@"
         return entity;
     }
@@ -328,17 +338,24 @@ public partial class ")
     {
         return new ").Append(entityConfig.BaseName).Append(@"
         {");
-        foreach (var property in properties)
+        foreach (var domainValue in domainValues)
         {
-            if (property.Type is TypeText.Identifier or TypeText.SequentialIdentifier)
+            foreach (var property in domainValue.DefinedProperties)
             {
-                sb.Append(@"
+                //if (property.Type is TypeText.Identifier or TypeText.SequentialIdentifier)
+                if (property.PropertyKind is PropertyKind.Identifier && domainValue.DomainValueDefinition.PropertyRelation.Type is RelationalType.ToOne)
+                {
+                    sb.Append(@"
             ").Append(property.Name).Append(@" = ").Append(TypeText.IdentifierUtility).Append(@".ConvertFromRequest<").Append(property.Type).Append(@">(command.").Append(property.Name).Append(@", addValidationError),");
-                continue;
-            }
+                    continue;
+                }
 
-            sb.Append(@"
+                if (property.PropertyKind is PropertyKind.Domain && domainValue.DomainValueDefinition.PropertyRelation.Type is RelationalType.None)
+                {
+                    sb.Append(@"
             ").Append(property.Name).Append(@" = ").Append(property.Type).Append(@".ConvertFromRequest(command.").Append(property.Name).Append(@", addValidationError),");
+                }
+            }
         }
         sb.Append(@"
         };

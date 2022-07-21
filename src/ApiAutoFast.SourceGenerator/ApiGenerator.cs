@@ -98,32 +98,32 @@ public class ApiGenerator : IIncrementalGenerator
 
         foreach (var entityConfig in entityGenerationConfig.EntityConfigs)
         {
-            //foreach (var requestEndpointPair in _requestEndpointPairs)
-            //{
-            //    var requestModelsResult = DefaultSourceEmitter.EmitRequestModel(sb, entityGenerationConfig.Namespace, entityConfig, requestEndpointPair.RequestModel, requestEndpointPair.PropertyTarget);
-            //    context.AddSource($"{entityConfig.BaseName}{requestEndpointPair.RequestModel}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
-            //}
+            foreach (var requestEndpointPair in _requestEndpointPairs)
+            {
+                var requestModelsResult = DefaultSourceEmitter.EmitRequestModel(sb, entityGenerationConfig.Namespace, entityConfig, requestEndpointPair.RequestModel, requestEndpointPair.PropertyTarget);
+                context.AddSource($"{entityConfig.BaseName}{requestEndpointPair.RequestModel}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
+            }
 
 
             //addsource
 
-             //if (MapsterMapperIsGenerated(compilation, entityConfig.BaseName, entityGenerationConfig.Namespace) is false) continue;
+            // if (MapsterMapperIsGenerated(compilation, entityConfig.BaseName, entityGenerationConfig.Namespace) is false) continue;
 
-            //var mappingProfileResult = DefaultSourceEmitter.EmitMappingProfile(sb, entityGenerationConfig.Namespace, entityConfig);
-            //context.AddSource($"{entityConfig.MappingProfile}.g.cs", SourceText.From(mappingProfileResult, Encoding.UTF8));
+            var mappingProfileResult = DefaultSourceEmitter.EmitMappingProfile(sb, entityGenerationConfig.Namespace, entityConfig);
+            context.AddSource($"{entityConfig.MappingProfile}.g.cs", SourceText.From(mappingProfileResult, Encoding.UTF8));
 
-            //foreach (var requestEndpointPair in _requestEndpointPairs)
-            //{
-            //    if (entityConfig.EndpointsAttributeArguments.EndpointTargetType.HasFlag(requestEndpointPair.EndpointTarget))
-            //    {
-            //        var endpoint = $"{requestEndpointPair.EndpointTarget}{entityConfig.BaseName}Endpoint";
-            //        var isTargetedEndpoint = entityGenerationConfig.TargetedEndpointNames.HasValue && entityGenerationConfig.TargetedEndpointNames.Contains(endpoint);
-            //        var endpointConfig = new EndpointConfig(endpoint, entityConfig, requestEndpointPair, isTargetedEndpoint, entityConfig.RelationalNavigationNames, entityConfig.StringEntityProperties, contextConfig.Name);
+            foreach (var requestEndpointPair in _requestEndpointPairs)
+            {
+                if (entityConfig.EndpointsAttributeArguments.EndpointTargetType.HasFlag(requestEndpointPair.EndpointTarget))
+                {
+                    var endpoint = $"{requestEndpointPair.EndpointTarget}{entityConfig.BaseName}Endpoint";
+                    var isTargetedEndpoint = entityGenerationConfig.TargetedEndpointNames.HasValue && entityGenerationConfig.TargetedEndpointNames.Contains(endpoint);
+                    var endpointConfig = new EndpointConfig(endpoint, entityConfig, requestEndpointPair, isTargetedEndpoint, entityConfig.RelationalNavigationNames, entityConfig.StringEntityProperties, contextConfig.Name);
 
-            //        var requestModelsResult = EndpointSourceEmitter.EmitEndpoint(sb, entityGenerationConfig.Namespace, endpointConfig);
-            //        context.AddSource($"{endpointConfig.Endpoint}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
-            //    }
-            //}
+                    var requestModelsResult = EndpointSourceEmitter.EmitEndpoint(sb, entityGenerationConfig.Namespace, endpointConfig);
+                    context.AddSource($"{endpointConfig.Endpoint}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
+                }
+            }
         }
     }
 

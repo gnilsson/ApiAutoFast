@@ -23,7 +23,7 @@ public static partial class BlogMapper2
         };
     }
 
-    private static PostResponseSimplified MapEnumerable0(Post ep1)
+    private static System.Collections.Generic.IEnumerable<PostResponseSimplified> MapEnumerable0(System.Collections.Generic.IEnumerable<Post> ep1)
     {
         if (ep1 is null) yield break;
 
@@ -34,17 +34,17 @@ public static partial class BlogMapper2
                 Id = p.Id.ToString(),
                 CreatedDateTime = p.CreatedDateTime.ToString("dddd, dd MMMM yyyy HH: mm"),
                 ModifiedDateTime = p.ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"),
-                Title = ep1.Title?.ToResponse(),
-                PublicationDateTime = ep1.PublicationDateTime?.ToResponse(),
-                Description = ep1.Description?.ToResponse(),
-                PostType = ep1.PostType?.ToResponse(),
-                LikeCount = ep1.LikeCount?.ToResponse(),
-                Blog = ep1.BlogId.ToString(),
+                Title = p.Title?.ToResponse(),
+                PublicationDateTime = p.PublicationDateTime?.ToResponse(),
+                Description = p.Description?.ToResponse(),
+                PostType = p.PostType?.ToResponse(),
+                LikeCount = p.LikeCount?.ToResponse(),
+                Blog = p.BlogId.ToString(),
             };
         }
     }
 
-    private static AuthorResponseSimplified MapEnumerable1(Author ep2)
+    private static System.Collections.Generic.IEnumerable<AuthorResponseSimplified> MapEnumerable1(System.Collections.Generic.IEnumerable<Author> ep2)
     {
         if (ep2 is null) yield break;
 
@@ -55,9 +55,9 @@ public static partial class BlogMapper2
                 Id = p.Id.ToString(),
                 CreatedDateTime = p.CreatedDateTime.ToString("dddd, dd MMMM yyyy HH: mm"),
                 ModifiedDateTime = p.ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"),
-                FirstName = ep2.FirstName?.ToResponse(),
-                LastName = ep2.LastName?.ToResponse(),
-                Blogs = ep2.Blogs?.Select(x => x.Id),
+                FirstName = p.FirstName?.ToResponse(),
+                LastName = p.LastName?.ToResponse(),
+                Blogs = p.Blogs?.Select(x => x.Id.ToString()),
             };
         }
     }

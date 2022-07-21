@@ -159,7 +159,7 @@ public static partial class ").Append(entityConfig.BaseName).Append(@"Mapper2
 
     private static StringBuilder BuildToManyFunc(StringBuilder sb, ImmutableArray<DefinedDomainValue> foreignDomainValues, SimpleMap func)
     {
-        var type = func.Entity.Replace("ICollection", "IEnumerable");
+        var type = func.EntityType.Replace("ICollection", "IEnumerable");
         var response = type.Replace(func.Entity, func.Response);
 
         sb.Append(@"
@@ -184,17 +184,17 @@ public static partial class ").Append(entityConfig.BaseName).Append(@"Mapper2
                     if (property.PropertyKind is PropertyKind.Identifier)
                     {
                         sb.Append(@"
-                ").Append(domainValue.DomainValueDefinition.PropertyRelation.ForeignEntityName).Append(@" = ").Append(func.ParamName).Append(".").Append(property.Name).Append(@".ToString(),");
+                ").Append(domainValue.DomainValueDefinition.PropertyRelation.ForeignEntityName).Append(@" = p.").Append(property.Name).Append(@".ToString(),");
                     }
                     continue;
                 }
 
                 sb.Append(@"
-                ").Append(property.Name).Append(@" = ").Append(func.ParamName).Append(".").Append(property.Name);
+                ").Append(property.Name).Append(@" = p.").Append(property.Name);
 
                 if (domainValue.DomainValueDefinition.PropertyRelation.Type is RelationalType.ToMany)
                 {
-                    sb.Append(@"?.Select(x => x.Id),");
+                    sb.Append(@"?.Select(x => x.Id.ToString()),");
                     continue;
                 }
 
@@ -241,7 +241,7 @@ public static partial class ").Append(entityConfig.BaseName).Append(@"Mapper2
 
                 if (domainValue.DomainValueDefinition.PropertyRelation.Type is RelationalType.ToMany)
                 {
-                    sb.Append(@"?.Select(x => x.Id),");
+                    sb.Append(@"?.Select(x => x.Id.ToString()),");
                     continue;
                 }
 

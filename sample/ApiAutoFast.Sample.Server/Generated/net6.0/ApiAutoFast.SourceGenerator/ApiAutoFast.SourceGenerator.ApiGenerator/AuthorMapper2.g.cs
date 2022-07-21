@@ -23,7 +23,7 @@ public static partial class AuthorMapper2
         };
     }
 
-    private static BlogResponseSimplified MapEnumerable0(Blog ep1)
+    private static System.Collections.Generic.IEnumerable<BlogResponseSimplified> MapEnumerable0(System.Collections.Generic.IEnumerable<Blog> ep1)
     {
         if (ep1 is null) yield break;
 
@@ -34,9 +34,9 @@ public static partial class AuthorMapper2
                 Id = p.Id.ToString(),
                 CreatedDateTime = p.CreatedDateTime.ToString("dddd, dd MMMM yyyy HH: mm"),
                 ModifiedDateTime = p.ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"),
-                Title = ep1.Title?.ToResponse(),
-                Posts = ep1.Posts?.Select(x => x.Id),
-                Authors = ep1.Authors?.Select(x => x.Id),
+                Title = p.Title?.ToResponse(),
+                Posts = p.Posts?.Select(x => x.Id.ToString()),
+                Authors = p.Authors?.Select(x => x.Id.ToString()),
             };
         }
     }

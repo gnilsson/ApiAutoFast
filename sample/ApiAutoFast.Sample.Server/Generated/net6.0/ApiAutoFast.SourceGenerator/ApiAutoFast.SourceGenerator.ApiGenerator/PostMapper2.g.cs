@@ -36,8 +36,8 @@ public static partial class PostMapper2
             CreatedDateTime = p1.CreatedDateTime.ToString("dddd, dd MMMM yyyy HH: mm"),
             ModifiedDateTime = p1.ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"),
             Title = p1.Title?.ToResponse(),
-            Posts = p1.Posts?.Select(x => x.Id),
-            Authors = p1.Authors?.Select(x => x.Id),
+            Posts = p1.Posts?.Select(x => x.Id.ToString()),
+            Authors = p1.Authors?.Select(x => x.Id.ToString()),
         };
     }
 
