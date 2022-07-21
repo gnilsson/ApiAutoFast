@@ -16,16 +16,14 @@ internal static class MapperSourceEmitter
         public string EntityType { get; set; } = default!;
     }
 
-    internal static IEnumerable<(string Name, string Source)> EmitMappers(StringBuilder sb, string @namespace, ImmutableArray<EntityConfig> entityConfigs)
+    internal static string EmitMapper(StringBuilder sb, string @namespace, EntityConfig entityConfig, ImmutableArray<EntityConfig> foreignConfigs)
     {
-        foreach (var entityConfig in entityConfigs)
-        {
-            sb.Clear();
+        sb.Clear();
 
-            var iterator = 0;
-            var funcBuilder = ImmutableArray.CreateBuilder<MapFuncMetadata>();
+        var iterator = 0;
+        var funcBuilder = ImmutableArray.CreateBuilder<MapFuncMetadata>();
 
-            sb.Append(@"
+        sb.Append(@"
 #nullable enable
 
 using ApiAutoFast;
@@ -45,72 +43,72 @@ public static partial class ").Append(entityConfig.BaseName).Append(@"Mapper2
             CreatedDateTime = p.CreatedDateTime.ToString(""dddd, dd MMMM yyyy HH: mm""),
             ModifiedDateTime = p.ModifiedDateTime.ToString(""dddd, dd MMMM yyyy HH:mm""),");
 
-            foreach (var domainValue in entityConfig.PropertyConfig.DomainValues)
+        foreach (var domainValue in entityConfig.PropertyConfig.DomainValues)
+        {
+            foreach (var property in domainValue.DefinedProperties)
             {
-                foreach (var property in domainValue.DefinedProperties)
+                if (property.PropertyKind is PropertyKind.Identifier) continue;
+
+                if (domainValue.DomainValueDefinition.PropertyRelation.Type is RelationalType.None)
                 {
-                    if (property.PropertyKind is PropertyKind.Identifier) continue;
-
-                    if (domainValue.DomainValueDefinition.PropertyRelation.Type is RelationalType.None)
-                    {
-                        sb.Append(@"
-            ").Append(property.Name).Append(@" = p.").Append(property.Name).Append(@"?.ToResponse(),");
-                        continue;
-                    }
-
-                    var mapFunc = domainValue.DomainValueDefinition.PropertyRelation.Type switch
-                    {
-                        RelationalType.ToOne => new MapFuncMetadata
-                        {
-                            Entity = domainValue.DomainValueDefinition.PropertyRelation.ForeignEntityName,
-                            Response = $"{domainValue.DomainValueDefinition.PropertyRelation.ForeignEntityName}ResponseSimplified",
-                            FuncName = $"MapSimple{iterator}",
-                            Type = RelationalType.ToOne,
-                        },
-                        RelationalType.ToMany => new MapFuncMetadata
-                        {
-                            Entity = domainValue.DomainValueDefinition.PropertyRelation.ForeignEntityName,
-                            Response = $"{domainValue.DomainValueDefinition.PropertyRelation.ForeignEntityName}ResponseSimplified",
-                            FuncName = $"MapEnumerable{iterator}",
-                            Type = RelationalType.ToMany,
-                            EntityType = domainValue.DomainValueDefinition.EntityType,
-                        },
-                        _ => null
-                    };
-
-                    funcBuilder.Add(mapFunc!);
-
                     sb.Append(@"
-            ").Append(domainValue.DomainValueDefinition.PropertyRelation.ForeigEntityProperty).Append(@" = ").Append(mapFunc!.FuncName).Append("(p.").Append(domainValue.DomainValueDefinition.PropertyRelation.ForeigEntityProperty).Append("),");
-
-                    iterator++;
-                }
-            }
-
-            sb.Append(@"
-        };
-    }
-");
-            var funcs = funcBuilder.ToImmutable();
-
-            for (int i = 0; i < iterator; i++)
-            {
-                var func = funcs[i];
-                var foreignDomainValues = entityConfigs.FirstOrDefault(x => x.BaseName == func.Entity).PropertyConfig.DomainValues;
-
-                if (func.Type is RelationalType.ToMany)
-                {
-                    sb = BuildToManyFunc(sb, foreignDomainValues, func);
+            ").Append(property.Name).Append(@" = p.").Append(property.Name).Append(@"?.ToResponse(),");
                     continue;
                 }
 
-                sb = BuildToOneFunc(sb, foreignDomainValues, func);
+                var mapFunc = domainValue.DomainValueDefinition.PropertyRelation.Type switch
+                {
+                    RelationalType.ToOne => new MapFuncMetadata
+                    {
+                        Entity = domainValue.DomainValueDefinition.PropertyRelation.ForeignEntityName,
+                        Response = $"{domainValue.DomainValueDefinition.PropertyRelation.ForeignEntityName}ResponseSimplified",
+                        FuncName = $"MapSimple{iterator}",
+                        Type = RelationalType.ToOne,
+                    },
+                    RelationalType.ToMany => new MapFuncMetadata
+                    {
+                        Entity = domainValue.DomainValueDefinition.PropertyRelation.ForeignEntityName,
+                        Response = $"{domainValue.DomainValueDefinition.PropertyRelation.ForeignEntityName}ResponseSimplified",
+                        FuncName = $"MapEnumerable{iterator}",
+                        Type = RelationalType.ToMany,
+                        EntityType = domainValue.DomainValueDefinition.EntityType,
+                    },
+                    _ => null
+                };
+
+                funcBuilder.Add(mapFunc!);
+
+                sb.Append(@"
+            ").Append(domainValue.DomainValueDefinition.PropertyRelation.ForeigEntityProperty).Append(@" = ").Append(mapFunc!.FuncName).Append("(p.").Append(domainValue.DomainValueDefinition.PropertyRelation.ForeigEntityProperty).Append("),");
+
+                iterator++;
             }
-            sb.Append(@"
+        }
+
+        sb.Append(@"
+        };
+    }
+");
+        var funcs = funcBuilder.ToImmutable();
+
+        for (int i = 0; i < iterator; i++)
+        {
+            var func = funcs[i];
+            var foreignDomainValues = foreignConfigs.FirstOrDefault(x => x.BaseName == func.Entity).PropertyConfig.DomainValues;
+
+            if (func.Type is RelationalType.ToMany)
+            {
+                sb = BuildToManyFunc(sb, foreignDomainValues, func);
+                continue;
+            }
+
+            sb = BuildToOneFunc(sb, foreignDomainValues, func);
+        }
+        sb.Append(@"
 }
 ");
-            yield return (entityConfig.BaseName, sb.ToString());
-        }
+
+        return sb.ToString();
     }
 
     private static StringBuilder BuildToManyFunc(StringBuilder sb, ImmutableArray<DefinedDomainValue> foreignDomainValues, MapFuncMetadata func)

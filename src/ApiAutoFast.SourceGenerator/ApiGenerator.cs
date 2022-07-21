@@ -69,9 +69,6 @@ public class ApiGenerator : IIncrementalGenerator
             context.AddSource($"{entityConfig.BaseName}.g.cs", SourceText.From(entityResult, Encoding.UTF8));
         }
 
-        //var mappingRegisterResult = DefaultSourceEmitter.EmitMappingRegister(sb, entityGenerationConfig);
-        //context.AddSource("MappingRegister.g.cs", SourceText.From(mappingRegisterResult, Encoding.UTF8));
-
         if (generationConfig!.Value.ContextGeneration.HasValue is false) return;
 
         var contextConfig = generationConfig!.Value.ContextGeneration.Value;
@@ -81,33 +78,21 @@ public class ApiGenerator : IIncrementalGenerator
 
         foreach (var entityConfig in entityGenerationConfig.EntityConfigs)
         {
-            var responseResult = MapperSourceEmitter.EmitSimplifiedResponseModel(sb, entityGenerationConfig.Namespace, entityConfig);
-            context.AddSource($"{entityConfig.Response}Simplified.g.cs", SourceText.From(responseResult, Encoding.UTF8));
-        }
+            var simplifiedResponseResult = MapperSourceEmitter.EmitSimplifiedResponseModel(sb, entityGenerationConfig.Namespace, entityConfig);
+            context.AddSource($"{entityConfig.Response}Simplified.g.cs", SourceText.From(simplifiedResponseResult, Encoding.UTF8));
 
-        foreach (var entityConfig in entityGenerationConfig.EntityConfigs)
-        {
             var responseResult = MapperSourceEmitter.EmitResponseModel(sb, entityGenerationConfig.Namespace, entityConfig);
             context.AddSource($"{entityConfig.Response}.g.cs", SourceText.From(responseResult, Encoding.UTF8));
-        }
 
-        foreach (var (name, source) in MapperSourceEmitter.EmitMappers(sb, entityGenerationConfig.Namespace, entityGenerationConfig.EntityConfigs))
-        {
-            context.AddSource($"{name}Mapper2.g.cs", SourceText.From(source, Encoding.UTF8));
-        }
+            var foreginConfigs = entityGenerationConfig.EntityConfigs.Where(x => x.BaseName != entityConfig.BaseName).ToImmutableArray();
+            var mapperResult = MapperSourceEmitter.EmitMapper(sb, entityGenerationConfig.Namespace, entityConfig, foreginConfigs);
+            context.AddSource($"{entityConfig.BaseName}Mapper.g.cs", SourceText.From(mapperResult, Encoding.UTF8));
 
-        foreach (var entityConfig in entityGenerationConfig.EntityConfigs)
-        {
             foreach (var requestEndpointPair in _requestEndpointPairs)
             {
                 var requestModelsResult = DefaultSourceEmitter.EmitRequestModel(sb, entityGenerationConfig.Namespace, entityConfig, requestEndpointPair.RequestModel, requestEndpointPair.PropertyTarget);
                 context.AddSource($"{entityConfig.BaseName}{requestEndpointPair.RequestModel}.g.cs", SourceText.From(requestModelsResult, Encoding.UTF8));
             }
-
-
-            //addsource
-
-            // if (MapsterMapperIsGenerated(compilation, entityConfig.BaseName, entityGenerationConfig.Namespace) is false) continue;
 
             var mappingProfileResult = DefaultSourceEmitter.EmitMappingProfile(sb, entityGenerationConfig.Namespace, entityConfig);
             context.AddSource($"{entityConfig.MappingProfile}.g.cs", SourceText.From(mappingProfileResult, Encoding.UTF8));
@@ -125,21 +110,5 @@ public class ApiGenerator : IIncrementalGenerator
                 }
             }
         }
-    }
-
-    // note: mapster needs two build steps, after the first one it generates an empty mapper.
-    private static bool MapsterMapperIsGenerated(Compilation compilation, string entityName, string @namespace)
-    {
-        var mapsterMapperName = $"{entityName}Mapper";
-
-        if (compilation.Assembly.TypeNames.Contains(mapsterMapperName) is false) return false;
-
-        var mapsterMapper = compilation.Assembly.TypeNames.Single(x => x == mapsterMapperName);
-
-        var namedTypeSymbol = compilation.GetTypeByMetadataName($"{@namespace}.{mapsterMapper}")!;
-
-        var syntaxReference = namedTypeSymbol.DeclaringSyntaxReferences.First();
-
-        return syntaxReference.GetSyntax().ChildNodes().Count() > 0;
     }
 }
