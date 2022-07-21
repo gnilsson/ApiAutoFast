@@ -316,12 +316,7 @@ internal static class Parser
                         propertiesCollection.Add(propertyOutput.EntityKind, new List<PropertyOutput> { propertyOutput });
                     }
 
-                    //if (propertySetup.DomainValueMetadata.Definition.PropertyRelation.Type is RelationalType.None)
-                    //{
-                    //    definedProperties.Add(new DefinedProperty(propertySetup.Name, PropertyKind.Domain, domainValueDefinition.TypeName));
-                    //}
                     definedProperties.Add(new DefinedProperty(propertySetup.Name, PropertyKind.Domain, domainValueDefinition.TypeName));
-
                 }
 
                 definedDomainValues.Add(new DefinedDomainValue(domainValueDefinition, definedProperties.ToImmutable()));
@@ -421,7 +416,7 @@ internal static class Parser
             var commandSource = baseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}");
             var responseSource = initSource.Insert(firstSpaceIndex, $" {foreignEntityName}ResponseSimplified");
             var idSource = baseSource.Insert(firstSpaceIndex, $" {entities[foreignEntityName]}");
-            var responseIdSource = initSource.Insert(firstSpaceIndex, $" string"); // {domainValueDefinition.ResponseType}?
+            var responseIdSource = initSource.Insert(firstSpaceIndex, $" string");
 
             return new PropertySource
             {
@@ -433,17 +428,12 @@ internal static class Parser
                 Id = idSource,
                 ResponseId = responseIdSource
             };
-         //       (entitySource, requestSource, commandSource, domainValueDefinition.EntityType, responseSource, idSource, responseIdSource);
         }
 
         if (domainValueDefinition.PropertyRelation.Type is RelationalType.ToMany)
         {
             var entitySource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.EntityType}");
-            //  var responseSource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.EntityType}");
-            // probably temporary
             var foreginResponseType = domainValueDefinition.EntityType.Replace(foreignEntityName, $"{foreignEntityName}ResponseSimplified");
-          //  var endOfPropertyNameIndex = propertySetup.BaseSource.IndexOf('{') - 1;
-          //  var baseSource = propertySetup.BaseSource.Insert(endOfPropertyNameIndex, "Id");
             var responseIdSource = initSource.Insert(firstSpaceIndex, $" IEnumerable<string>");
             var responseSource = initSource.Insert(firstSpaceIndex, $" {foreginResponseType}").Replace("ICollection", "IEnumerable");
 
@@ -454,7 +444,6 @@ internal static class Parser
                 Response = responseSource,
                 ResponseId = responseIdSource,
             };
-                //PropertySource(entitySource, domainValueDefinition.EntityType, responseSource);
         }
 
         return default!;
