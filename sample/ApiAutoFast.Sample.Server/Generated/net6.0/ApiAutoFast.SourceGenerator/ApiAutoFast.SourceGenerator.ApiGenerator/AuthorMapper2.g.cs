@@ -2,23 +2,43 @@
 #nullable enable
 
 using ApiAutoFast;
+using System.Linq;
 
 namespace ApiAutoFast.Sample.Server;
 
 public static partial class AuthorMapper2
 {
-    public static AuthorResponse2 MapToResponse(this Author p0)
+    public static AuthorResponse MapToResponse(this Author p)
     {
-        if(p0 is null) return null!;
+        if (p is null) return null!;
 
-        return new AuthorResponse2
+        return new AuthorResponse
         {
-            Id = p0.Id.ToString(),
-            CreatedDateTime = ((ITimestamp)p0).CreatedDateTime.ToString("dddd, dd MMMM yyyy HH: mm"),
-            ModifiedDateTime = ((ITimestamp)p0).ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"),
-            FirstName = p0.FirstName?.ToResponse(),
-            LastName = p0.LastName?.ToResponse(),
+            Id = p.Id.ToString(),
+            CreatedDateTime = p.CreatedDateTime.ToString("dddd, dd MMMM yyyy HH: mm"),
+            ModifiedDateTime = p.ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"),
+            FirstName = p.FirstName?.ToResponse(),
+            LastName = p.LastName?.ToResponse(),
+            Blogs = MapEnumerable0(p.Blogs),
         };
+    }
+
+    private static BlogResponseSimplified MapEnumerable0(Blog ep1)
+    {
+        if (ep1 is null) yield break;
+
+        foreach (var p in ep1)
+        {
+            yield return new BlogResponseSimplified
+            {
+                Id = p.Id.ToString(),
+                CreatedDateTime = p.CreatedDateTime.ToString("dddd, dd MMMM yyyy HH: mm"),
+                ModifiedDateTime = p.ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"),
+                Title = ep1.Title?.ToResponse(),
+                Posts = ep1.Posts?.Select(x => x.Id),
+                Authors = ep1.Authors?.Select(x => x.Id),
+            };
+        }
     }
 
 }

@@ -316,10 +316,12 @@ internal static class Parser
                         propertiesCollection.Add(propertyOutput.EntityKind, new List<PropertyOutput> { propertyOutput });
                     }
 
-                    if (propertySetup.DomainValueMetadata.Definition.PropertyRelation.Type is RelationalType.None)
-                    {
-                        definedProperties.Add(new DefinedProperty(propertySetup.Name, PropertyKind.Domain, domainValueDefinition.TypeName));
-                    }
+                    //if (propertySetup.DomainValueMetadata.Definition.PropertyRelation.Type is RelationalType.None)
+                    //{
+                    //    definedProperties.Add(new DefinedProperty(propertySetup.Name, PropertyKind.Domain, domainValueDefinition.TypeName));
+                    //}
+                    definedProperties.Add(new DefinedProperty(propertySetup.Name, PropertyKind.Domain, domainValueDefinition.TypeName));
+
                 }
 
                 definedDomainValues.Add(new DefinedDomainValue(domainValueDefinition, definedProperties.ToImmutable()));
@@ -355,30 +357,33 @@ internal static class Parser
                 foreach (var value in typedConstant.Value.Values)
                 {
                     var newEntityName = (value.Value as INamedTypeSymbol)!.Name;
-                    yield return new PropertyOutput(newEntityName, propertySource.Command, PropertyTarget.CreateCommand, propertySetup.Name, domainValueDefinition.RequestType);
+                    yield return new PropertyOutput(newEntityName, propertySource.Command!, PropertyTarget.CreateCommand, propertySetup.Name);
                 }
             }
             else
             {
                 var newEntityName = (typedConstant.Value.Value as INamedTypeSymbol)!.Name;
-                yield return new PropertyOutput(newEntityName, propertySource.Command, PropertyTarget.CreateCommand, propertySetup.Name, domainValueDefinition.RequestType);
+                yield return new PropertyOutput(newEntityName, propertySource.Command!, PropertyTarget.CreateCommand, propertySetup.Name);
             }
         }
 
-        yield return new PropertyOutput(entityName, propertySource.Entity, PropertyTarget.Entity, propertySetup.Name, propertySource.MetadataType, domainValueDefinition.PropertyRelation);
-        yield return new PropertyOutput(entityName, propertySource.Response, PropertyTarget.Response, propertySetup.Name, domainValueDefinition.ResponseType, domainValueDefinition.PropertyRelation);
+        yield return new PropertyOutput(entityName, propertySource.Entity!, PropertyTarget.Entity, propertySetup.Name, domainValueDefinition.PropertyRelation);
+        yield return new PropertyOutput(entityName, propertySource.Response!, PropertyTarget.Response, propertySetup.Name,domainValueDefinition.PropertyRelation);
 
         if (domainValueDefinition.PropertyRelation.Type is RelationalType.ToOne)
         {
-            yield return new PropertyOutput(entityName, propertySource.Id, PropertyTarget.Entity, $"{propertySetup.Name}Id", entityIdTypes[domainValueDefinition.PropertyRelation.ForeignEntityName], domainValueDefinition.PropertyRelation, PropertyKind.Identifier);
-           // yield return new PropertyOutput(entityName, propertySource.ResponseId, PropertyTarget.Response, propertySetup.Name, domainValueDefinition.ResponseType, domainValueDefinition.PropertyRelation);
+            yield return new PropertyOutput(entityName, propertySource.Id!, PropertyTarget.Entity, $"{propertySetup.Name}Id", domainValueDefinition.PropertyRelation, PropertyKind.Identifier);
+            yield return new PropertyOutput(entityName, propertySource.ResponseId!, PropertyTarget.Response, propertySetup.Name, domainValueDefinition.PropertyRelation, PropertyKind.Identifier);
         }
 
         if (domainValueDefinition.PropertyRelation.Type is not RelationalType.ToMany)
         {
-            yield return new PropertyOutput(entityName, propertySource.Request, PropertyTarget.QueryRequest, propertySetup.Name, $"{domainValueDefinition.RequestType}?");
-            yield return new PropertyOutput(entityName, propertySource.Command, PropertyTarget.CreateCommand | PropertyTarget.ModifyCommand, propertySetup.Name, domainValueDefinition.RequestType);
+            yield return new PropertyOutput(entityName, propertySource.Request!, PropertyTarget.QueryRequest, propertySetup.Name);
+            yield return new PropertyOutput(entityName, propertySource.Command!, PropertyTarget.CreateCommand | PropertyTarget.ModifyCommand, propertySetup.Name);
+            yield break;
         }
+
+        yield return new PropertyOutput(entityName, propertySource.ResponseId!, PropertyTarget.Response, propertySetup.Name, domainValueDefinition.PropertyRelation, PropertyKind.Identifier);
     }
 
     // dictionary.. [key string] { source, type }
@@ -386,15 +391,25 @@ internal static class Parser
     private static PropertySource GetPropertySource(PropertySetup propertySetup, DomainValueDefinition domainValueDefinition, ImmutableDictionary<string, string> entities, string foreignEntityName)
     {
         //todo: clean up
+        // holy mess
         var firstSpaceIndex = propertySetup.BaseSource.IndexOf(' ');
+        var initSource = propertySetup.BaseSource.Replace("set;", "init;");
 
         if (domainValueDefinition.PropertyRelation.Type is RelationalType.None)
         {
             var entitySource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.TypeName}?");
             var requestSource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}?");
             var commandSource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}");
-            var responseSource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.ResponseType}?");
-            return new PropertySource(entitySource, requestSource, commandSource, domainValueDefinition.TypeName, responseSource, string.Empty, string.Empty);
+            var responseSource = initSource.Insert(firstSpaceIndex, $" {domainValueDefinition.ResponseType}?");
+
+            return new PropertySource
+            {
+                Entity = entitySource,
+                Request = requestSource,
+                Command = commandSource,
+                MetadataType = domainValueDefinition.EntityType,
+                Response = responseSource,
+            };
         }
 
         if (domainValueDefinition.PropertyRelation.Type is RelationalType.ToOne)
@@ -404,10 +419,21 @@ internal static class Parser
             var entitySource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.EntityType}");
             var requestSource = baseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}?");
             var commandSource = baseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}");
-            var responseSource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {foreignEntityName}ResponseSimplified");
+            var responseSource = initSource.Insert(firstSpaceIndex, $" {foreignEntityName}ResponseSimplified");
             var idSource = baseSource.Insert(firstSpaceIndex, $" {entities[foreignEntityName]}");
-            var responseIdSource = baseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.ResponseType}?");// not foregin response incldued..
-            return new PropertySource(entitySource, requestSource, commandSource, domainValueDefinition.EntityType, responseSource, idSource, responseIdSource);
+            var responseIdSource = initSource.Insert(firstSpaceIndex, $" string"); // {domainValueDefinition.ResponseType}?
+
+            return new PropertySource
+            {
+                Entity = entitySource,
+                Request = requestSource,
+                Command = commandSource,
+                MetadataType = domainValueDefinition.EntityType,
+                Response = responseSource,
+                Id = idSource,
+                ResponseId = responseIdSource
+            };
+         //       (entitySource, requestSource, commandSource, domainValueDefinition.EntityType, responseSource, idSource, responseIdSource);
         }
 
         if (domainValueDefinition.PropertyRelation.Type is RelationalType.ToMany)
@@ -416,8 +442,19 @@ internal static class Parser
             //  var responseSource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.EntityType}");
             // probably temporary
             var foreginResponseType = domainValueDefinition.EntityType.Replace(foreignEntityName, $"{foreignEntityName}ResponseSimplified");
-            var responseSource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {foreginResponseType}");
-            return new PropertySource(entitySource, domainValueDefinition.EntityType, responseSource);
+          //  var endOfPropertyNameIndex = propertySetup.BaseSource.IndexOf('{') - 1;
+          //  var baseSource = propertySetup.BaseSource.Insert(endOfPropertyNameIndex, "Id");
+            var responseIdSource = initSource.Insert(firstSpaceIndex, $" IEnumerable<string>");
+            var responseSource = initSource.Insert(firstSpaceIndex, $" {foreginResponseType}").Replace("ICollection", "IEnumerable");
+
+            return new PropertySource
+            {
+                Entity = entitySource,
+                MetadataType = domainValueDefinition.EntityType,
+                Response = responseSource,
+                ResponseId = responseIdSource,
+            };
+                //PropertySource(entitySource, domainValueDefinition.EntityType, responseSource);
         }
 
         return default!;

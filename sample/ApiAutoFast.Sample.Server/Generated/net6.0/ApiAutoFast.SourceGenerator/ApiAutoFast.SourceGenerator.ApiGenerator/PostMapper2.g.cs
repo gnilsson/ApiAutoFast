@@ -2,39 +2,42 @@
 #nullable enable
 
 using ApiAutoFast;
+using System.Linq;
 
 namespace ApiAutoFast.Sample.Server;
 
 public static partial class PostMapper2
 {
-    public static PostResponse2 MapToResponse(this Post p0)
+    public static PostResponse MapToResponse(this Post p)
     {
-        if(p0 is null) return null!;
+        if (p is null) return null!;
 
-        return new PostResponse2
+        return new PostResponse
         {
-            Id = p0.Id.ToString(),
-            CreatedDateTime = ((ITimestamp)p0).CreatedDateTime.ToString("dddd, dd MMMM yyyy HH: mm"),
-            ModifiedDateTime = ((ITimestamp)p0).ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"),
-            Title = p0.Title?.ToResponse(),
-            PublicationDateTime = p0.PublicationDateTime?.ToResponse(),
-            Description = p0.Description?.ToResponse(),
-            PostType = p0.PostType?.ToResponse(),
-            LikeCount = p0.LikeCount?.ToResponse(),
-            Blog = MapSimple0(p0.Blog),
+            Id = p.Id.ToString(),
+            CreatedDateTime = p.CreatedDateTime.ToString("dddd, dd MMMM yyyy HH: mm"),
+            ModifiedDateTime = p.ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"),
+            Title = p.Title?.ToResponse(),
+            PublicationDateTime = p.PublicationDateTime?.ToResponse(),
+            Description = p.Description?.ToResponse(),
+            PostType = p.PostType?.ToResponse(),
+            LikeCount = p.LikeCount?.ToResponse(),
+            Blog = MapSimple0(p.Blog),
         };
     }
 
     private static BlogResponseSimplified MapSimple0(Blog p1)
     {
-        if(p1 is null) return null!;
+        if (p1 is null) return null!;
 
         return new BlogResponseSimplified
         {
             Id = p1.Id.ToString(),
-            CreatedDateTime = ((ITimestamp)p1).CreatedDateTime.ToString("dddd, dd MMMM yyyy HH: mm"),
-            ModifiedDateTime = ((ITimestamp)p1).ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"),
+            CreatedDateTime = p1.CreatedDateTime.ToString("dddd, dd MMMM yyyy HH: mm"),
+            ModifiedDateTime = p1.ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"),
             Title = p1.Title?.ToResponse(),
+            Posts = p1.Posts?.Select(x => x.Id),
+            Authors = p1.Authors?.Select(x => x.Id),
         };
     }
 

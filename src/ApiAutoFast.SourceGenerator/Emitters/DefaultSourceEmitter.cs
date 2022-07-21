@@ -302,12 +302,13 @@ public partial class ")
 {
     public override ").Append(entityConfig.Response).Append(@" FromEntity(").Append(entityConfig.BaseName).Append(@" e)
     {
-        return e.AdaptToResponse();
+        return e.MapToResponse();
     }
 
     public ").Append(entityConfig.BaseName).Append(@" UpdateDomainEntity(").Append(entityConfig.BaseName).Append(@" entity, ").Append(entityConfig.ModifyCommand).Append(@" command, Action<string, string> addValidationError)
     {");
         var properties = entityConfig.PropertyConfig.DomainValues
+            .Where(x => x.DomainValueDefinition.PropertyRelation.Type is not RelationalType.ToMany)
             .SelectMany(x => x.DefinedProperties)
             .ToArray();
 

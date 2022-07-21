@@ -7,13 +7,13 @@ namespace ApiAutoFast.Sample.Server;
 
 public partial class PostResponseSimplified
 {
-    public string? Id { get; set; }
-    public string? CreatedDateTime { get; set; }
-    public string? ModifiedDateTime { get; set; }
-    public string? Title { get; set; }
-    public string? PublicationDateTime { get; set; }
-    public string? Description { get; set; }
-    public string? PostType { get; set; }
-    public int? LikeCount { get; set; }
-    public BlogResponseSimplified Blog { get; set; }
+    public string Id { get; init; } = default!;
+    public string CreatedDateTime { get; init; } = default!;
+    public string ModifiedDateTime { get; init; } = default!;
+    public string? Title { get; init; }
+    public string? PublicationDateTime { get; init; }
+    public string? Description { get; init; }
+    public string? PostType { get; init; }
+    public int? LikeCount { get; init; }
+    public string Blog { get; init; }
 }
