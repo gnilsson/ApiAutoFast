@@ -342,7 +342,6 @@ public partial class ")
         {
             foreach (var property in domainValue.DefinedProperties)
             {
-                //if (property.Type is TypeText.Identifier or TypeText.SequentialIdentifier)
                 if (property.PropertyKind is PropertyKind.Identifier && domainValue.DomainValueDefinition.PropertyRelation.Type is RelationalType.ToOne)
                 {
                     sb.Append(@"

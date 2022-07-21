@@ -23,11 +23,11 @@ public static partial class BlogMapper2
         };
     }
 
-    private static System.Collections.Generic.IEnumerable<PostResponseSimplified> MapEnumerable0(System.Collections.Generic.IEnumerable<Post> ep1)
+    private static System.Collections.Generic.IEnumerable<PostResponseSimplified> MapEnumerable0(System.Collections.Generic.IEnumerable<Post> ep)
     {
-        if (ep1 is null) yield break;
+        if (ep is null) yield break;
 
-        foreach (var p in ep1)
+        foreach (var p in ep)
         {
             yield return new PostResponseSimplified
             {
@@ -44,11 +44,11 @@ public static partial class BlogMapper2
         }
     }
 
-    private static System.Collections.Generic.IEnumerable<AuthorResponseSimplified> MapEnumerable1(System.Collections.Generic.IEnumerable<Author> ep2)
+    private static System.Collections.Generic.IEnumerable<AuthorResponseSimplified> MapEnumerable1(System.Collections.Generic.IEnumerable<Author> ep)
     {
-        if (ep2 is null) yield break;
+        if (ep is null) yield break;
 
-        foreach (var p in ep2)
+        foreach (var p in ep)
         {
             yield return new AuthorResponseSimplified
             {

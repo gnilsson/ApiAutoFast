@@ -26,18 +26,18 @@ public static partial class PostMapper2
         };
     }
 
-    private static BlogResponseSimplified MapSimple0(Blog p1)
+    private static BlogResponseSimplified MapSimple0(Blog p)
     {
-        if (p1 is null) return null!;
+        if (p is null) return null!;
 
         return new BlogResponseSimplified
         {
-            Id = p1.Id.ToString(),
-            CreatedDateTime = p1.CreatedDateTime.ToString("dddd, dd MMMM yyyy HH: mm"),
-            ModifiedDateTime = p1.ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"),
-            Title = p1.Title?.ToResponse(),
-            Posts = p1.Posts?.Select(x => x.Id.ToString()),
-            Authors = p1.Authors?.Select(x => x.Id.ToString()),
+            Id = p.Id.ToString(),
+            CreatedDateTime = p.CreatedDateTime.ToString("dddd, dd MMMM yyyy HH: mm"),
+            ModifiedDateTime = p.ModifiedDateTime.ToString("dddd, dd MMMM yyyy HH:mm"),
+            Title = p.Title?.ToResponse(),
+            Posts = p.Posts?.Select(x => x.Id.ToString()),
+            Authors = p.Authors?.Select(x => x.Id.ToString()),
         };
     }
 
