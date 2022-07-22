@@ -45,7 +45,7 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
 
     public TEntity? EntityValue { get; private set; }
 
-    protected virtual bool TryValidateRequestConversion<T>(T? requestValue, [NotNullWhen(true)] out TEntity? entityValue) where T : struct
+    protected virtual bool TryValidateRequestConversion<T>(T? requestValue, [NotNullWhen(true)] out TEntity? entityValue) where T : struct, TRequest
     {
         entityValue = requestValue is TEntity entityRequestValue ? entityRequestValue : default;
 
@@ -83,7 +83,7 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
         return default!;
     }
 
-    public static TDomain? ConvertFromRequest<T>(T? request, Action<string, string> addError) where T : struct
+    public static TDomain? ConvertFromRequest<T>(T? request, Action<string, string> addError) where T : struct, TRequest
     {
         if (request is null)
         {
@@ -124,7 +124,7 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
     }
 
 
-    public static TDomain? UpdateFromRequest<T>(TDomain? domain, T? request, Action<string, string> addError) where T : struct
+    public static TDomain? UpdateFromRequest<T>(TDomain? domain, T? request, Action<string, string> addError) where T : struct, TRequest
     {
         if (request is null)
         {
