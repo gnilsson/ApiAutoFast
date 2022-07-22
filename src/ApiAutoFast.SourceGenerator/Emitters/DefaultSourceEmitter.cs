@@ -14,7 +14,7 @@ internal static class DefaultSourceEmitter
     public string? CreatedDateTime { get; set; }
     public string? ModifiedDateTime { get; set; }",
         _ => @"
-    public string Id { get; set; }",
+    public string Id { get; set; } = default!;",
     };
 
     internal static string EmitEntityModel(StringBuilder sb, string @namespace, EntityConfig entityConfig)

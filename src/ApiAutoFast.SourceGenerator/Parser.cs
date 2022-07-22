@@ -355,12 +355,6 @@ internal static class Parser
             yield return new PropertyOutput(entityName, propertySource.ResponseId!, PropertyTarget.Response, propertySetup.Name, domainValueDefinition.PropertyRelation, PropertyKind.Identifier);
         }
 
-        //if (domainValueDefinition.PropertyRelation.Type is not RelationalType.ToMany)
-        //{
-        //    yield return new PropertyOutput(entityName, propertySource.Request!, PropertyTarget.QueryRequest, propertySetup.Name);
-        //    yield break;
-        //}
-
         yield return new PropertyOutput(entityName, propertySource.Request!, PropertyTarget.CreateCommand | PropertyTarget.ModifyCommand | PropertyTarget.QueryRequest, propertySetup.Name, domainValueDefinition.PropertyRelation);
 
         if (domainValueDefinition.PropertyRelation.Type is RelationalType.ToMany)
@@ -382,12 +376,12 @@ internal static class Parser
             {
                 foreach (var name in entityName.Value.Values)
                 {
-                    yield return new PropertyOutput((name.Value as INamedTypeSymbol)!.Name, propertySource.Command!, PropertyTarget.CreateCommand, propertySetup.Name);
+                    yield return new PropertyOutput((name.Value as INamedTypeSymbol)!.Name, propertySource.Request!, PropertyTarget.CreateCommand, propertySetup.Name);
                 }
                 yield break;
             }
 
-            yield return new PropertyOutput((entityName.Value.Value as INamedTypeSymbol)!.Name, propertySource.Command!, PropertyTarget.CreateCommand, propertySetup.Name);
+            yield return new PropertyOutput((entityName.Value.Value as INamedTypeSymbol)!.Name, propertySource.Request!, PropertyTarget.CreateCommand, propertySetup.Name);
         }
     }
 
@@ -405,14 +399,12 @@ internal static class Parser
         {
             var entitySource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.TypeName}?");
             var requestSource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}?");
-            //    var commandSource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}");
             var responseSource = initSource.Insert(firstSpaceIndex, $" {domainValueDefinition.ResponseType}?");
 
             return new PropertySource
             {
                 Entity = entitySource,
                 Request = requestSource,
-                //        Command = commandSource,
                 MetadataType = domainValueDefinition.EntityType,
                 Response = responseSource,
             };
@@ -424,7 +416,6 @@ internal static class Parser
             var baseSource = propertySetup.BaseSource.Insert(endOfPropertyNameIndex, "Id");
             var entitySource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.EntityType}");
             var requestSource = baseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}?");
-            //    var commandSource = baseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}");
             var responseSource = initSource.Insert(firstSpaceIndex, $" {foreignEntityName}ResponseSimplified");
             var idSource = baseSource.Insert(firstSpaceIndex, $" {entities[domainValueDefinition.PropertyRelation.ForeignEntityName]}");
             var responseIdSource = initSource.Insert(firstSpaceIndex, $" string");
@@ -433,11 +424,10 @@ internal static class Parser
             {
                 Entity = entitySource,
                 Request = requestSource,
-                //        Command = commandSource,
                 MetadataType = domainValueDefinition.EntityType,
-                Response = responseSource,
+                Response = $"{responseSource} = default!;",
                 Id = idSource,
-                ResponseId = responseIdSource
+                ResponseId = $"{responseIdSource} = default!;",
             };
         }
 
@@ -445,8 +435,9 @@ internal static class Parser
         {
             var entitySource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.EntityType}");
             var foreginResponseType = domainValueDefinition.EntityType.Replace(foreignEntityName, $"{foreignEntityName}ResponseSimplified");
-            var responseIdSource = initSource.Insert(firstSpaceIndex, $" IEnumerable<string>");
+            var responseIdSource = initSource.Insert(firstSpaceIndex, $" IEnumerable<string>?");
             var responseSource = initSource.Insert(firstSpaceIndex, $" {foreginResponseType}").Replace("ICollection", "IEnumerable");
+            responseSource = responseSource.Insert(responseSource.IndexOf('>') + 1, "?");
             var commandSource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" IEnumerable<string>?");
 
             return new PropertySource

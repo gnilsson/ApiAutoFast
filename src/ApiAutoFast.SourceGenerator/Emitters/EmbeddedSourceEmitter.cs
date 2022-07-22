@@ -3,6 +3,8 @@
 internal static class EmbeddedSourceEmitter
 {
     public const string AutoFastEntityAttribute = @"
+#nullable enable
+
 using System;
 
 namespace ApiAutoFast;

@@ -168,7 +168,7 @@ internal static class EndpointSourceEmitter
             foreach (var propertyName in endpointConfig.StringEntityProperties)
             {
                 sb.Append(@"
-        [""").Append(propertyName).Append(@"""] = static query => entity => ((string)entity.").Append(propertyName).Append(@").Contains(query),");
+        [""").Append(propertyName).Append(@"""] = static query => entity => entity.").Append(propertyName).Append(@" != null && ((string)entity.").Append(propertyName).Append(@").Contains(query),");
             }
             sb.Append(@"
     };
@@ -230,6 +230,8 @@ internal static class EndpointSourceEmitter
         sb.Clear();
 
         sb.Append(@"
+#nullable enable
+
 using ApiAutoFast;
 using ApiAutoFast.EntityFramework;
 using FastEndpoints;
