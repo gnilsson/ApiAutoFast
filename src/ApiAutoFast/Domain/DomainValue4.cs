@@ -45,16 +45,16 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
 
     public TEntity? EntityValue { get; private set; }
 
-    protected virtual bool TryValidateRequestConversion<T>(T? requestValue, [NotNullWhen(true)] out TEntity entityValue) where T : struct
+    protected virtual bool TryValidateRequestConversion<T>(T? requestValue, [NotNullWhen(true)] out TEntity? entityValue) where T : struct
     {
-        entityValue = requestValue is TEntity entityRequestValue ? entityRequestValue : default!;
+        entityValue = requestValue is TEntity entityRequestValue ? entityRequestValue : default;
 
         return requestValue is not null;
     }
 
-    protected virtual bool TryValidateRequestConversion(TRequest? requestValue, [NotNullWhen(true)] out TEntity entityValue)
+    protected virtual bool TryValidateRequestConversion(TRequest? requestValue, [NotNullWhen(true)] out TEntity? entityValue)
     {
-        entityValue = requestValue is TEntity entityRequestValue ? entityRequestValue : default!;
+        entityValue = requestValue is TEntity entityRequestValue ? entityRequestValue : default;
 
         return requestValue is not null;
     }
@@ -66,6 +66,11 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
 
     public static TDomain? ConvertFromRequest(TRequest? request, Action<string, string> addError)
     {
+        if (request is null)
+        {
+            return null;
+        }
+
         var domain = _factory();
 
         if (domain.TryValidateRequestConversion(request, out var entityValue))
@@ -80,6 +85,11 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
 
     public static TDomain? ConvertFromRequest<T>(T? request, Action<string, string> addError) where T : struct
     {
+        if (request is null)
+        {
+            return null;
+        }
+
         var domain = _factory();
 
         if (domain.TryValidateRequestConversion(request, out var entityValue))
@@ -94,14 +104,14 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
 
     public static TDomain? UpdateFromRequest(TDomain? domain, TRequest? request, Action<string, string> addError)
     {
-        if (domain is null)
-        {
-            return ConvertFromRequest(request, addError);
-        }
-
         if (request is null)
         {
             return domain;
+        }
+
+        if (domain is null)
+        {
+            return ConvertFromRequest(request, addError);
         }
 
         if (domain.TryValidateRequestConversion(request, out var entityValue))
@@ -116,14 +126,14 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
 
     public static TDomain? UpdateFromRequest<T>(TDomain? domain, T? request, Action<string, string> addError) where T : struct
     {
-        if (domain is null)
-        {
-            return ConvertFromRequest(request, addError);
-        }
-
         if (request is null)
         {
             return domain;
+        }
+
+        if (domain is null)
+        {
+            return ConvertFromRequest(request, addError);
         }
 
         if (domain.TryValidateRequestConversion(request, out var entityValue))
