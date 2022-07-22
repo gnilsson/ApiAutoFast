@@ -7,5 +7,5 @@ namespace ApiAutoFast.Sample.Server;
 
 public partial class BlogDeleteCommand
 {
-    public string Id { get; set; }
+    public string Id { get; set; } = default!;
 }

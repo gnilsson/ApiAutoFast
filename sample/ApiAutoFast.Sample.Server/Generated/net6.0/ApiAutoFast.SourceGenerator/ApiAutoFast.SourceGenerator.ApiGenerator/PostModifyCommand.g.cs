@@ -7,7 +7,7 @@ namespace ApiAutoFast.Sample.Server;
 
 public partial class PostModifyCommand
 {
-    public string Id { get; set; }
+    public string Id { get; set; } = default!;
     public string? Title { get; set; }
     public string? PublicationDateTime { get; set; }
     public string? Description { get; set; }

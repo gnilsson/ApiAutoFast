@@ -1,4 +1,6 @@
 ﻿
+#nullable enable
+
 using ApiAutoFast;
 using ApiAutoFast.EntityFramework;
 using FastEndpoints;
@@ -16,8 +18,8 @@ public partial class GetAuthorEndpoint : EndpointBase<AuthorQueryRequest, Pagina
 
     private static readonly Dictionary<string, Func<string, Expression<Func<Author, bool>>>> _stringMethods = new()
     {
-        ["FirstName"] = static query => entity => ((string)entity.FirstName).Contains(query),
-        ["LastName"] = static query => entity => ((string)entity.LastName).Contains(query),
+        ["FirstName"] = static query => entity => entity.FirstName != null && ((string)entity.FirstName).Contains(query),
+        ["LastName"] = static query => entity => entity.LastName != null && ((string)entity.LastName).Contains(query),
     };
     private static readonly string[] _relationalNavigationNames = new string[]
     {

@@ -15,5 +15,5 @@ public partial class PostResponse
     public string? Description { get; init; }
     public string? PostType { get; init; }
     public int? LikeCount { get; init; }
-    public BlogResponseSimplified Blog { get; init; }
+    public BlogResponseSimplified Blog { get; init; } = default!;
 }

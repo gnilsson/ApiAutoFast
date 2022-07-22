@@ -37,46 +37,31 @@
 		<Content Include="$(GeneratedFolder)/**/*.cs" />
 	</ItemGroup>
 
-	<!-- Mapster generation commands -->
-	<Target Name="Mapster">
-		<Exec WorkingDirectory="$(ProjectDir)" Command="dotnet msbuild -p:IgnoreFolder=$(IgnoreFolder)" />
-		<Exec WorkingDirectory="$(ProjectDir)" Command="dotnet tool restore" />
-		<Exec WorkingDirectory="$(ProjectDir)" Command="dotnet mapster model -a &quot;$(TargetDir)$(ProjectName).dll&quot;" />
-		<Exec WorkingDirectory="$(ProjectDir)" Command="dotnet mapster extension -a &quot;$(TargetDir)$(ProjectName).dll&quot;" />
-		<Exec WorkingDirectory="$(ProjectDir)" Command="dotnet mapster mapper -a &quot;$(TargetDir)$(ProjectName).dll&quot;" />
-	</Target>
-
-	<!-- Mapster needs two builds to fully generate mapper class -->
-	<Target Name="AutoFastMap">
-		<Exec WorkingDirectory="$(ProjectDir)" Command="dotnet msbuild -t:Mapster -p:IgnoreFolder=$(IgnoreFolder)" />
-		<Exec WorkingDirectory="$(ProjectDir)" Command="dotnet msbuild -t:Mapster -p:IgnoreFolder=$(IgnoreFolder)" />
-	</Target>
-
 	<PropertyGroup>
 		<!-- 👇 Flag to determine to exclude a folder from build -->
-		<IgnoreFolder>false</IgnoreFolder>
+		<Relevant>false</Relevant>
 		<!-- 👇 A folder that has errors before everything is generated -->
 		<FolderToIgnore>Endpoints/**/*.cs</FolderToIgnore>
 		<!-- 👇 Ensure our project is part of build to trigger generator -->
 		<ProjectToInclude>../$(ProjectName).csproj/*/*.cs</ProjectToInclude>
 	</PropertyGroup>
 
-
-	<!-- Parameter passed to build around files that depend on generated files -->
+	<!-- Parameter to include relevant project & exclude specified of out sync folder -->
 	<ItemGroup>
-		<Compile Condition="$(IgnoreFolder) == true" Include="$(ProjectToInclude)" />
-		<Compile Condition="$(IgnoreFolder) == true" Remove="$(FolderToIgnore)" />
-		<Content Condition="$(IgnoreFolder) == true" Include="$(FolderToIgnore)" />
+		<Compile Condition="$(Relevant) == true" Include="$(ProjectToInclude)" />
+		<Compile Condition="$(Relevant) == true" Remove="$(FolderToIgnore)" />
+		<Content Condition="$(Relevant) == true" Include="$(FolderToIgnore)" />
 	</ItemGroup>
+
+	<!-- Clean generated files and build -->
+	<Target Name="CleanBuild">
+		<Delete Files="@(Generated)" />
+		<Exec WorkingDirectory="$(ProjectDir)" Command="dotnet msbuild -p:Relevant=$(Relevant)" />
+	</Target>
 
 	<ItemGroup>
 		<!-- 👇 All generated files -->
 		<Generated Include="**\*.g.cs" />
 	</ItemGroup>
-
-	<!-- Clean generated files, needed for mapster files -->
-	<Target Name="CleanGenerated">
-		<Delete Files="@(Generated)" />
-	</Target>
 
 </Project>

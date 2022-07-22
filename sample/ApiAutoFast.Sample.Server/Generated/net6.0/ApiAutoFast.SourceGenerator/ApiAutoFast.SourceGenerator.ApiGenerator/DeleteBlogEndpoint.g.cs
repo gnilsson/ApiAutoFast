@@ -1,4 +1,6 @@
 ﻿
+#nullable enable
+
 using ApiAutoFast;
 using ApiAutoFast.EntityFramework;
 using FastEndpoints;

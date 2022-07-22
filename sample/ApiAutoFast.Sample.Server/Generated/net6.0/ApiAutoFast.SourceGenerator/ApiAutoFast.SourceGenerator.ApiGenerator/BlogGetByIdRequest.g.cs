@@ -7,5 +7,5 @@ namespace ApiAutoFast.Sample.Server;
 
 public partial class BlogGetByIdRequest
 {
-    public string Id { get; set; }
+    public string Id { get; set; } = default!;
 }

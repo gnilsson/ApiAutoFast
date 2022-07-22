@@ -1,4 +1,6 @@
 ﻿
+#nullable enable
+
 using ApiAutoFast;
 using ApiAutoFast.EntityFramework;
 using FastEndpoints;
@@ -16,8 +18,8 @@ public partial class GetPostEndpoint : EndpointBase<PostQueryRequest, Paginated<
 
     private static readonly Dictionary<string, Func<string, Expression<Func<Post, bool>>>> _stringMethods = new()
     {
-        ["Title"] = static query => entity => ((string)entity.Title).Contains(query),
-        ["Description"] = static query => entity => ((string)entity.Description).Contains(query),
+        ["Title"] = static query => entity => entity.Title != null && ((string)entity.Title).Contains(query),
+        ["Description"] = static query => entity => entity.Description != null && ((string)entity.Description).Contains(query),
     };
     private static readonly string[] _relationalNavigationNames = new string[]
     {

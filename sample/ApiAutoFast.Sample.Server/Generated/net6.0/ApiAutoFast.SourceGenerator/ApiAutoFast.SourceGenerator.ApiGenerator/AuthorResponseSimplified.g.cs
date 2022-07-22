@@ -12,5 +12,5 @@ public partial class AuthorResponseSimplified
     public string ModifiedDateTime { get; init; } = default!;
     public string? FirstName { get; init; }
     public string? LastName { get; init; }
-    public IEnumerable<string> Blogs { get; init; }
+    public IEnumerable<string>? Blogs { get; init; }
 }
