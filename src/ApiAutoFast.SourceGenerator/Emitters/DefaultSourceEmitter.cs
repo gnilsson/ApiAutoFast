@@ -95,6 +95,8 @@ public partial class ").Append(entityConfig.BaseName).Append(modelTarget).Append
         {
             foreach (var property in entityConfig.PropertyConfig.Properties.Where(x => x.Target.HasFlag(propertyTarget)))
             {
+                if (property.Relation.Type is RelationalType.ToMany && propertyTarget is PropertyTarget.QueryRequest) continue;
+
                 sb.Append(@"
     ").Append(property.Source);
             }

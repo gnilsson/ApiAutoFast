@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace ApiAutoFast.Sample.Server;
 
-public static partial class BlogMapper2
+public static partial class BlogMapper
 {
     public static BlogResponse MapToResponse(this Blog p)
     {

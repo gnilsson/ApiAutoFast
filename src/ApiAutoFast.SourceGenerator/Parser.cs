@@ -339,31 +339,15 @@ internal static class Parser
     {
         var domainValueDefinition = propertySetup.DomainValueMetadata.Definition;
 
-        var propertySource = GetPropertySource(propertySetup, domainValueDefinition, entityIdTypes, domainValueDefinition.PropertyRelation.ForeignEntityName);
+        var propertySource = GetPropertySource(propertySetup, domainValueDefinition, entityIdTypes);
 
-        if (propertySetup.DomainValueMetadata.AttributeDatas.Length > 0)
+        foreach (var propertyOutput in YieldIncludedEntityOutput(propertySetup, propertySource))
         {
-            //note: this is the root of the complexity, changing the entity of the property. (being able to specify which entity from domainvalue attribute)
-            var typedConstant = propertySetup.DomainValueMetadata.AttributeDatas
-                .FirstOrDefault(x => x.AttributeClass?.Name is TypeText.IncludeInCommandAttribute && x.ConstructorArguments.Length > 0)?.ConstructorArguments[0];
-
-            if (typedConstant!.Value.Kind is TypedConstantKind.Array)
-            {
-                foreach (var value in typedConstant.Value.Values)
-                {
-                    var newEntityName = (value.Value as INamedTypeSymbol)!.Name;
-                    yield return new PropertyOutput(newEntityName, propertySource.Command!, PropertyTarget.CreateCommand, propertySetup.Name);
-                }
-            }
-            else
-            {
-                var newEntityName = (typedConstant.Value.Value as INamedTypeSymbol)!.Name;
-                yield return new PropertyOutput(newEntityName, propertySource.Command!, PropertyTarget.CreateCommand, propertySetup.Name);
-            }
+            yield return propertyOutput;
         }
 
         yield return new PropertyOutput(entityName, propertySource.Entity!, PropertyTarget.Entity, propertySetup.Name, domainValueDefinition.PropertyRelation);
-        yield return new PropertyOutput(entityName, propertySource.Response!, PropertyTarget.Response, propertySetup.Name,domainValueDefinition.PropertyRelation);
+        yield return new PropertyOutput(entityName, propertySource.Response!, PropertyTarget.Response, propertySetup.Name, domainValueDefinition.PropertyRelation);
 
         if (domainValueDefinition.PropertyRelation.Type is RelationalType.ToOne)
         {
@@ -371,37 +355,64 @@ internal static class Parser
             yield return new PropertyOutput(entityName, propertySource.ResponseId!, PropertyTarget.Response, propertySetup.Name, domainValueDefinition.PropertyRelation, PropertyKind.Identifier);
         }
 
-        if (domainValueDefinition.PropertyRelation.Type is not RelationalType.ToMany)
-        {
-            yield return new PropertyOutput(entityName, propertySource.Request!, PropertyTarget.QueryRequest, propertySetup.Name);
-            yield return new PropertyOutput(entityName, propertySource.Command!, PropertyTarget.CreateCommand | PropertyTarget.ModifyCommand, propertySetup.Name);
-            yield break;
-        }
+        //if (domainValueDefinition.PropertyRelation.Type is not RelationalType.ToMany)
+        //{
+        //    yield return new PropertyOutput(entityName, propertySource.Request!, PropertyTarget.QueryRequest, propertySetup.Name);
+        //    yield break;
+        //}
 
-        yield return new PropertyOutput(entityName, propertySource.ResponseId!, PropertyTarget.Response, propertySetup.Name, domainValueDefinition.PropertyRelation, PropertyKind.Identifier);
+        yield return new PropertyOutput(entityName, propertySource.Request!, PropertyTarget.CreateCommand | PropertyTarget.ModifyCommand | PropertyTarget.QueryRequest, propertySetup.Name, domainValueDefinition.PropertyRelation);
+
+        if (domainValueDefinition.PropertyRelation.Type is RelationalType.ToMany)
+        {
+            yield return new PropertyOutput(entityName, propertySource.ResponseId!, PropertyTarget.Response, propertySetup.Name, domainValueDefinition.PropertyRelation, PropertyKind.Identifier);
+        }
+    }
+
+    private static IEnumerable<PropertyOutput> YieldIncludedEntityOutput(PropertySetup propertySetup, PropertySource propertySource)
+    {
+        if (propertySetup.DomainValueMetadata.AttributeDatas.Length > 0)
+        {
+            var entityName = propertySetup.DomainValueMetadata.AttributeDatas
+                .FirstOrDefault(x => x.AttributeClass?.Name is TypeText.IncludeInCommandAttribute && x.ConstructorArguments.Length > 0)?.ConstructorArguments[0];
+
+            if (entityName is null) yield break;
+
+            if (entityName.Value.Kind is TypedConstantKind.Array)
+            {
+                foreach (var name in entityName.Value.Values)
+                {
+                    yield return new PropertyOutput((name.Value as INamedTypeSymbol)!.Name, propertySource.Command!, PropertyTarget.CreateCommand, propertySetup.Name);
+                }
+                yield break;
+            }
+
+            yield return new PropertyOutput((entityName.Value.Value as INamedTypeSymbol)!.Name, propertySource.Command!, PropertyTarget.CreateCommand, propertySetup.Name);
+        }
     }
 
     // dictionary.. [key string] { source, type }
 
-    private static PropertySource GetPropertySource(PropertySetup propertySetup, DomainValueDefinition domainValueDefinition, ImmutableDictionary<string, string> entities, string foreignEntityName)
+    private static PropertySource GetPropertySource(PropertySetup propertySetup, DomainValueDefinition domainValueDefinition, ImmutableDictionary<string, string> entities)
     {
         //todo: clean up
         // holy mess
         var firstSpaceIndex = propertySetup.BaseSource.IndexOf(' ');
         var initSource = propertySetup.BaseSource.Replace("set;", "init;");
+        var foreignEntityName = domainValueDefinition.PropertyRelation.ForeignEntityName;
 
         if (domainValueDefinition.PropertyRelation.Type is RelationalType.None)
         {
             var entitySource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.TypeName}?");
             var requestSource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}?");
-            var commandSource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}");
+            //    var commandSource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}");
             var responseSource = initSource.Insert(firstSpaceIndex, $" {domainValueDefinition.ResponseType}?");
 
             return new PropertySource
             {
                 Entity = entitySource,
                 Request = requestSource,
-                Command = commandSource,
+                //        Command = commandSource,
                 MetadataType = domainValueDefinition.EntityType,
                 Response = responseSource,
             };
@@ -413,16 +424,16 @@ internal static class Parser
             var baseSource = propertySetup.BaseSource.Insert(endOfPropertyNameIndex, "Id");
             var entitySource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.EntityType}");
             var requestSource = baseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}?");
-            var commandSource = baseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}");
+            //    var commandSource = baseSource.Insert(firstSpaceIndex, $" {domainValueDefinition.RequestType}");
             var responseSource = initSource.Insert(firstSpaceIndex, $" {foreignEntityName}ResponseSimplified");
-            var idSource = baseSource.Insert(firstSpaceIndex, $" {entities[foreignEntityName]}");
+            var idSource = baseSource.Insert(firstSpaceIndex, $" {entities[domainValueDefinition.PropertyRelation.ForeignEntityName]}");
             var responseIdSource = initSource.Insert(firstSpaceIndex, $" string");
 
             return new PropertySource
             {
                 Entity = entitySource,
                 Request = requestSource,
-                Command = commandSource,
+                //        Command = commandSource,
                 MetadataType = domainValueDefinition.EntityType,
                 Response = responseSource,
                 Id = idSource,
@@ -436,6 +447,7 @@ internal static class Parser
             var foreginResponseType = domainValueDefinition.EntityType.Replace(foreignEntityName, $"{foreignEntityName}ResponseSimplified");
             var responseIdSource = initSource.Insert(firstSpaceIndex, $" IEnumerable<string>");
             var responseSource = initSource.Insert(firstSpaceIndex, $" {foreginResponseType}").Replace("ICollection", "IEnumerable");
+            var commandSource = propertySetup.BaseSource.Insert(firstSpaceIndex, $" IEnumerable<string>?");
 
             return new PropertySource
             {
@@ -443,6 +455,7 @@ internal static class Parser
                 MetadataType = domainValueDefinition.EntityType,
                 Response = responseSource,
                 ResponseId = responseIdSource,
+                Request = commandSource,
             };
         }
 

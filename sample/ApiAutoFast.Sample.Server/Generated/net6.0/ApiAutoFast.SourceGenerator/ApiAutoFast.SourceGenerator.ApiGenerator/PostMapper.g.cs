@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace ApiAutoFast.Sample.Server;
 
-public static partial class PostMapper2
+public static partial class PostMapper
 {
     public static PostResponse MapToResponse(this Post p)
     {

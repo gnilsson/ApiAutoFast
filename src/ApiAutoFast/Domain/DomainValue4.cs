@@ -45,6 +45,13 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
 
     public TEntity? EntityValue { get; private set; }
 
+    protected virtual bool TryValidateRequestConversion<T>(T? requestValue, [NotNullWhen(true)] out TEntity entityValue) where T : struct
+    {
+        entityValue = requestValue is TEntity entityRequestValue ? entityRequestValue : default!;
+
+        return requestValue is not null;
+    }
+
     protected virtual bool TryValidateRequestConversion(TRequest? requestValue, [NotNullWhen(true)] out TEntity entityValue)
     {
         entityValue = requestValue is TEntity entityRequestValue ? entityRequestValue : default!;
@@ -71,8 +78,27 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
         return default!;
     }
 
-    public static TDomain? UpdateFromRequest(TDomain domain, TRequest? request, Action<string, string> addError)
+    public static TDomain? ConvertFromRequest<T>(T? request, Action<string, string> addError) where T : struct
     {
+        var domain = _factory();
+
+        if (domain.TryValidateRequestConversion(request, out var entityValue))
+        {
+            domain.EntityValue = entityValue;
+            return domain;
+        }
+
+        addError(typeof(TDomain).Name, ValidationErrorMessageContainer.Get<TDomain>());
+        return default!;
+    }
+
+    public static TDomain? UpdateFromRequest(TDomain? domain, TRequest? request, Action<string, string> addError)
+    {
+        if (domain is null)
+        {
+            return ConvertFromRequest(request, addError);
+        }
+
         if (request is null)
         {
             return domain;
@@ -83,9 +109,32 @@ public class DomainValue<TRequest, TEntity, TResponse, TDomain> where TDomain : 
             return (TDomain)entityValue;
         }
 
-        addError(typeof(TDomain).Name, ValidationErrorMessageContainer.Get<TDomain>() );
+        addError(typeof(TDomain).Name, ValidationErrorMessageContainer.Get<TDomain>());
         return default!;
     }
+
+
+    public static TDomain? UpdateFromRequest<T>(TDomain? domain, T? request, Action<string, string> addError) where T : struct
+    {
+        if (domain is null)
+        {
+            return ConvertFromRequest(request, addError);
+        }
+
+        if (request is null)
+        {
+            return domain;
+        }
+
+        if (domain.TryValidateRequestConversion(request, out var entityValue))
+        {
+            return (TDomain)entityValue;
+        }
+
+        addError(typeof(TDomain).Name, ValidationErrorMessageContainer.Get<TDomain>());
+        return default!;
+    }
+
 
     public static implicit operator DomainValue<TRequest, TEntity, TResponse, TDomain>(TEntity entityValue) => From(entityValue);
 

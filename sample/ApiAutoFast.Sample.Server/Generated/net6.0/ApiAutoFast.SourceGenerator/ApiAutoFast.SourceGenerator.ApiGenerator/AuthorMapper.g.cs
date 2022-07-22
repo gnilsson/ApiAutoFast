@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace ApiAutoFast.Sample.Server;
 
-public static partial class AuthorMapper2
+public static partial class AuthorMapper
 {
     public static AuthorResponse MapToResponse(this Author p)
     {

@@ -31,7 +31,7 @@ using System.Linq;
 
 namespace ").Append(@namespace).Append(@";
 
-public static partial class ").Append(entityConfig.BaseName).Append(@"Mapper2
+public static partial class ").Append(entityConfig.BaseName).Append(@"Mapper
 {
     public static ").Append(entityConfig.Response).Append(@" MapToResponse(this ").Append(entityConfig.BaseName).Append(@" p)
     {
