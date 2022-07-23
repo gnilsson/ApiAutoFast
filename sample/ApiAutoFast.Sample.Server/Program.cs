@@ -1,5 +1,4 @@
 global using ApiAutoFast;
-using ApiAutoFast.Pagination;
 using ApiAutoFast.Sample.Server;
 using FastEndpoints;
 using FastEndpoints.Swagger;
@@ -10,14 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors();
 builder.Services.AddResponseCaching();
 
-builder.Services
-    .AddSwaggerDoc(s =>
-    {
-        s.DocumentName = "Initial Release";
-        s.Title = "Web API";
-        s.Version = "v0.0";
-        s.OperationProcessors.Add(new KeysetPaginationOperationProcessor());
-    }, shortSchemaNames: true);
+//builder.Services.AddFastEndpoints();
 
 builder.Services.AddAutoFast(o =>
 {

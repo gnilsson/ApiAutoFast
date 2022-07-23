@@ -6,5 +6,5 @@ internal interface IAutoFastImplementor
 {
     void Run();
 
-    IServiceCollection RegisterServices(IServiceCollection services);
+    IServiceCollection RegisterServices(IServiceCollection services, AutoFastOptions options);
 }

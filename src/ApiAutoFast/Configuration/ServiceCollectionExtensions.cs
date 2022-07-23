@@ -24,7 +24,7 @@ public static class ServiceCollectionExtensions
 
         impl.Run();
 
-        services = impl.RegisterServices(services);
+        services = impl.RegisterServices(services, options);
 
         return services;
     }

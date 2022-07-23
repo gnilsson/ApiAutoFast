@@ -1,6 +1,9 @@
-﻿using ApiAutoFast.Utility;
+﻿using ApiAutoFast.Pagination;
+using ApiAutoFast.Utility;
 using FastEndpoints;
+using FastEndpoints.Swagger;
 using Microsoft.Extensions.DependencyInjection;
+using NSwag.Generation.AspNetCore;
 using System.Reflection;
 
 namespace ApiAutoFast;
@@ -14,7 +17,7 @@ internal sealed class AutoFastImplementor : IAutoFastImplementor
         _options = options;
     }
 
-    public IServiceCollection RegisterServices(IServiceCollection services)
+    public IServiceCollection RegisterServices(IServiceCollection services, AutoFastOptions options)
     {
         services.AddFastEndpoints(new[] { typeof(IAutoFastAssemblyMarker).Assembly });
 
@@ -22,6 +25,22 @@ internal sealed class AutoFastImplementor : IAutoFastImplementor
         {
             c.PageQueryParameterName = "p";
         });
+
+
+        var openApiSettings = options.OpenApiDocumentGeneratorSettings is not null ? options.OpenApiDocumentGeneratorSettings : (a) =>
+        {
+            a.DocumentName = "Initial Release";
+            a.Title = "Web API";
+            a.Version = "v0.0";
+        };
+
+        var settingsAction = (AspNetCoreOpenApiDocumentGeneratorSettings a) =>
+        {
+            openApiSettings(a);
+            a.OperationProcessors.Add(new KeysetPaginationOperationProcessor());
+        };
+
+        services.AddSwaggerDoc(settingsAction, shortSchemaNames: true);
 
         return services;
     }
