@@ -5,6 +5,7 @@ using FastEndpoints.Swagger;
 using Microsoft.Extensions.DependencyInjection;
 using NSwag.Generation.AspNetCore;
 using System.Reflection;
+using FastEndpoints.Generator;
 
 namespace ApiAutoFast;
 
@@ -19,13 +20,12 @@ internal sealed class AutoFastImplementor : IAutoFastImplementor
 
     public IServiceCollection RegisterServices(IServiceCollection services, AutoFastOptions options)
     {
-        services.AddFastEndpoints(new[] { typeof(IAutoFastAssemblyMarker).Assembly });
+        services.AddFastEndpoints(o => o.SourceGeneratorDiscoveredTypes = DiscoveredTypes.All);
 
         services.AddPagination(c =>
         {
             c.PageQueryParameterName = "p";
         });
-
 
         var openApiSettings = options.OpenApiDocumentGeneratorSettings is not null ? options.OpenApiDocumentGeneratorSettings : (a) =>
         {
