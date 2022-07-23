@@ -10,7 +10,7 @@ Access & add to the partial classes and modify & extend generated endpoints by i
 
 
 ```console
-dotnet add package ApiAutoFast --version 0.6.1-beta
+dotnet add package ApiAutoFast --version 0.6.2-beta
 dotnet add package ApiAutoFast.SourceGenerator --version 0.6.1-beta
 ```
 
