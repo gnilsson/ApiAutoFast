@@ -1,5 +1,4 @@
 # ApiAutoFast
-### Fast and automagical, pristine API
 
 Build a REST api around your entities with simple generator marker attributes.
 Define type conversion from request to entity with validation on a per property basis, aswell as entity to response.
