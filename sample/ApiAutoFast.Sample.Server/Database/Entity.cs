@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
+using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 
 namespace ApiAutoFast.Sample.Server;
 
@@ -31,6 +33,65 @@ public class AuthorEntity
     public BlogsRelation Blogs { get; set; } = default!;
 }
 
+
+
+public class Entity
+{
+    //[AutoFastEntity]
+    public class Author : IEntitySetup
+    {
+        public void Setup()
+        {
+            this
+                .EntitySetup()
+                .WithProperty<DomainValue.FirstName>(o => o
+                    .WithAttribute<RequiredAttribute>()
+                    .WithAttribute<MaxLengthAttribute>(10))
+                .WithProperty<LastName>()
+                .WithRelationToMany<Blog>();
+        }
+    }
+
+    public class Blog : IEntitySetup
+    {
+        public void Setup()
+        {
+        }
+    }
+}
+
+
+public class DomainValue
+{
+    public class FirstName : IPropertySetup
+    {
+        public void Setup()
+        {
+            this
+                .PropertySetup()
+                .WithDomainValueTypes<string>(o => o.TryValidateRequestConversion = (string? requestValue, out string entityValue) =>
+                {
+                    entityValue = requestValue!;
+                    return requestValue is not null && Regex.IsMatch(requestValue, RegexPattern);
+                })
+                .WithValidationErrorMessage("Invalid format.");
+        }
+
+        private const string RegexPattern = "";
+    }
+
+    public class LastName : IPropertySetup
+    {
+        public void Setup()
+        {
+            this
+                .PropertySetup()
+                .WithDomainValueTypes<string>();
+        }
+    }
+
+
+}
 
 public class BlogRelation : DomainValue<string, Blog, BlogRelation>
 {

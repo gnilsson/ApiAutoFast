@@ -11,7 +11,7 @@ public class PublicationDateTime : DomainValue<string, DateTime, PublicationDate
     }
 
     //deprecate
-    public override string ToString() => EntityValue.ToLongDateString();
+   // public override string ToString() => EntityValue.ToLongDateString();
 
     public override string ToResponse()
     {
@@ -28,8 +28,6 @@ public class Title : DomainValue<string, Title>
         entityValue = requestValue!;
         return requestValue is not null && Regex.IsMatch(requestValue, RegexPattern);
     }
-
-    //    protected override string? MessageOnFailedValidation => "Incorrect format on Title.";
 }
 
 public class Description : DomainValue<string, Description>
